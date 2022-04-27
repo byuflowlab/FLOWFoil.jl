@@ -1,0 +1,7 @@
+name = "FLOWFoil"
+uuid = "fb58ae67-a5c0-4a90-8078-890ae2c2e65e"
+authors = ["Judd Mehr"]
+version = "0.1.0"
+
+[compat]
+julia = "1.6"

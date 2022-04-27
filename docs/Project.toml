@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+FLOWFoil = "fb58ae67-a5c0-4a90-8078-890ae2c2e65e"
