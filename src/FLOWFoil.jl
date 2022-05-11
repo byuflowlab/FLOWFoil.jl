@@ -5,9 +5,15 @@ using LinearAlgebra
 
 # EXPORTS
 
+#TYPES
 # geometry types
 export Mesh, MeshSystem
+# operating point types
+export Freestream
+# problem types
+export Problem, Solution
 
+#FUNCTIONS
 # geometry functions
 export generatemesh
 

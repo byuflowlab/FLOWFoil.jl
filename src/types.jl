@@ -49,15 +49,18 @@ struct MeshSystem{TM,TF}
     locations::Vector{Vector{TF}}
 end
 
+# TODO: probably make these type unions and set things up to loop through fields that are vectors rather than floats
 """
     Freestream{TF}
 
 Freestream Definition.
 
 **Fields:**
- - 'reynolds::Vector{Float}' : Reynolds Numbers.
- - 'machs::Vector{Float}' : Mach Numbers.
- - 'anglesofattack::Vector{Float}' : Angles of attack.
+ - 'reynolds::Vector{Float}' : Reynolds Numbers
+ - 'density::Vector{Float}' : air density
+ - 'dynamicviscosity::Vector{Float}' : air dynamic viscosity
+ - 'mach::Vector{Float}' : Mach Numbers
+ - 'angleofattack::Vector{Float}' : Angles of attack in degrees
 
 """
 struct Freestream{TF}
@@ -65,7 +68,7 @@ struct Freestream{TF}
     density::Vector{TF}
     dynamicviscosity::Vector{TF}
     mach::Vector{TF}
-    anglesofattack::Vector{TF}
+    angleofattack::Vector{TF}
 end
 
 """
@@ -74,23 +77,20 @@ end
 Problem definition and method selection.
 
 **Fields:**
- - 'meshsystem::MeshSystem : Mesh System to solve.
- - 'panelshape::String' : Shape of panel to use, e.g., "le.g.r".
- - 'singularitytype::String' : Type of singularity to use, e.g., "source".
- - 'singularityorder::String' : Order of singularity distributions, e.g., "constant".
- - 'verbose::Bool' : Flag to print out verbose statements.
- - 'debug::Bool' : Flag to print out debugging statements.
+ - 'meshsystem::MeshSystem' : Mesh System to solve
+ - 'freestream::FreeStream' : Freestream parameters
+ - 'verbose::Bool' : Flag to print out verbose statements
+ - 'debug::Bool' : Flag to print out debugging statements
 
 """
 struct Problem{TM,TS,TB}
     meshsystem::TM
-    panelshape::TS
-    singularitytype::TS
-    singularityorder::TS
+    freestream::TS
     verbose::TB
     debug::TB
 end
 
+# TODO: figure out best way to normalize outputs
 """
     Solution{TM,TF}
 
@@ -99,23 +99,28 @@ Output object containing solution and useful items.
 **Fields:**
  - 'meshsystem::MeshSystem' : Mesh System used in solution (potentially modified from input meshes).
  - 'strengthsvec::Array{Float,2}' : singularity strengths.
- - 'geocoeffmat::Array{Float,2}' : Geometric Coefficient Matrix used in solution.
+ - 'vcoeffmat::Array{Float,2}' : Vortex Coefficient Matrix used in solution.
+ - 'scoeffmat::Array{Float,2}' : Source Coefficient Matrix used in solution.
  - 'bccoeffvec::Vector{Float}' : Boundary Coefficient Vector used in solution.
  - 'lift::Vector{Float}' : Lift Coefficients.
  - 'drag::Vector{Float}' : Total Drag Coefficients.
  - 'pdrag::Vector{Float}' : Pressure Drag Coefficients.
  - 'idrag::Vector{Float}' : Induced Drag Coefficients.
  - 'moment::Vector{Float}' : Moment Coefficients.
-
+ - 'surfacevelocity::Vector{Float}' : surface velocity distribution
+ - 'surfacepressure::Vector{Float}' : surface pressure distribution
 """
 struct Solution{TM,TF}
     meshsystem::TM
     strengthsvec::Array{TF}
-    geocoeffmat::Array{TF,2}
+    vcoeffmat::Array{TF,2}
+    scoeffmat::Array{TF,2}
     bccoeffvec::Vector{TF}
     lift::Vector{TF}
     drag::Vector{TF}
     pdrag::Vector{TF}
     idrag::Vector{TF}
     moment::Vector{TF}
+    surfacevelocity::Vector{TF}
+    surfacepressure::Vector{TF}
 end
