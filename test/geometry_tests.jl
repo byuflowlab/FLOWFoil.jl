@@ -70,8 +70,8 @@ end
 
         # Test angle calculations
         r1, magr1 = FLOWFoil.get_r(nodes[1], nodes[1])
-        theta1 = FLOWFoil.get_theta(r1, d)
-        theta2 = FLOWFoil.get_theta(r2, d)
+        theta1 = FLOWFoil.get_theta(r1, magr1, d, magd)
+        theta2 = FLOWFoil.get_theta(r2, magr2, d, magd)
 
         @test isapprox(theta2, pi)
 
@@ -95,8 +95,8 @@ end
 
         # Test angle calculations
         r1, magr1 = FLOWFoil.get_r(nodes[2], nodes[1])
-        theta1 = FLOWFoil.get_theta(r1, d)
-        theta2 = FLOWFoil.get_theta(r2, d)
+        theta1 = FLOWFoil.get_theta(r1, magr1, d, magd)
+        theta2 = FLOWFoil.get_theta(r2, magr2, d, magd)
 
         @test isapprox(theta1, pi / 2)
         @test isapprox(theta2, 3 * pi / 4)

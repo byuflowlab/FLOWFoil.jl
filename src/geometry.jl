@@ -172,7 +172,7 @@ function get_d(node1, node2)
 end
 
 """
-    get_theta(r, d)
+    get_theta(r, rmag, d, dmag)
 
 Get angle (in radians) between panel and vector from node to evaluation point.
 
