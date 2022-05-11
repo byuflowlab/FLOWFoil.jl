@@ -3,3 +3,11 @@
 *.jl.mem
 /Manifest.toml
 /docs/build/
+
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.gz
