@@ -1,0 +1,219 @@
+\documentclass[]{article}
+
+%Move Title Up
+\usepackage[T1]{fontenc}
+\usepackage{titling}
+\setlength{\droptitle}{-10em}   % This is your set screw
+
+%Date Format
+\usepackage[]{datetime}
+\newdateformat{mydate}{\THEDAY~\monthname[\THEMONTH]~\THEYEAR}
+
+%Bullet Style
+%\renewcommand{\labelitemi}{-}
+
+
+%graphics packages
+\usepackage[]{graphicx}
+\graphicspath{{./figures/}}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{placeins}
+\usepackage{wrapfig}
+
+
+%mathpackages
+\usepackage{amsmath}
+\usepackage{amsfonts} 
+\usepackage{siunitx}
+\usepackage{mathrsfs}
+\newcommand{\vect}{\mathbf}
+%\newcommand{\vect}{\overset{\rightharpoonup}}
+\usepackage{nicefrac}
+\usepackage{cancel}
+
+%referencing packages
+\usepackage{hyperref}
+\usepackage[noabbrev]{cleveref}
+
+
+
+\title{FLOWFoil Theory Document}
+
+% Your name goes here:
+\author{Judd Mehr, }
+\date{}
+
+
+
+\begin{document}
+
+\maketitle
+
+\noindent \textbf{Last Updated:} \mydate\today
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Geometry}
+\label{sec:geometry}
+
+\subsection{Panels}
+\label{ssec:panels}
+
+For any geometric input, we assume that the airfoil geometry begins at the trailing egde and proceeds clockwise around the leading edge and back to the trailing edge.
+It is likely convenient to input geometry data that positions the airfoil leading edge at the origin and has a chord length of one.
+
+Linear panels are defines using the input coordinates as the panel end points.
+\Cref{fig:linearpanels} shows the geometry convention uses in FLOWFoil as well as the linear paneling of an airfoil.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\textwidth]{draft}
+	\caption{Linear Paneling}
+	\label{fig:linearpanels}
+\end{figure}
+
+
+\section{Inviscid Solution Details}
+\label{sec:inviscidsolution}
+
+
+\subsection{Vortex Influence Coefficients}
+\label{ssec:vortexinfluencecoefficients}
+
+Following the formulation in \cite{fidkowski_coupled_2022}, the inviscid system is assembled as follows.
+
+\begin{equation}
+	\mathbf{A} \mathbf{\gamma} = \mathbf{\Psi}^\infty
+\end{equation}
+
+\noindent where \(\mathbf{A}\) is comprized of the coefficients of influence between the panels and evaluation points.
+
+For a given evaluation point, \(i \in \mathbb{N}^N\), and panel, \(k \in \mathbb{N}^{N-1}\), (comprised of nodes \(j \in \mathbb{N}^N\) and \(j+1\)) the streamfunction at the evaluation point due to a linear vortex distribution across the panel (with vortex strengths at the nodes of \(\gamma_j\) and \(\gamma_{j+1}\), respectively) is
+
+\begin{equation}
+	\Psi_{ik} = \mathbf{\Psi}^\gamma_{ik} [\gamma_j, \gamma_{j+1}]^\top,
+\end{equation}
+
+\noindent where
+
+\begin{equation}
+	\mathbf{\Psi}^\gamma_{ik} = [\overline{\psi}^\gamma_{ik} - \widetilde{\psi}^\gamma_{ik}, \widetilde{\psi}^\gamma_{ik}]
+\end{equation}
+
+\noindent Therefore, the influence coefficient of the \(j\)th node on the \(i\)th node (the \(ij\)th element of \(\mathbf{A}\)) is comprized of portions of the influence seen from each panel of which it is part:
+
+\begin{equation}
+	A_{ij} = \begin{cases}
+		\overline{\psi}^\gamma_{ij} -  \widetilde{\psi}^\gamma_{ij} & j = 1 \\
+		\widetilde{\psi}^\gamma_{i,j-1} & j = N \\
+		\widetilde{\psi}^\gamma_{i,j-1} + \overline{\psi}^\gamma_{ij} -  \widetilde{\psi}^\gamma_{ij} & \mathrm{otherwise}.
+	\end{cases}
+\end{equation}
+
+\subsubsection{Influence Geometry}
+
+The components of \(\mathbf{\Psi}^\gamma_{ik}\) are defined as 
+
+\begin{align}
+	\overline{\psi}^\gamma_{ik} &= \frac{1}{2\pi} \left( h (\theta_{j+1} - \theta{j}) - d + a \ln(r_j) - (a-d)\ln(r_j+1) \right) \\
+	\widetilde{\psi}^\gamma_{ik} &= \frac{a}{d}\overline{\psi}^\gamma_{ij} + \frac{1}{4\pi d} \left(r^2_{j+1} \ln(r_{j+1}) - r^2_{j} \ln(r_j) - \frac{1}{2}r^2_{j+1} + \frac{1}{2}r^2_j \right).
+\end{align}
+\noindent In order to evaluate the the componenets of \(\mathbf{\Psi}^\gamma_{ik}\) we will need to understand the geometry of the problem.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\textwidth]{draft}
+	\caption{Influence Geometry}
+	\label{fig:influencegeometry}
+\end{figure}
+
+\Cref{fig:influencegeometry} shows the relative geometry for the problem, and we calculate each of the geometric values as follows.
+
+\begin{itemize}
+	\item The \(k\)th panel length, from the \(j\)th to \(j+1\)th node:
+	\begin{equation}
+		\vect{d}_k = \vect{n}_{j+1} - \vect{n}_j
+	\end{equation}
+	\noindent where \(n\) is the node position.
+	%
+	%
+	\item The vector from the \(j\)th node to the evaluation point:
+	\begin{equation}
+		\vect{r}_j = \vect{p} - \vect{n}_j
+	\end{equation}
+	\noindent where \(p\) is the evaluation point position.
+	%
+	%
+	\item The angle between the \(k\)th panel and the evaluation point centered at the \(j\)th node:
+	\begin{equation}
+		\theta_j = \cos^{-1}\left( \frac{\vect{r}_j \cdot \vect{d}_k}{r_jd_k} \right)
+	\end{equation}
+	\noindent where \(r = ||\vect{r}||\) and \(d = ||\vect{d}||\).
+	%
+	%
+	\item The height of the triangle made from the evaluation point and \(j\)th and \(j+1\)th nodes:
+	\begin{equation}
+		h_k = 2A/d_k
+	\end{equation}
+	\noindent where \(A = \left[ s (s - d_k) (s - r_j) (s - r_{j+1}) \right]^{1/2} \), where \(s = (d_k + r_j + r_{j+1})/2\) (this is Heron's formula for the area of a triangle).
+	%
+	%
+	\item The length of the right triangle with base aligned with the panel, and height, \(h_k\):
+	\begin{equation}
+		a_k = \begin{cases}
+			r_j \cos(\pi - \theta_j) + d_k & \mathrm{if}~~ \theta_j > \frac{\pi}{2} \\
+			d_k & \mathrm{if}~~ \theta_j = \frac{\pi}{2} \\
+			r_j\cos(\theta_j) & \mathrm{otherwise} 
+		\end{cases}
+	\end{equation}
+	%
+	%
+	\item The natural log of the distance between node and evaluation point:
+	\begin{equation}
+		\ln(r) = \begin{cases}
+			0 & \mathrm{if}~~ r = 0 \\
+			\ln(r) & \mathrm{otherwise}
+		\end{cases}
+	\end{equation}
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+
+\bibliography{ref}{}
+\bibliographystyle{aiaa}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\vspace{1cm}
+\hrule
+\vspace{1cm}
+
+\noindent  \textbf{Change Log:}
+
+\begin{itemize}
+	\item (date): change(s)
+\end{itemize}
+
+
+
+\end{document}
