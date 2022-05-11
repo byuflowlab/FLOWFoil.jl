@@ -9,7 +9,7 @@ Change Log:
 =#
 
 """
-    generatemesh(coordinates; order="linear")
+    generatemesh(x, y; chordlength, wakelength)
 
 Create panels from input geometry coordinates.
 
@@ -17,8 +17,12 @@ Create panels from input geometry coordinates.
  - 'x::Vector{Float}' : x coordinates defining airfoil geometry.
  - 'y::Vector{Float}' : y coordinates defining airfoil geometry.
 
+**Keyword Arguments:**
+ - chordlength::Float' : length of chord (default = 1)
+ - wakelength::Float' : length of wake relative to chord (default = 1)
+
 **Returns**
- - mesh::Mesh : Geometry mesh, including panel edge points and collocation points.
+ - mesh::Mesh : Geometry mesh, including panel nodes, wake nodes, and trailing edge condition.
 """
 function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
 
@@ -26,13 +30,13 @@ function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
     if length(x) != length(y)
         @error("x and y vectors must be of the same length")
     else
-        # get number of nodes for convenience
+        # get number of airfoil nodes for convenience
         numnodes = length(x)
         # get number of wake nodes for convenience
         numwake = ceil(Int, numnodes / 10 + 10 * wakelength)
     end
 
-    # Get panel edges from x,y coordinates
+    # Get node locations from x,y coordinates
     airfoil_nodes = [[x[i] y[i]] for i in 1:numnodes]
 
     # initialize the wake panel start point and direction
@@ -50,7 +54,7 @@ function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
         push!(airfoil_nodes, airfoil_nodes[1])
 
         # and update the wake panel starting location to be the midpoint of the gap panel.
-        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1])/2.0
+        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
 
         # and update the wake panel initial direction to be the normal of that panel
         wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
@@ -58,10 +62,9 @@ function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
         # and set blunt_te to true
         blunt_te = true
 
-    else
+    else #(closed trailing edge)
 
-        # update wake panel direction to be mean of trailing edge panel angles
-
+        # update wake panel direction to be bisection of trailing edge panel vectors
         # get vector along first panel
         a1 = airfoil_nodes[1] - airfoil_nodes[2]
 
@@ -75,8 +78,12 @@ function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
         wakedir = bisector / LinearAlgebra.norm(bisector)
     end
 
+    #TODO: There is something in the method about a trailing half panel, find out what that means and if you should remove the final wake node or not.
     # get initial wake geometry: equidistant panels starting at wakestart point and extending the input percentage of the airfoil chord in the calculated direction.
-    wake_nodes = [        wakestart .+ x .* wakedir  for        x in range(0.0; stop=wakelength * chordlength, length=numwake)    ]
+    wake_nodes = [
+        wakestart .+ x .* wakedir for
+        x in range(0.0; stop=wakelength * chordlength, length=numwake)
+    ]
 
     # get wake midpoints as well
     wake_midpoints = [
@@ -102,17 +109,17 @@ Count size of inviscid system matrix.
 function sizesystem(meshsystem)
 
     # initialize
-    # number of panels for convenience
-    numpanels = length(meshsystem.meshes)
+    # number of bodies for convenience
+    numbodies = length(meshsystem.meshes)
 
-    # total system size
+    # initialize total system size
     N = 0
 
-    # system size contributions from each mesh
-    Ns = ones(Int, numpanels)
+    # initialize system size contributions from each mesh
+    Ns = ones(Int, numbodies)
 
-    # Count number of collocation points in each mesh.
-    for i in 1:numpanels
+    # Count number of airfoil nodes in each mesh.
+    for i in 1:numbodies
         Ns[i] = length(meshsystem.meshes[i].airfoil_nodes)
         N += Ns[i]
     end
@@ -121,13 +128,17 @@ function sizesystem(meshsystem)
 end
 
 """
-    function get_r(edge,point)
+    function get_r(node,point)
 
 Calculate the vector, \$\\mathbf{r}\$, and distance, \$|r|\$, from the node to the evaluation point
 
 **Arguments:**
  - `node::Array{Float}` : [x y] position of node
  - `point::Array{Float}` : [x y] position of point.
+
+**Returns**
+ - 'r::Vector{Float}' : vector from node to evaluation point
+ - 'rmag::Float' : length of panel between node and evaluation point
 """
 function get_r(node, point)
 
@@ -135,23 +146,24 @@ function get_r(node, point)
     r = point .- node
 
     # Calculate magnitude
-    magr = sqrt((point[1] - node[1])^2 + (point[2] - node[2])^2)
+    rmag = sqrt((point[1] - node[1])^2 + (point[2] - node[2])^2)
 
-    return r, magr
+    return r, rmag
 end
 
 """
-    function_name(args; kwargs)
+    get_d(node1, node2)
 
-Function Description.
+Calculate panel length (between adjacent nodes).
 
-Detailed Description.
 
 **Arguments:**
- - arg::type : description.
+ - 'node1::Array{Float}(2)' : [x y] location of first node
+ - 'node2::Array{Float}(2)' : [x y] location of second node
 
 **Returns**
- - output::type : description.
+ - 'd::Vector{Float}' : vector from node1 to node2
+ - 'dmag::Float' : length of panel between node1 and node2
 """
 function get_d(node1, node2)
 
@@ -160,44 +172,42 @@ function get_d(node1, node2)
 end
 
 """
-    function_name(args; kwargs)
+    get_theta(r, d)
 
-Function Description.
-
-Detailed Description.
+Get angle (in radians) between panel and vector from node to evaluation point.
 
 **Arguments:**
- - arg::type : description.
+ - 'r::Vector{Float}' : vector from node to evaluation point
+ - 'rmag::Vector{Float}' : distance from node to evaluation point
+ - 'd::Vector{Float}' : vector describing panel (vector between adjacent nodes)
+ - 'dmag::Vector{Float}' : panel length
 
-**Returns**
- - output::type : description.
 """
-function get_theta(r, d)
+function get_theta(r, rmag, d, dmag)
 
     # use formula for angle between vectors
     # dot product of vectors
     num = LinearAlgebra.dot(r, d)
 
     # product of magnitude of vectors
-    den = LinearAlgebra.norm(r) * LinearAlgebra.norm(d)
+    den = rmag * dmag
 
     # inverse cosine of quotient is angle
     theta = acos(num / den)
 
     return theta
 end
+
 """
-    function_name(args; kwargs)
+    get_h(dmag, rmag1, rmag2)
 
-Function Description.
-
-Detailed Description.
+Calculate height, h, of triangle formed by panel and vectors from panel nodes to evalulation point.
 
 **Arguments:**
- - arg::type : description.
+ - 'dmag::Float' : panel length
+ - 'rmag1::Float' : distance from node1 to evalulation point
+ - 'rmag2::Float' : distance from node2 to evalulation point
 
-**Returns**
- - output::type : description.
 """
 function get_h(dmag, rmag1, rmag2)
 
@@ -214,17 +224,15 @@ function get_h(dmag, rmag1, rmag2)
 end
 
 """
-    function_name(args; kwargs)
+    get_a(rmag1, dmag, theta1)
 
-Function Description.
-
-Detailed Description.
+Calculate length of side of triagle colinear with the panel that forms a right triangle with vertex at node 1 and evaluation point.
 
 **Arguments:**
- - arg::type : description.
+ - 'rmag1::Float' : distance from node1 to evaluation point (hypotenuse)
+ - 'dmag::Float' : panel length (colinear with distance, a)
+ - 'theta1::Float' : angle between panel and vector from node1 to evaluation point (in radians)
 
-**Returns**
- - output::type : description.
 """
 function get_a(rmag1, dmag, theta1)
 
@@ -244,123 +252,35 @@ function get_a(rmag1, dmag, theta1)
 end
 
 """
-    function_name(args; kwargs)
+    get_normal(node1, node2; normalout)
 
-Function Description.
-
-Detailed Description.
+Calculate normal (in or out depending on keyword argument flag) of panel between node1 and node2.
 
 **Arguments:**
- - arg::type : description.
+ - 'node1::Array{Float}(2)' : [x y] location of node1
+ - 'node2::Array{Float}(2)' : [x y] location of node2
 
-**Returns**
- - output::type : description.
+**Keyword Arguments:**
+ - 'normalout::Bool' : flag whether normal should be out of the body (default = true).
+
 """
-function get_normal(e1, e2; normalout=true)
+function get_normal(node1, node2; normalout=true)
+
+    # choose 2D rotation matrix depending on whether normal should be in or out of body
     if normalout
         rot = [0.0 -1.0; 1.0 0.0]
     else
         rot = [0.0 1.0; -1.0 0.0]
     end
 
-    nhat = rot * (e2' .- e1')
-    nhatnorm = sqrt(nhat[1]^2 + nhat[2]^2)
+    # calculate raw normal vector
+    normal = rot * (node2' .- node1')
+    # get norm of raw vector
+    normalnorm = sqrt(normal[1]^2 + normal[2]^2)
 
-    normal = nhat / nhatnorm
+    # calculate unit normal vector
+    nhat = normal / normalnorm
 
-    return [normal[1] normal[2]]
+    # return in correct format
+    return [nhat[1] nhat[2]]
 end
-
-"""
-    distances(meshsystem)
- - meshsystem::MeshSystem : Mesh System for which to calculate distances.
-
-**Returns**
- - rs::Array{Float,2} : Distances from panel edges to control points.
-"""
-function distances(meshsystem)
-
-    # get reqired matrix size
-    N, Ns = FLOWFoil.sizesystem(meshsystem)
-
-    # Get number of meshes for convenience
-    meshes = meshsystem.meshes
-    nm = length(meshes)
-
-    # Initialize output
-    # note that there are n+1 edges for each mesh (where n=number of collocation points), so there are N+length(Ns) rows in the output matrices.
-    rs = Array{Array{Float64}}(undef, N, N + length(Ns))
-    rmags = Array{Float64,2}(undef, N, N + length(Ns))
-
-    # Calculate Distances
-    # Loop over meshes (edges)
-    for m in 1:nm
-
-        #rename for convenience
-        edges = meshes[m].edges
-
-        #get offset location for global matrix: total number of edge points from the meshes thus far.
-        joffset = sum(Ns[1:m]) - Ns[m] + m - 1
-
-        # Loop over meshes (collocation points)
-        for n in 1:nm
-
-            #rename for convenience
-            points = meshes[n].collocation_points
-
-            #get offset location for global matrix: total number of collocation points from the meshes thus far.
-            ioffset = sum(Ns[1:n]) - Ns[n]
-
-            for j in 1:(Ns[m] + 1)
-                for i in 1:Ns[n]
-                    # get vector and magnitude
-                    vec, mag = FLOWFoil.get_r(edges[j], points[i])
-
-                    # assign vector to global vector matrix
-                    rs[i + ioffset, j + joffset] = vec
-
-                    # assign magnitude to global magnitude matrix.
-                    rmags[i + ioffset, j + joffset] = mag
-                end
-            end
-        end
-    end
-
-    return rs, rmags
-end
-
-"""
-"""
-function normals(meshsystem; normalout=true)
-
-    # get reqired matrix size
-    N, Ns = FLOWFoil.sizesystem(meshsystem)
-
-    # Get number of meshes for convenience
-    meshes = meshsystem.meshes
-    nm = length(meshes)
-
-    # Initialize output
-    panelnormals = Array{Array{Float64}}(undef, N)
-
-    # Loop over meshes
-    for n in 1:nm
-
-        #rename for convenience
-        edges = meshes[n].edges
-
-        #get offset location for global matrix: total number of panels from the meshes thus far.
-        ioffset = sum(Ns[1:n]) - Ns[n]
-
-        for i in 1:Ns[n]
-
-            # get unit normal
-            panelnormals[i + ioffset] = FLOWFoil.get_normal(
-                edges[i], edges[i + 1]; normalout=normalout
-            )
-        end
-    end
-
-    return panelnormals
-end
-
