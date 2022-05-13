@@ -104,8 +104,8 @@ function rawjoukowsky2(center, R; N=360)
     a = center[1] + R * cos(beta)
 
     xi =
-        (1.0 .+ R / a * (exp.(im * theta) .- exp(-im * beta))) +
-        1.0 / (1.0 .+ R / a * (exp.(im * theta) .- exp(-im * beta)))
+        (1.0 .+ R / a * (exp.(im * theta) .- exp(-im * beta))) .+
+        1.0 ./ (1.0 .+ R / a * (exp.(im * theta) .- exp(-im * beta)))
     xi *= a
 
     x = real(xi)
