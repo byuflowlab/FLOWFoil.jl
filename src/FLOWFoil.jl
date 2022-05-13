@@ -28,7 +28,7 @@ include("types.jl")
 # Geometry Generation and Modification
 include("geometry.jl")
 
-# Inviscid Multi-body Solver
+# Inviscid Solver
 include("inviscid_analysis.jl")
 
 # Boundary Layer Integration

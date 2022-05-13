@@ -1,5 +1,5 @@
 #=
-Compose.g.Type Definitions
+Compose Type Definitions
 
 Authors: Judd Mehr,
 
@@ -25,8 +25,8 @@ Mesh for single body.
 """
 struct Mesh{TF}
     airfoil_nodes::Array{Array{TF,2}}
-    wake_nodes::Array{Array{TF,2}}
-    wake_midpoints::Array{Array{TF,2}}
+#    wake_nodes::Array{Array{TF,2}}
+ #   wake_midpoints::Array{Array{TF,2}}
     blunt_te::Bool
 end
 

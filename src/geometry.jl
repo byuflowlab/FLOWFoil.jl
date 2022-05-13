@@ -33,15 +33,15 @@ function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
         # get number of airfoil nodes for convenience
         numnodes = length(x)
         # get number of wake nodes for convenience
-        numwake = ceil(Int, numnodes / 10 + 10 * wakelength)
+        #  numwake = ceil(Int, numnodes / 10 + 10 * wakelength)
     end
 
     # Get node locations from x,y coordinates
     airfoil_nodes = [[x[i] y[i]] for i in 1:numnodes]
 
     # initialize the wake panel start point and direction
-    wakestart = airfoil_nodes[1]
-    wakedir = [1.0; 0.0]
+    # wakestart = airfoil_nodes[1]
+    # wakedir = [1.0; 0.0]
 
     # initialize blunt_te=false
     blunt_te = false
@@ -50,50 +50,53 @@ function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
     if airfoil_nodes[1][1] != airfoil_nodes[end][1] ||
         airfoil_nodes[1][2] != airfoil_nodes[end][2]
 
+        #TODO: probably not...
         # add panel across the trailing edge gap
-        push!(airfoil_nodes, airfoil_nodes[1])
+        #        push!(airfoil_nodes, airfoil_nodes[1])
 
-        # and update the wake panel starting location to be the midpoint of the gap panel.
-        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
+        #TODO LATER (probably in different function)
+        # update the wake panel starting location to be the midpoint of the gap panel.
+        #        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
 
         # and update the wake panel initial direction to be the normal of that panel
-        wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
+        #       wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
 
-        # and set blunt_te to true
+        # set blunt_te to true
         blunt_te = true
 
     else #(closed trailing edge)
 
+        #TODO: probably put this elsewhere
         # update wake panel direction to be bisection of trailing edge panel vectors
         # get vector along first panel
-        a1 = airfoil_nodes[1] - airfoil_nodes[2]
+        #        a1 = airfoil_nodes[1] - airfoil_nodes[2]
 
         # get vector along second panel
-        an = airfoil_nodes[end] - airfoil_nodes[end - 1]
+        #       an = airfoil_nodes[end] - airfoil_nodes[end - 1]
 
         # calculate vector that bisects the first and last panel vectors
-        bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)
+        #      bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)
 
         # normalize to get the unit vector
-        wakedir = bisector / LinearAlgebra.norm(bisector)
+        #     wakedir = bisector / LinearAlgebra.norm(bisector)
     end
 
     #TODO: There is something in the method about a trailing half panel, find out what that means and if you should remove the final wake node or not.
     # get initial wake geometry: equidistant panels starting at wakestart point and extending the input percentage of the airfoil chord in the calculated direction.
-    wake_nodes = [
-        wakestart .+ x .* wakedir for
-        x in range(0.0; stop=wakelength * chordlength, length=numwake)
-    ]
+    # wake_nodes = [
+    #    wakestart .+ x .* wakedir for
+    #     x in range(0.0; stop=wakelength * chordlength, length=numwake)
+    # ]
 
     # get wake midpoints as well
-    wake_midpoints = [
-        [(wake_nodes[i + 1][1] + wake_nodes[i][1]) / 2.0 (
-            wake_nodes[i + 1][2] + wake_nodes[i][2]
-        ) / 2.0] for i in 1:(numwake - 1)
-    ]
+    #wake_midpoints = [
+    #    [(wake_nodes[i + 1][1] + wake_nodes[i][1]) / 2.0 (
+    #        wake_nodes[i + 1][2] + wake_nodes[i][2]
+    #    ) / 2.0] for i in 1:(numwake - 1)
+    #]
 
     # generate mesh object
-    mesh = Mesh(airfoil_nodes, wake_nodes, wake_midpoints, blunt_te)
+    mesh = FLOWFoil.Mesh(airfoil_nodes, blunt_te)
 
     return mesh
 end
@@ -146,7 +149,7 @@ function get_r(node, point)
     r = point .- node
 
     # Calculate magnitude
-    rmag = sqrt((point[1] - node[1])^2 + (point[2] - node[2])^2)
+    rmag = sqrt(r[1]^2 + r[2]^2)
 
     return r, rmag
 end
