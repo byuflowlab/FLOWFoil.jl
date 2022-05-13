@@ -27,26 +27,26 @@
         @test isapprox(nodes[5], [1 0])
     end
 
-    # Wake:
-    @testset "Wake" begin
-        wnodes = mesh.wake_nodes
+    #    # Wake:
+    #    @testset "Wake" begin
+    #        wnodes = mesh.wake_nodes
 
-        @test length(wnodes) == 11
-        @test isapprox(wnodes[1], [1 0])
-        @test isapprox(wnodes[end], [2 0])
-        @test isapprox(wnodes[2], [1.1 0])
+    #        @test length(wnodes) == 11
+    #        @test isapprox(wnodes[1], [1 0])
+    #        @test isapprox(wnodes[end], [2 0])
+    #        @test isapprox(wnodes[2], [1.1 0])
 
-        wnodesr = meshr.wake_nodes
-        @test isapprox(wnodesr[1], [1 0])
-        @test isapprox(wnodesr[end], [1 0] .+ sqrt(2) / 2 * [1 -1])
-        @test isapprox(wnodesr[2], [1 0] .+ sqrt(2) / 2 * [0.1 -0.1])
+    #        wnodesr = meshr.wake_nodes
+    #        @test isapprox(wnodesr[1], [1 0])
+    #        @test isapprox(wnodesr[end], [1 0] .+ sqrt(2) / 2 * [1 -1])
+    #        @test isapprox(wnodesr[2], [1 0] .+ sqrt(2) / 2 * [0.1 -0.1])
 
-        wnodesd = meshd.wake_nodes
-        @test isapprox(wnodes, wnodesd)
+    #        wnodesd = meshd.wake_nodes
+    #        @test isapprox(wnodes, wnodesd)
 
-        wnodesdr = meshdr.wake_nodes
-        @test isapprox(wnodesdr, wnodesr)
-    end
+    #        wnodesdr = meshdr.wake_nodes
+    #        @test isapprox(wnodesdr, wnodesr)
+    #    end
 end
 
 # Test distance functions
@@ -73,7 +73,7 @@ end
         theta1 = FLOWFoil.get_theta(r1, magr1, d, magd)
         theta2 = FLOWFoil.get_theta(r2, magr2, d, magd)
 
-        @test isapprox(theta2, pi)
+        @test isapprox(theta2, pi, atol=1e-7)
 
         # Test height
         h = FLOWFoil.get_h(magd, magr1, magr2)
