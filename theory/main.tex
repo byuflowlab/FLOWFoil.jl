@@ -311,19 +311,30 @@ This yields the following system of equations for the inviscid solution of an ai
 \end{equation}
 
 \paragraph{Blunt Trailing Edge}
-%
-%In the case of the blunt trailing edge, the first and \(N\)th nodes are not coincident, which leads to an open body.  To remedy this issue, we place an \(N+1\)th panel from node \(N\) to node 1, closing the gap.  For this trailing edge panel, we impose a constant vortex and source distribution across the panel.
-%
-%This augments the system of equations to be
-%
-%\begin{equation}
-%	\begin{aligned}
-%		\sum_{j=1}^N(a_{ij}\gamma_j) - \Psi_0 + \vect{\Psi}^{TE}[-\gamma_1, \gamma_{N}]^\top &= V_\infty(z_i\cos\alpha - x_i\sin\alpha) \\
-%		\gamma_1 + \gamma_N &= 0 ~~~~~\mathrm{(Kutta~Condition)}
-%	\end{aligned}
-%\end{equation}
-%
-%\noindent where \(\vect{\Psi}^{TE} = \overline{\Psi}^\gamma_{i,N+1} | \hat{s}_{TE} \cdot  \hat{t}_{TE} | + \overline{\Psi}^\sigma_{i,N+1} | \hat{s}_{TE} \times \hat{t}_{TE}| \), with \(\hat{s}_{TE}\) being the unit trailing-edge bisector vector, and \(\hat{t}_{TE}\) being the unit vector along the trailing edge panel from node \(N\) to node 1.
+
+In the case of the blunt trailing edge, the first and \(N\)th nodes are not coincident, which leads to an open body.  To remedy this issue, we place an \(N+1\)th panel from node \(N\) to node 1, closing the gap.  For this trailing edge panel, we impose a constant vortex and source distribution across the panel.
+
+This augments the system of equations to be
+
+\begin{equation}
+	\begin{aligned}
+		\sum_{j=1}^N(a_{ij}\gamma_j) - \Psi_0 + \sum_{j=1,N} a_{i,TE}(\gamma_N -\gamma_{1}) &= V_\infty(z_i\cos\alpha - x_i\sin\alpha) \\
+		\gamma_1 + \gamma_N &= 0 ~~~~~\mathrm{(Kutta~Condition)}
+	\end{aligned}
+\end{equation}
+
+\noindent where 
+
+\begin{equation}
+	a_{i,TE} = \frac{1}{2} \left( \overline{\Psi}^\sigma_{i,TE} | \vect{\hat{s}}_{TE} \times \vect{\hat{d}}_{TE}| -  \overline{\Psi}^\gamma_{i,TE} | \vect{\hat{s}}_{TE} \cdot  \vect{\hat{d}}_{TE} |\right),
+\end{equation}
+
+\noindent with \(\vect{\hat{d}}_{TE}\) being the unit vector along the trailing edge panel from node \(N\) to node 1, 
+and \(\vect{\hat{s}}_{TE}\) being the unit trailing-edge bisector vector defined as
+
+\begin{equation}
+	\vect{\hat{s}}_{TE} = -\vect{d}_{1} ||\vect{d}_N|| + \vect{d}_N ||-\vect{d}_{1}||
+\end{equation}
 
 
 
