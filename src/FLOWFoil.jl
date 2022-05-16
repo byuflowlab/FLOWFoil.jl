@@ -36,5 +36,6 @@ include("viscous_analysis.jl")
 
 # Common Airfoil Parameterizations
 include("../common_parameterizations/conformal_mapping.jl")
+include("../common_parameterizations/naca.jl")
 
 end

@@ -24,7 +24,8 @@ Calculate value of  \$\\overbar{\\Psi}^\\gamma\$
 
 """
 function get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
-    return 1.0 / (2.0 * pi) * (h * (theta2 - theta1) - dmag + a * ln1 - (a - dmag) * ln2)
+    return 1.0 / (2.0 * pi * dmag) *
+           (h * (theta2 - theta1) - dmag + a * ln1 - (a - dmag) * ln2)
 end
 
 """
@@ -43,19 +44,48 @@ Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
  - 'dmag::Float' : panel length
  - 'h::Float' : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
  - 'a::Float' : length of base of right triangle with height, h, and hypontenuse, r1.
-Function Description.
 
-Detailed Description.
-
-**Arguments:**
- - arg::type : description.
-
-**Returns**
- - output::type : description.
 """
 function get_psitildegamma(psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a)
-    return a / dmag * psibargamma +
+    return a * psibargamma +
            1 / (4 * pi * dmag) * (r2mag^2 * ln2 - r1mag^2 * ln1 - r2mag^2 / 2 + r1mag^2 / 2)
+end
+
+"""
+    get_psibarsigma(theta1, theta2, ln1, ln2, dmag, h, a)
+
+Calculate value of  \$\\overbar{\\Psi}^\\sigma\$
+
+**Arguments:**
+ - 'theta1::Float' : Angle between panel and evaluation point, centered at node1.
+ - 'theta2::Float' : Angle between panel and evaluation point, centered at node2.
+ - 'ln1::Float' : Natural log of distance from node1 to evaluation point.
+ - 'ln2::Float' : Natural log of distance from node2 to evaluation point.
+ - 'h::Float' : Distance from panel to evaluation in panel normal direction.
+ - 'a::Float' : Distance from node1 to evaluation in panel tangent direction.
+"""
+function get_psibarsigma(theta1, theta2, ln1, ln2, dmag, h, a)
+    return 1 / (2 * pi) * (a * (theta1 - theta2) + dmag * theta2 + h * ln1 - h * ln2)
+end
+
+"""
+    get_psitildesigma(psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a)
+
+Calculate value of  \$\\widetilde{\\Psi}^\\sigma\$
+
+**Arguments:**
+ - 'psibargamma::Float' : value of \$\\overbar{\\Psi}^\\gamma\$
+ - 'r1mag::Float' : distance from node1 to evaluation point
+ - 'r2mag::Float' : distance from node2 to evaluation point
+ - 'theta1::Float' : angle between panel and vector from node1 to evaluation point
+ - 'theta2::Float' : angle between panel and vector from node2 to evaluation point
+ - 'dmag::Float' : panel length
+ - 'h::Float' : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
+ - 'a::Float' : length of base of right triangle with height, h, and hypontenuse, r1.
+"""
+function get_psitildesigma(psibarsigma, r1mag, r2mag, theta1, theta2, dmag, h, a)
+    return a / dmag * phibarsigma +
+           1.0 / (4 * pi * dmag) * (rmag2^2 * theta2 - rmag1^2 * theta1 - h * dmag)
 end
 
 """
@@ -72,45 +102,10 @@ Calculate vortex influence coefficients on the evaluation point from the panel b
 function get_vortex_influence(node1, node2, point)
 
     # Use inputs to get raw distances
-    r1, r1mag = get_r(node1, point)
-    r2, r2mag = get_r(node2, point)
-    d, dmag = get_d(node1, node2)
+    r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
 
-    #check if point resides on either node and create convenience flag
-    if node1 == point
-        p1 = true
-        p2 = false
-    elseif node2 == point
-        p1 = false
-        p2 = true
-    else
-        p1 = false
-        p2 = false
-    end
-
-    # Calculate secondary distances and angles (taking into account whether or not the point lies on one of the nodes)
-    if p1 || p2
-        a = dmag
-        h = 0.0
-        if p1
-            ln1 = 0.0
-            ln2 = log(r2mag)
-            theta1 = pi / 2.0 #note that angles don't matter in these cases, since h=0
-            theta2 = pi
-        else
-            ln1 = log(r1mag)
-            ln2 = 0.0
-            theta1 = 0.0 #note that angles don't matter in these cases, since h=0
-            theta2 = pi / 2.0
-        end
-    else
-        theta1 = get_theta(r1, r1mag, d, dmag)
-        theta2 = get_theta(r2, r2mag, d, dmag)
-        h = get_h(dmag, r1mag, r2mag)
-        a = get_a(r1mag, dmag, theta1)
-        ln1 = log(r1mag)
-        ln2 = log(r2mag)
-    end
+    # Calculate a, h, and natural logs based on position of point
+    theta1, theta2, ln1, ln2, h, a = get_orientation(node1, node2, point)
 
     # get psibargamma value
     psibargamma = get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
@@ -121,7 +116,38 @@ function get_vortex_influence(node1, node2, point)
     )
 
     # put psi's together
-    return psibargamma - psitildegamma, psitildegamma
+    return (psibargamma - psitildegamma), psitildegamma
+end
+
+"""
+    get_source_influence(node1, node2, point)
+
+Calculate source influence coefficients on the evaluation point from the panel between node1 and node2.
+
+**Arguments:**
+ - 'node1::Array{Float}(2)' : [x y] location of node1
+ - 'node2::Array{Float}(2)' : [x y] location of node2
+ - 'point::Array{Float}(2)' : [x y] location of evaluation point
+"""
+function get_source_influence(node1, node2, point)
+
+    # Use inputs to get raw distances
+    r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
+
+    # Calculate a, h, and natural logs based on position of point
+    theta1, theta2, ln1, ln2, h, a = get_orientation(node1, node2, point)
+
+    #get psibarsigma value
+    psibarsigma = get_psibarsigma(theta1, theta2, ln1, ln2, dmag, h, a)
+
+    # shift source in order to get a better behaved branch cut orientation
+    if (theta1 + theta2) > pi
+        psibarsigma -= 0.25 * dmag
+    else
+        psibarsigma += 0.75 * dmag
+    end
+
+    return psibarsigma
 end
 
 #TODO: probably want to create another version of this that takes in a mesh only.
@@ -172,74 +198,53 @@ function assemblevortexcoefficients(meshsystem)
 
     # add in trailing edge contributions
     if meshsystem.meshes[1].blunt_te
-        #TODO: Fix this.  Implementation is wrong for Blunt TE
+
         # get bisection vector
         # get vector along first panel
-        d1, _ = get_d(nodes[2], nodes[1])
+        nd1, _ = get_d(nodes[2], nodes[1])
 
         # get vector along second panel
         dn, _ = get_d(nodes[end - 1], nodes[end])
 
-        # calculate vector that bisects the first and last panel vectors
-        bisector = d1 * LinearAlgebra.norm(dn) + dn * LinearAlgebra.norm(d1)
+        # calculate vector that bisects the first and last panel vectors using formula c = |a|*b + |b|*a
+        bisector = nd1 * sqrt(dn[1]^2 + dn[2]^2) + dn * sqrt(nd1[1]^2 + nd1[2]^2)
 
         # normalize to get the unit vector
-        ttehat = bisector / LinearAlgebra.norm(bisector)
+        ttehat = bisector / sqrt(bisector[1]^2 + bisector[2]^2)
 
         # get panel vector
         dte, _ = get_d(nodes[end], nodes[1])
 
         # normalize panelvector
-        ptehat = dte / LinearAlgebra.norm(dte)
+        dtehat = dte / sqrt(dte[1]^2 + dte[2]^2)
 
         # get dot product of bisection vector and panel vector.
-        tdp = abs(LinearAlgebra.dot(ttehat, ptehat))
+        tdp = ttehat[1] * dtehat[1] + ttehat[2] * dtehat[2]
 
         # get cross product of bisection vector and panel vector
-        txp = LinearAlgebra.norm(
-            LinearAlgebra.cross([ttehat[1]; ttehat[2]; 0.0], [ptehat[1]; ptehat[2]; 0.0])
-        )
+        txp = abs(ttehat[1] * dtehat[2] - ttehat[2] * dtehat[1])
 
         # Apply trailing edge contributions
-        amat[:, 1] .-= 0.5 * (tdp + txp)
-        amat[:, end] .+= 0.5 * (tdp + txp)
+        for i in 1:N
+
+            # Get panel influence coefficients
+            sigmate = get_source_influence(nodes[N], nodes[1], nodes[i])
+            gammate = sum(get_vortex_influence(nodes[N], nodes[1], nodes[i]))
+
+            # Add/subtract from relevant matrix entries
+            amat[i, 1] += 0.5 * (gammate * tdp - sigmate * txp)
+            amat[i, N] += 0.5 * (sigmate * txp - gammate * tdp)
+        end
     else
         # Replace Nth row of the matrix with the extrapolation of the mean vortex strength to the trailing edge.
         amat[end, :] .= 0.0
         amat[end, 1] = 1.0
-        amat[end, 2] = 2.0
-        amat[end, 3] = -1.0
-        amat[end, end - 2] = 1.0
-        amat[end, end - 1] = -2.0
-        amat[end, end] = -1.0
+        amat[end, 2] = -2.0
+        amat[end, 3] = 1.0
+        amat[end, end - 2] = -1.0
+        amat[end, end - 1] = 2.0
+        amat[end, end] = 1.0
     end
-
-    return amat
-end
-
-"""
-    assemblematrixa!(amat)
-
-Update vortex coefficient matrix to be the full N+1 x N+1 system, including Kutta condition.
-
-**Arguments:**
- - 'amat::Array{Float,2}' : NxN vortex coefficient matrix
-
-"""
-function assemblematrixa!(amat)
-
-    # get size of amat:
-    r, c = size(amat)
-
-    # Add column of ones to end of matrix for Psi_0
-    psi0 = -1.0 * ones(r)
-    amat = [amat psi0]
-
-    # add kutta condition row to bottom of matrix
-    kutta = zeros(c + 1)
-    kutta[1] = 1.0
-    kutta[end - 1] = 1.0
-    amat = [amat; kutta']
 
     return amat
 end
@@ -310,7 +315,7 @@ function assembleboundaryconditions(meshsystem, freestream)
     Vinf = re * mu / (rho * chord)
 
     # generate boundary condition array
-    psi_inf = Vinf * [nodes[i][2] * cos(alpha) - nodes[i][1] * sin(alpha) for i in 1:N]
+    psi_inf = Vinf * [-nodes[i][2] * cos(alpha) + nodes[i][1] * sin(alpha) for i in 1:N]
 
     # if closed trailing edge, set last element of psi_inf to zero
     if !meshsystem.meshes[1].blunt_te

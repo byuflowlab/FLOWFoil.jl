@@ -68,17 +68,21 @@ end
 
         @test magd == sqrt(2) / 2
 
-        # Test angle calculations
         r1, magr1 = FLOWFoil.get_r(nodes[1], nodes[1])
-        theta1 = FLOWFoil.get_theta(r1, magr1, d, magd)
-        theta2 = FLOWFoil.get_theta(r2, magr2, d, magd)
-
-        @test isapprox(theta2, pi, atol=1e-7)
 
         # Test height
-        h = FLOWFoil.get_h(magd, magr1, magr2)
-
+        h = FLOWFoil.get_h(r1, d, magd)
         @test h == 0.0
+
+        #test tangent distance
+        a = FLOWFoil.get_a(r1, d, magd)
+        @test a == 0.0
+
+        # Test angle calculations
+        theta1 = FLOWFoil.get_theta(h, a)
+        theta2 = FLOWFoil.get_theta(h, a)
+
+        @test isapprox(theta2, pi, atol=1e-7)
     end
 
     @testset "Node off Panel" begin
@@ -93,23 +97,22 @@ end
 
         @test magd == sqrt(2) / 2
 
-        # Test angle calculations
         r1, magr1 = FLOWFoil.get_r(nodes[2], nodes[1])
-        theta1 = FLOWFoil.get_theta(r1, magr1, d, magd)
-        theta2 = FLOWFoil.get_theta(r2, magr2, d, magd)
-
-        @test isapprox(theta1, pi / 2)
-        @test isapprox(theta2, 3 * pi / 4)
-
         # Test height
-        h = FLOWFoil.get_h(magd, magr1, magr2)
+        h = FLOWFoil.get_h(r1, d, magd)
 
-        @test isapprox(h, sqrt(2) / 2)
+        @test isapprox(h, -sqrt(2) / 2)
 
         # Test length a
-        a = FLOWFoil.get_a(magr1, magd, theta1)
+        a = FLOWFoil.get_a(r1, d, magd)
 
-        @test a == sqrt(2) / 2
+        @test a == 0.0
+        # Test angle calculations
+        theta1 = FLOWFoil.get_theta(h, a)
+        theta2 = FLOWFoil.get_theta(h, a, magd)
+
+        @test isapprox(theta1, -pi / 2)
+        @test isapprox(theta2, -3 * pi / 4)
     end
 end
 

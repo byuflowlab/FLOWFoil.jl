@@ -175,115 +175,198 @@ function get_d(node1, node2)
 end
 
 """
-    get_theta(r, rmag, d, dmag)
+    get_theta(h, a)
 
 Get angle (in radians) between panel and vector from node to evaluation point.
 
 **Arguments:**
- - 'r::Vector{Float}' : vector from node to evaluation point
- - 'rmag::Vector{Float}' : distance from node to evaluation point
- - 'd::Vector{Float}' : vector describing panel (vector between adjacent nodes)
- - 'dmag::Vector{Float}' : panel length
+ - 'h::Float' : Distance, normal to panel, between panel and evaluation point.
+ - 'a::Float' : Distance, tangent to panel, between node1 and evaluation point.
 
 """
-function get_theta(r, rmag, d, dmag)
-
-    # use formula for angle between vectors
-    # dot product of vectors
-    num = LinearAlgebra.dot(r, d)
-
-    # product of magnitude of vectors
-    den = rmag * dmag
-
-    # inverse cosine of quotient is angle
-    theta = acos(num / den)
-
-    return theta
+function get_theta(h, a)
+    return atan(h, a)
 end
 
 """
-    get_h(dmag, rmag1, rmag2)
+    get_theta(h, a, dmag)
 
-Calculate height, h, of triangle formed by panel and vectors from panel nodes to evalulation point.
+Get angle (in radians) between panel and vector from node to evaluation point.
 
 **Arguments:**
- - 'dmag::Float' : panel length
- - 'rmag1::Float' : distance from node1 to evalulation point
- - 'rmag2::Float' : distance from node2 to evalulation point
+ - 'h::Float' : Distance, normal to panel, between panel and evaluation point.
+ - 'a::Float' : Distance, tangent to panel, between node1 and evaluation point.
+ - 'dmag::Float' : Panel lentgh.
 
 """
-function get_h(dmag, rmag1, rmag2)
+function get_theta(h, a, dmag)
+    return atan(h, a - dmag)
+end
 
-    # get half perimeter of triangle made between panel and evaluation point
-    s = (dmag + rmag1 + rmag2) / 2.0
+"""
+    get_h(r1, d, dmag)
 
-    # use Heron's formula to find area
-    area = sqrt(s * (s - dmag) * (s - rmag1) * (s - rmag2))
+Calculate distance from panel to evalulation point in the panel normal direction.
 
-    # get h from triangle area formula, where h is the triangle height
-    h = 2.0 * area / dmag
+**Arguments:**
+ - 'r1::Vector{Float}' : vector from node1 to evalulation point.
+ - 'd::Vector{Float}' : vector from node1 to node2.
+ - 'dmag::Float' : panel length
+
+"""
+function get_h(r1, d, dmag)
+
+    # get unit normal to panel
+    nhat = get_normal(d, dmag)
+
+    # calculate h (dot product of unit normal and r1 vector
+    h = r1[1] * nhat[1] + r1[2] * nhat[2]
 
     return h
 end
 
 """
-    get_a(rmag1, dmag, theta1)
+    get_a(r1, d, dmag)
 
-Calculate length of side of triagle colinear with the panel that forms a right triangle with vertex at node 1 and evaluation point.
+Calculate distance from panel to evalulation point in the panel tangent direction.
 
 **Arguments:**
- - 'rmag1::Float' : distance from node1 to evaluation point (hypotenuse)
- - 'dmag::Float' : panel length (colinear with distance, a)
- - 'theta1::Float' : angle between panel and vector from node1 to evaluation point (in radians)
+ - 'r1::Vector{Float}' : vector from node1 to evalulation point.
+ - 'd::Vector{Float}' : vector from node1 to node2.
+ - 'dmag::Float' : panel length
+    get_a(rmag1, dmag, theta1)
 
 """
-function get_a(rmag1, dmag, theta1)
+function get_a(r1, d, dmag)
 
-    # 3 cases depending on size of theta1
-    if theta1 > pi / 2.0
-        # if angle is greater than 90 degrees, get adjacent angle to small triangle and add to panel length
-        a = rmag1 * cos(pi - theta1) + dmag
-    elseif theta1 == pi / 2.0
-        # if angle is 90 degees, length IS panel length
-        a = dmag
-    else
-        # otherwise, simple trig gives length
-        a = rmag1 * cos(theta1)
-    end
+    # Get unit tangent vector
+    that = get_tangent(d, dmag)
+
+    # calculate a (dot product of unit tangent and r1 vector)
+    a = r1[1] * that[1] + r1[2] * that[2]
 
     return a
 end
 
 """
-    get_normal(node1, node2; normalout)
+    get_tangent(d, dmag)
 
-Calculate normal (in or out depending on keyword argument flag) of panel between node1 and node2.
+Get unit tangent to panel.
 
 **Arguments:**
- - 'node1::Array{Float}(2)' : [x y] location of node1
- - 'node2::Array{Float}(2)' : [x y] location of node2
-
-**Keyword Arguments:**
- - 'normalout::Bool' : flag whether normal should be out of the body (default = true).
+ - 'd::Vector{Float}' : vector from node1 to node2.
+ - 'dmag::Float' : panel length
 
 """
-function get_normal(node1, node2; normalout=true)
+function get_tangent(d, dmag)
+    return d / dmag
+end
 
-    # choose 2D rotation matrix depending on whether normal should be in or out of body
-    if normalout
-        rot = [0.0 -1.0; 1.0 0.0]
+"""
+    get_normal(d, dmag)
+
+Get unit normal to panel.
+
+**Arguments:**
+ - 'd::Vector{Float}' : vector from node1 to node2.
+ - 'dmag::Float' : panel length
+
+"""
+function get_normal(d, dmag)
+
+    # get unit tangent
+    that = get_tangent(d, dmag)
+
+    # use fancy trick to rotate to be unit normal
+    nhat = [-that[2]; that[1]]
+
+    return nhat
+end
+
+"""
+    get_distances(node1, node2, point)
+
+Get vectors and magnitudes for panel and between nodes and validation points.
+
+**Arguments:**
+ - 'node1::Array{Float}' : [x y] position of node1.
+ - 'node2::Array{Float}' : [x y] position of node2.
+ - 'point::Array{Float}' : [x y] position of evaluation point.
+
+**Returns:**
+ - 'r1::Vector{Float}' : vector from node1 to evaluation point.
+ - 'r1mag::Float' : distance from node1 to evaluation point.
+ - 'r2::Vector{Float}' : vector from node2 to evaluation point.
+ - 'r2mag::Float' : distance from node2 to evaluation point.
+ - 'd::Vector{Float}' : vector from node1 to node2.
+ - 'dmag::Float' : panel length
+
+"""
+function get_distances(node1, node2, point)
+    r1, r1mag = get_r(node1, point)
+    r2, r2mag = get_r(node2, point)
+    d, dmag = get_d(node1, node2)
+    return r1, r1mag, r2, r2mag, d, dmag
+end
+
+"""
+    get_orientation(node1, node2, point)
+
+Get angles between panel and evaluation point, ln of distances from nodes to evaluation point, and evaluation point position relative to panel.
+
+**Arguments:**
+ - 'node1::Array{Float}' : [x y] position of node1.
+ - 'node2::Array{Float}' : [x y] position of node2.
+ - 'point::Array{Float}' : [x y] position of evaluation point.
+
+**Returns:**
+ - 'theta1::Float' : Angle between panel and evaluation point, centered at node1.
+ - 'theta2::Float' : Angle between panel and evaluation point, centered at node2.
+ - 'ln1::Float' : Natural log of distance from node1 to evaluation point.
+ - 'ln2::Float' : Natural log of distance from node2 to evaluation point.
+ - 'h::Float' : Distance from panel to evaluation in panel normal direction.
+ - 'a::Float' : Distance from node1 to evaluation in panel tangent direction.
+
+"""
+function get_orientation(node1, node2, point)
+
+    # get distances
+    r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
+
+    # Get distances normal and tangent to panel from node1
+    h = get_h(r1, d, dmag)
+    a = get_a(r1, d, dmag)
+
+    #check if point resides on either node and create convenience flag
+    #TODO: probably want to set this up with haveing some sort of tolerance rather than an exact value in case user data is not exact, but close.
+    if node1 == point
+        p1 = true
+        p2 = false
+    elseif node2 == point
+        p1 = false
+        p2 = true
     else
-        rot = [0.0 1.0; -1.0 0.0]
+        p1 = false
+        p2 = false
     end
 
-    # calculate raw normal vector
-    normal = rot * (node2' .- node1')
-    # get norm of raw vector
-    normalnorm = sqrt(normal[1]^2 + normal[2]^2)
+    # Calculate secondary distances and angles (taking into account whether or not the point lies on one of the nodes)
+    if p1
+        ln1 = 0.0
+        ln2 = log(r2mag)
+        theta1 = pi
+        theta2 = pi
+    elseif p2
+        ln1 = log(r1mag)
+        ln2 = 0.0
+        theta1 = 0.0
+        theta2 = 0.0
+    else
+        ln1 = log(r1mag)
+        ln2 = log(r2mag)
+        theta1 = get_theta(h, a)
+        theta2 = get_theta(h, a, dmag)
+    end
 
-    # calculate unit normal vector
-    nhat = normal / normalnorm
-
-    # return in correct format
-    return [nhat[1] nhat[2]]
+    return theta1, theta2, ln1, ln2, h, a
 end

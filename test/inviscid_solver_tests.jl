@@ -51,11 +51,11 @@ end
     alpha = 0.0
     U = 10.0
 
-   x, y, vmag, cp = FLOWFoil.joukowskysurface(center, R, alpha, U; N=100)
+    x, y, vmag, cp = FLOWFoil.joukowskysurface(center, R, alpha, U; N=100)
 
-#    x, yu, yl = naca4(2.0,4.0,12.0,50)
-#    x = [x[end:-1:1]; x[2:end]]
-#    y = [yl[end:-1:1]; yu[2:end]]
+    x, yu, yl = naca4(2.0, 4.0, 12.0, 80; bluntTE=false)
+    x = [x[end:-1:1]; x[2:end]]
+    y = [yl[end:-1:1]; yu[2:end]]
     mesh1 = FLOWFoil.generatemesh(x, y)
     meshsystem = FLOWFoil.MeshSystem([mesh1], [1.0], [0.0], [[0.0; 0.0]])
     chord = maximum(x) - minimum(x)
