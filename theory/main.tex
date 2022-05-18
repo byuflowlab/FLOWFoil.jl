@@ -72,7 +72,7 @@ For any geometric input, we assume that the airfoil geometry begins at the trail
 It is likely convenient to input geometry data that positions the airfoil leading edge at the origin and has a chord length of one.
 
 Linear panels are defined using the input coordinates as the panel end points.
-\Cref{fig:linearpanels} shows the geometry convention uses in FLOWFoil as well as the linear paneling of an airfoil.
+\Cref{fig:linearpanels} shows the geometry convention used in FLOWFoil as well as the linear paneling of an airfoil.
 
 \begin{figure}[h]
 	\centering
@@ -93,8 +93,8 @@ Following the formulation in \cite{fidkowski_coupled_2022}, the inviscid system 
 
 \begin{equation}
 \begin{aligned}
-	\sum_{j=1}^N(a_{ij}\gamma_j) - \Psi_0 &= V_\infty(z_i\cos\alpha - x_i\sin\alpha) \\
-	\gamma_1 + \gamma_N &= 0 ~~~~~\mathrm{(Kutta~Condition)}
+	\sum_{j=1}^N(a_{ij}[\gamma^0, \gamma^{90}]_j) - \Psi_0 &= [-z_i, x_i] \\
+	[\gamma^0, \gamma^{90}]_1 + [\gamma^0, \gamma^{90}]_N &= [0, 0] ~~~~~\mathrm{(Kutta~Condition)}
 \end{aligned}
 \end{equation}
 
@@ -104,7 +104,7 @@ Following the formulation in \cite{fidkowski_coupled_2022}, the inviscid system 
 	\mathbf{A} \mathbf{\gamma} = \mathbf{\Psi}^\infty
 \end{equation}
 
-\noindent where \(\mathbf{\Psi}^\infty = V_\infty(\vect{z}\cos\alpha - \vect{x} \sin\alpha)\) with \(\alpha\) being the airfoil angle of attack, \(\Psi_0\) is an unknown constant streamfunction at each node, and  \(\mathbf{A}\) is comprized of the coefficients of influence between the panels and evaluation points (\(a_{ij}\)), the Kutta condition, and the influence of \(\Psi_0\).
+\noindent where \(\gamma^0\) and \(\gamma^{90}\) are the perpendicular componenets of vorticity (such that \(\vect{V}/\vect{V}_\infty = \vect{\gamma}^0 \cos\alpha + \vect{\gamma}^{90} \sin\alpha\)), \(\Psi_0\) is an unknown constant streamfunction at each node, and  \(\mathbf{A}\) is comprized of the coefficients of influence between the panels and evaluation points (\(a_{ij}\)), the Kutta condition, and the influence of \(\Psi_0\).
 
 For a given evaluation point, \(i \in \mathbb{N}^N\), and panel, \(k \in \mathbb{N}^{N-1}\), (comprised of nodes \(j \in \mathbb{N}^{N-1}\) and \(j+1\)) the streamfunction at the evaluation point due to a linear vortex distribution across the panel (with vortex strengths at the nodes of \(\gamma_j\) and \(\gamma_{j+1}\), respectively) is
 
@@ -133,11 +133,11 @@ For a given evaluation point, \(i \in \mathbb{N}^N\), and panel, \(k \in \mathbb
 
 \subsubsection{Influence Geometry}
 
-The components of \(\mathbf{\Psi}^\gamma_{ik}\) are defined as\footnote{Note that these differ from eqns 37 and 38 in \cite{fidkowski_coupled_2022}, which appears to have a few typos} 
+The components of \(\mathbf{\Psi}^\gamma_{ik}\) are defined as
 
 \begin{align}
-	\overline{\psi}^\gamma_{ik} &= \frac{1}{2\pi d_k} \left( h_{ik} (\theta_{i,j+1} - \theta_{ij}) - d_k + a_{ik} \ln(r_{ij}) - (a_{ik}-d_k)\ln(r_{i,j+1}) \right) \\
-	\widetilde{\psi}^\gamma_{ik} &= a_{ik}\overline{\psi}^\gamma_{ik} + \frac{1}{4\pi d_k } \left(r^2_{i,j+1} \ln(r_{i,j+1}) - r^2_{ij} \ln(r_{ij}) - \frac{1}{2}r^2_{i,j+1} + \frac{1}{2}r^2_{ij} \right).
+	\overline{\psi}^\gamma_{ik} &= \frac{1}{2\pi} \left( h_{ik} (\theta_{i,j+1} - \theta_{ij}) - d_k + a_{ik} \ln(r_{ij}) - (a_{ik}-d_k)\ln(r_{i,j+1}) \right) \\
+	\widetilde{\psi}^\gamma_{ik} &=  \frac{a_{ik}}{d_k}\overline{\psi}^\gamma_{ik} + \frac{1}{4\pi d_k} \left(r^2_{i,j+1} \ln(r_{i,j+1}) - r^2_{ij} \ln(r_{ij}) - \frac{1}{2}r^2_{i,j+1} + \frac{1}{2}r^2_{ij} \right).
 \end{align}
 \noindent In order to evaluate the the componenets of \(\mathbf{\Psi}^\gamma_{ik}\) we will need to understand the geometry of the problem.
 
@@ -214,6 +214,9 @@ To complete the coefficient matrix, \(\mathbf{A}\) after putting together the vo
 
 \noindent We then add in the kutta condition, \(\gamma_1 + \gamma_N = 0\), as an additional row to our matrix
 
+
+
+
  \begin{equation}
  	\begin{pmatrix}
  		& & & & & -1 \\
@@ -227,6 +230,7 @@ To complete the coefficient matrix, \(\mathbf{A}\) after putting together the vo
 
 We now have an \(N+1 \times N+1 \) system of equations for \(\gamma\) and \(\Psi_0\)
 
+
  \begin{equation}
 	\begin{pmatrix}
 		& & & & & -1 \\
@@ -238,19 +242,19 @@ We now have an \(N+1 \times N+1 \) system of equations for \(\gamma\) and \(\Psi
 	\end{pmatrix}
 %
 	\begin{pmatrix}
-		\gamma_1 \\
-		\gamma_2 \\
+		\gamma^0_1 & \gamma^{90}_1 \\
+		\gamma^0_2 & \gamma^{90}_2 \\
 		\vdots \\
-		\gamma_N \\
-		\Psi_0 \\
+		\gamma^0_N & \gamma^{90}_N \\
+		\Psi^0_0 & \Psi^{90}_0\\
 	\end{pmatrix}
 =
 	\begin{pmatrix}
-		V_\infty(z_1\cos\alpha - x_1 \sin\alpha) \\
-		V_\infty(z_2\cos\alpha - x_2 \sin\alpha) \\
+		-z_1 & x_1 \\
+		-z_2 & x_2 \\
 		\vdots \\
-		V_\infty(z_N\cos\alpha - x_N \sin\alpha) \\
-		0
+		-z_N & x_N \\
+		0 & 0
 	\end{pmatrix}
 \end{equation}
 
@@ -264,7 +268,7 @@ We have a few modifications to make to our system depending on whether the airfo
 In the case of the sharp trailing edge, the first and last nodes are coincident, which leads them to have identical equations, causing the matrix to be singular.  In this case, we discard the \(N\)th row and substitute it for an extrapolation of the mean (between upper and lower sides) to the trailing edge as
 
 \begin{equation}
-	\gamma_1 + 2\gamma_2 - \gamma_3 + \gamma_{N-2} - 2\gamma_{N-1} - \gamma_N = 0.
+	\gamma_1 - 2\gamma_2 + \gamma_3 - \gamma_{N-2} + 2\gamma_{N-1} - \gamma_N = 0.
 \end{equation}
 
 \noindent This gives us the \(N\)th row of the coefficient matrix to be
@@ -276,8 +280,7 @@ In the case of the sharp trailing edge, the first and last nodes are coincident,
 \end{equation}
 
 
-\noindent (Where the \(N+1\)th entry is set to zero, since \(-\Psi_0\) was already applied at node 1.) We also set the \(N\)th boundary condition value to be 0 (rather than \(V_\infty[z_N\cos\alpha - x_N \sin\alpha]\)). 
-This yields the following system of equations for the inviscid solution of an airfoil with a sharp trailing edge:
+\noindent This yields the following system of equations for the inviscid solution of an airfoil with a sharp trailing edge:
 
  \begin{equation}
  	\begin{split}
@@ -290,22 +293,22 @@ This yields the following system of equations for the inviscid solution of an ai
 		1 & 0 & 0 & 0 & \cdots & 0 & 0 & 0 & 1 & 0
 	\end{pmatrix}
 	%
+		\begin{pmatrix}
+		\gamma^0_1 & \gamma^{90}_1 \\
+		\gamma^0_2 & \gamma^{90}_2 \\
+		\vdots \\
+		\gamma^0_{N-1} & \gamma^{90}_{N-1} \\
+		\gamma^0_N & \gamma^{90}_N \\
+		\Psi^0_0 & \Psi^{90}_0\\
+	\end{pmatrix} \\
+	& \hspace{1.5cm} =
 	\begin{pmatrix}
-		\gamma_1 \\
-		\gamma_2 \\
+		-z_1 & x_1 \\
+		-z_2 & x_2 \\
 		\vdots \\
-		\gamma_{N-1} \\
-		\gamma_N \\
-		\Psi_0 \\
-	\end{pmatrix}
-	= \\
-	& \hspace{2cm}\begin{pmatrix}
-		V_\infty(z_1\cos\alpha - x_1 \sin\alpha) \\
-		V_\infty(z_2\cos\alpha - x_2 \sin\alpha) \\
-		\vdots \\
-		V_\infty(z_{N-1}\cos\alpha - x_{N-1} \sin\alpha) \\
-		0 \\
-		0
+		-z_{N-1} & x_{N-1} \\
+		0 & 0 \\
+		0 & 0 
 	\end{pmatrix}
 \end{split}
 \end{equation}
@@ -335,6 +338,44 @@ and \(\vect{\hat{s}}_{TE}\) being the unit trailing-edge bisector vector defined
 \begin{equation}
 	\vect{\hat{s}}_{TE} = -\vect{d}_{1} ||\vect{d}_N|| + \vect{d}_N ||-\vect{d}_{1}||
 \end{equation}
+
+
+This gives us the following system for the inviscid solution of an airfoil with a blunt trailing edge:
+
+\begin{equation}
+	\vect{A}\vect{\gamma} = \vect{\Psi}^\infty
+\end{equation}
+
+\noindent where
+
+\begin{align}
+	\vect{A} &= \begin{pmatrix}
+		a_{11}+a_{1,TE_1} & a_{12} &  \cdots  & a_{1,N-1} & a_{1N}+a_{1,TE_N} & -1 \\
+		a_{21}+a_{2,TE_1} & a_{22} & \cdots & a_{2,N-1} & a_{2N}+a_{12,TE_N} & -1 \\
+		\vdots & \vdots &  \ddots &  \vdots & \vdots & -1 \\
+		a_{N-1,1}+a_{N-1,TE_1} & a_{N-1,2} &  \cdots & a_{N-1,N-1} & a_{N-1,N}+a_{N-1,TE_N} & -1 \\
+		a_{N,1}+a_{N,TE_1} & a_{N,2} & \cdots & a_{N,N-1} & a_{N,N}+a_{N,TE_N} & -1 \\
+		1 & 0 & \cdots  & 0 & 1 & 0
+	\end{pmatrix} \\
+%
+\vect{\gamma} &= 	\begin{pmatrix}
+	\gamma^0_1 & \gamma^{90}_1 \\
+	\gamma^0_2 & \gamma^{90}_2 \\
+	\vdots \\
+	\gamma^0_N & \gamma^{90}_N \\
+	\Psi^0_0 & \Psi^{90}_0\\
+\end{pmatrix} \\
+%
+\vect{\Psi}^\infty &= 
+\begin{pmatrix}
+	-z_1 & x_1 \\
+	-z_2 & x_2 \\
+	\vdots \\
+	-z_N & x_N \\
+	0 & 0
+\end{pmatrix}
+\end{align}
+
 
 
 
