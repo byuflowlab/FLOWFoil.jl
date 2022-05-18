@@ -125,32 +125,30 @@ end
 
     @testset "Vortex Coefficients on Panel" begin
         dmag = sqrt(2) / 2
-        a = sqrt(2) / 2
         r2, r2mag = FLOWFoil.get_r(nodes[2], nodes[1])
 
         c1, c2 = FLOWFoil.get_vortex_influence(nodes[1], nodes[2], nodes[1])
 
-        @test c1 ==
-            -dmag / (2 * pi) - (
-            -dmag / (2 * pi) + 1 / (4 * pi * dmag) * (r2mag^2 * log(r2mag) - 0.5 * r2mag^2)
+        @test isapprox(
+            c1,
+            (dmag * log(r2mag) - dmag) / (2 * pi) -
+            1.0 / (4 * pi * dmag) * (r2mag^2 * log(r2mag) - 0.5 * r2mag^2),
         )
-        @test c2 ==
-            -dmag / (2 * pi) +
-              1 / (4 * pi * dmag) * (r2mag^2 * log(r2mag) - 0.5 * r2mag^2)
+        @test isapprox(c2, 1 / (4 * pi * dmag) * (r2mag^2 * log(r2mag) - 0.5 * r2mag^2))
 
         r1, r1mag = FLOWFoil.get_r(nodes[1], nodes[2])
-
+        a = sqrt(2) / 2
         c1, c2 = FLOWFoil.get_vortex_influence(nodes[1], nodes[2], nodes[2])
 
-        @test c1 ==
-            1 / (2 * pi) * (-r1mag + r1mag * log(r1mag)) - (
-            1 / (2 * pi) * (-r1mag + r1mag * log(r1mag)) +
-            1 / (4 * pi * dmag) * (-r1mag^2 * log(r1mag) + 0.5 * r1mag^2)
+        @test isapprox(
+            c1,
+            (1 - a / dmag) * ((a * log(r1mag) - dmag) / (2 * pi)) -
+            1 / (4 * pi * dmag) * (-r1mag^2 * log(r1mag) + 0.5 * r1mag^2),
         )
-
-        @test c2 == (
-            1 / (2 * pi) * (-r1mag + r1mag * log(r1mag)) +
-            1 / (4 * pi * dmag) * (-r1mag^2 * log(r1mag) + 0.5r1mag^2)
+        @test isapprox(
+            c2,
+            (a) * ((a * log(r1mag) - dmag) / (2 * pi * dmag)) +
+            1 / (4 * pi * dmag) * (-r1mag^2 * log(r1mag) + 0.5 * r1mag^2),
         )
     end
 
@@ -161,23 +159,28 @@ end
         nodes = mesh.airfoil_nodes
         meshsystem = FLOWFoil.MeshSystem([mesh], [1.0], [0.0], [[0.0; 0.0]])
 
-        # test psitilde12 as first part of a13
+        # test psitilde13 as second part of a13
         s22 = sqrt(2) / 2
-        psibar12 = -s22 / (2 * pi)
-        psitilde12 = psibar12 + 1 / (4 * pi * s22) * (s22^2 * log(s22) - 0.5 * s22^2)
-        c1, c2 = FLOWFoil.get_vortex_influence(nodes[1], nodes[2], nodes[1])
-        @test c2 == psitilde12
+        h = -s22
+        dmag = s22
+        ln1 = log(s22)
+        ln2 = log(1.0)
+        r1mag = s22
+        r2mag = 1.0
+        theta1 = -pi / 2
+        theta2 = -3.0 * pi / 4
 
-        # test psibar13 and psitilde13 as second part of a13
-        psibar13 = 1 / (2 * pi) * (s22 * (-pi / 4) - s22 + s22 * log(s22))
+        psibar13 = 1.0 / (2 * pi) * (h * (theta2 - theta1) - dmag + dmag * ln2)
         psitilde13 =
-            psibar13 +
-            1 / (4 * pi * s22) * (1.0 * log(1.0) - s22^2 * log(s22) - 0.5 + 0.5 * s22^2)
-        c1, c2 = FLOWFoil.get_vortex_influence(nodes[2], nodes[3], nodes[1])
+            1 / (4 * pi * dmag) *
+            (r2mag^2 * ln2 - r1mag^2 * ln1 - 0.5 * r2mag^2 + 0.5 * r1mag^2)
+
+        c1, _ = FLOWFoil.get_vortex_influence(nodes[2], nodes[3], nodes[1])
         @test c1 == psibar13 - psitilde13
 
+        _, c2 = FLOWFoil.get_vortex_influence(nodes[1], nodes[2], nodes[1])
         # Test that coefficient matrix is assembled correctly
         a = FLOWFoil.assemblematrixa(meshsystem)
-        @test a[1, 2] == psitilde12 + psibar13 - psitilde13
+        @test a[1, 2] == c2 + c1
     end
 end
