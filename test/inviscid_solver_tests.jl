@@ -18,7 +18,7 @@
     @test !isapprox(LinearAlgebra.det(coeffs), 0.0)
 
     amat = FLOWFoil.assemblematrixa(meshsystem)
-    psi_inf = FLOWFoil.assembleboundaryconditions(meshsystem, freestream)
+    psi_inf = FLOWFoil.assembleboundaryconditions(meshsystem)
     gamma = amat \ psi_inf
     gammatot = [gamma[i, 1] * cosd(alpha) + gamma[i, 2] * sind(alpha) for i in 1:length(x)]
 
@@ -44,7 +44,7 @@ end
     @test !isapprox(LinearAlgebra.det(coeffs), 0.0)
 
     amat = FLOWFoil.assemblematrixa(meshsystem)
-    psi_inf = FLOWFoil.assembleboundaryconditions(meshsystem, freestream)
+    psi_inf = FLOWFoil.assembleboundaryconditions(meshsystem)
     gamma = amat \ psi_inf
 
     #TODO: figure out how to test this.
@@ -72,7 +72,7 @@ end
 
     #   @testset "Joukowsky Airfoil Velocity and Pressure Distributions" begin
     amat = FLOWFoil.assemblematrixa(meshsystem)
-    psi_inf = FLOWFoil.assembleboundaryconditions(meshsystem, freestream)
+    psi_inf = FLOWFoil.assembleboundaryconditions(meshsystem)
     gamma = amat \ psi_inf
     #  end
 end
@@ -105,7 +105,7 @@ end
 
     #   @testset "Joukowsky Airfoil Velocity and Pressure Distributions" begin
     amat = FLOWFoil.assemblematrixa(meshsystem)
-    psi_inf = FLOWFoil.assembleboundaryconditions(meshsystem, freestream)
+    psi_inf = FLOWFoil.assembleboundaryconditions(meshsystem)
     gamma = amat \ psi_inf
     #  end
 end
