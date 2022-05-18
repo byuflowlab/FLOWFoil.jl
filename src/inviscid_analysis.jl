@@ -24,8 +24,7 @@ Calculate value of  \$\\overbar{\\Psi}^\\gamma\$
 
 """
 function get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
-    return 1.0 / (2.0 * pi * dmag) *
-           (h * (theta2 - theta1) - dmag + a * ln1 - (a - dmag) * ln2)
+    return 1.0 / (2.0 * pi) * (h * (theta2 - theta1) - dmag + a * ln1 - (a - dmag) * ln2)
 end
 
 """
@@ -47,8 +46,10 @@ Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
 
 """
 function get_psitildegamma(psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a)
-    return a * psibargamma +
-           1 / (4 * pi * dmag) * (r2mag^2 * ln2 - r1mag^2 * ln1 - r2mag^2 / 2 + r1mag^2 / 2)
+    return (
+        a * psibargamma +
+        1 / (4 * pi) * (r2mag^2 * ln2 - r1mag^2 * ln1 - r2mag^2 / 2 + r1mag^2 / 2)
+    ) / dmag
 end
 
 """
@@ -197,10 +198,11 @@ function assemblevortexcoefficients(meshsystem)
     end
 
     # add in trailing edge contributions
+    #!NOTE: mfoil seems to apply blunt trailing edge contributions always, whether or not there actually is a blunt trailing edge.  Theoretically, the TE contributions would go to zero if the TE points were coincident, but they may, in fact, be within 1e-10.
+    # TODO: Probably move most of these calculations to a separate function for organizational purposes.
+    # get bisection vector
+    # get vector along first panel
     if meshsystem.meshes[1].blunt_te
-
-        # get bisection vector
-        # get vector along first panel
         nd1, _ = get_d(nodes[2], nodes[1])
 
         # get vector along second panel
@@ -243,7 +245,7 @@ function assemblevortexcoefficients(meshsystem)
         amat[end, 3] = 1.0
         amat[end, end - 2] = -1.0
         amat[end, end - 1] = 2.0
-        amat[end, end] = 1.0
+        amat[end, end] = -1.0
     end
 
     return amat
@@ -298,31 +300,36 @@ If freestream fields contain more than one item, only the first will be used.
 **Returns**
  - output::type : description.
 """
-function assembleboundaryconditions(meshsystem, freestream)
+function assembleboundaryconditions(meshsystem)
 
     # get node locations for convenience
     nodes = meshsystem.meshes[1].airfoil_nodes
     N = length(nodes)
 
-    # Get angle of attack
-    alpha = freestream.angleofattack[1] * pi / 180.0
-
-    # Get freestream magnitude
-    re = freestream.reynolds[1]
-    rho = freestream.density[1]
-    mu = freestream.dynamicviscosity[1]
-    chord = maximum(getindex.(nodes, 1)) - minimum(getindex.(nodes, 1))
-    Vinf = re * mu / (rho * chord)
-
     # generate boundary condition array
-    psi_inf = Vinf * [-nodes[i][2] * cos(alpha) + nodes[i][1] * sin(alpha) for i in 1:N]
+    psi_inf1 = [-nodes[i][2] for i in 1:N]
+    psi_inf2 = [nodes[i][1] for i in 1:N]
+    psi_inf = [psi_inf1 psi_inf2]
 
+    #NOTE: mfoil does not do the following, but rather keeps the rhs as [-z,x] in all cases:
     # if closed trailing edge, set last element of psi_inf to zero
     if !meshsystem.meshes[1].blunt_te
-        psi_inf[end] = 0.0
+        psi_inf[end, :] = [0.0 0.0]
     end
+
     # For Kutta Condition, RHS = 0.0
-    push!(psi_inf, 0.0)
+    psi_inf = vcat(psi_inf, [0.0 0.0])
 
     return psi_inf
+end
+
+"""
+"""
+function solve_inviscid_system(amat, psi_inf, alpha)
+    gammas = amat \ psi_inf
+    gamma0 = gammas[1:(end - 1), 1]
+    gamma90 = gammas[1:(end - 1), 2]
+    gammatot = gammas[:, 1] .* cosd(alpha) .+ gammas[:, 2] .* sind(alpha)
+
+    return gamma0, gamma90, gammatot
 end
