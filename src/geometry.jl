@@ -24,7 +24,7 @@ Create panels from input geometry coordinates.
 **Returns**
  - mesh::Mesh : Geometry mesh, including panel nodes, wake nodes, and trailing edge condition.
 """
-function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
+function generatemesh(x, y; tegapsize=1e-10, chordlength=1.0, wakelength=1.0)
 
     # check x and y are equal lengths
     if length(x) != length(y)
@@ -39,61 +39,20 @@ function generatemesh(x, y; chordlength=1.0, wakelength=1.0)
     # Get node locations from x,y coordinates
     airfoil_nodes = [[x[i] y[i]] for i in 1:numnodes]
 
-    # initialize the wake panel start point and direction
-    # wakestart = airfoil_nodes[1]
-    # wakedir = [1.0; 0.0]
-
-    # initialize blunt_te=false
-    blunt_te = false
+    # get distance between trailing edge nodes
+    _, rtemag = get_r(airfoil_nodes[1], airfoil_nodes[end])
 
     # check if open trailing edge
-    if airfoil_nodes[1][1] != airfoil_nodes[end][1] ||
-        airfoil_nodes[1][2] != airfoil_nodes[end][2]
-
-        #TODO: probably not...
-        # add panel across the trailing edge gap
-        #        push!(airfoil_nodes, airfoil_nodes[1])
-
-        #TODO LATER (probably in different function)
-        # update the wake panel starting location to be the midpoint of the gap panel.
-        #        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
-
-        # and update the wake panel initial direction to be the normal of that panel
-        #       wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
+    if rtemag > tegapsize * chordlength
 
         # set blunt_te to true
         blunt_te = true
 
     else #(closed trailing edge)
 
-        #TODO: probably put this elsewhere
-        # update wake panel direction to be bisection of trailing edge panel vectors
-        # get vector along first panel
-        #        a1 = airfoil_nodes[1] - airfoil_nodes[2]
-
-        # get vector along second panel
-        #       an = airfoil_nodes[end] - airfoil_nodes[end - 1]
-
-        # calculate vector that bisects the first and last panel vectors
-        #      bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)
-
-        # normalize to get the unit vector
-        #     wakedir = bisector / LinearAlgebra.norm(bisector)
+        #set blunt_te to false
+        blunt_te = false
     end
-
-    #TODO: There is something in the method about a trailing half panel, find out what that means and if you should remove the final wake node or not.
-    # get initial wake geometry: equidistant panels starting at wakestart point and extending the input percentage of the airfoil chord in the calculated direction.
-    # wake_nodes = [
-    #    wakestart .+ x .* wakedir for
-    #     x in range(0.0; stop=wakelength * chordlength, length=numwake)
-    # ]
-
-    # get wake midpoints as well
-    #wake_midpoints = [
-    #    [(wake_nodes[i + 1][1] + wake_nodes[i][1]) / 2.0 (
-    #        wake_nodes[i + 1][2] + wake_nodes[i][2]
-    #    ) / 2.0] for i in 1:(numwake - 1)
-    #]
 
     # generate mesh object
     mesh = FLOWFoil.Mesh(airfoil_nodes, blunt_te)
@@ -177,7 +136,7 @@ end
 """
     get_theta(h, a)
 
-Get angle (in radians) between panel and vector from node to evaluation point.
+Get angle (in radians) between panel and vector from node1 to evaluation point.
 
 **Arguments:**
  - 'h::Float' : Distance, normal to panel, between panel and evaluation point.
@@ -191,7 +150,7 @@ end
 """
     get_theta(h, a, dmag)
 
-Get angle (in radians) between panel and vector from node to evaluation point.
+Get angle (in radians) between panel and vector from node2 to evaluation point.
 
 **Arguments:**
  - 'h::Float' : Distance, normal to panel, between panel and evaluation point.
@@ -303,6 +262,7 @@ Get vectors and magnitudes for panel and between nodes and validation points.
 
 """
 function get_distances(node1, node2, point)
+    #!NOTE: mfoil gets r's from h and a distances.
     r1, r1mag = get_r(node1, point)
     r2, r2mag = get_r(node2, point)
     d, dmag = get_d(node1, node2)
@@ -328,7 +288,7 @@ Get angles between panel and evaluation point, ln of distances from nodes to eva
  - 'a::Float' : Distance from node1 to evaluation in panel tangent direction.
 
 """
-function get_orientation(node1, node2, point)
+function get_orientation(node1, node2, point; epsilon=1e-10)
 
     # get distances
     r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
@@ -337,36 +297,63 @@ function get_orientation(node1, node2, point)
     h = get_h(r1, d, dmag)
     a = get_a(r1, d, dmag)
 
-    #check if point resides on either node and create convenience flag
-    #TODO: probably want to set this up with haveing some sort of tolerance rather than an exact value in case user data is not exact, but close.
-    if node1 == point
-        p1 = true
-        p2 = false
-    elseif node2 == point
-        p1 = false
-        p2 = true
+    # Calculate secondary distances and angles (taking into account whether or not the point lies on one of the nodes)
+    if r1mag < epsilon
+        ln1 = 0.0
     else
-        p1 = false
-        p2 = false
+        ln1 = log(r1mag)
     end
 
-    # Calculate secondary distances and angles (taking into account whether or not the point lies on one of the nodes)
-    if p1
-        ln1 = 0.0
-        ln2 = log(r2mag)
-        theta1 = pi
-        theta2 = pi
-    elseif p2
-        ln1 = log(r1mag)
+    if r2mag < epsilon
         ln2 = 0.0
-        theta1 = 0.0
-        theta2 = 0.0
     else
-        ln1 = log(r1mag)
         ln2 = log(r2mag)
-        theta1 = get_theta(h, a)
-        theta2 = get_theta(h, a, dmag)
     end
+
+    theta1 = get_theta(h, a)
+    theta2 = get_theta(h, a, dmag)
 
     return theta1, theta2, ln1, ln2, h, a
+end
+
+function initialize_wake()
+
+    # initialize the wake panel start point and direction
+    # wakestart = airfoil_nodes[1]
+    # wakedir = [1.0; 0.0]
+
+    #TODO LATER (probably in different function)
+    # update the wake panel starting location to be the midpoint of the gap panel.
+    #        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
+
+    # and update the wake panel initial direction to be the normal of that panel
+    #       wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
+    #TODO: probably put this elsewhere
+    # update wake panel direction to be bisection of trailing edge panel vectors
+    # get vector along first panel
+    #        a1 = airfoil_nodes[1] - airfoil_nodes[2]
+
+    # get vector along second panel
+    #       an = airfoil_nodes[end] - airfoil_nodes[end - 1]
+
+    # calculate vector that bisects the first and last panel vectors
+    #      bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)
+
+    # normalize to get the unit vector
+    #     wakedir = bisector / LinearAlgebra.norm(bisector)
+
+    #TODO: There is something in the method about a trailing half panel, find out what that means and if you should remove the final wake node or not.
+    # get initial wake geometry: equidistant panels starting at wakestart point and extending the input percentage of the airfoil chord in the calculated direction.
+    # wake_nodes = [
+    #    wakestart .+ x .* wakedir for
+    #     x in range(0.0; stop=wakelength * chordlength, length=numwake)
+    # ]
+
+    # get wake midpoints as well
+    #wake_midpoints = [
+    #    [(wake_nodes[i + 1][1] + wake_nodes[i][1]) / 2.0 (
+    #        wake_nodes[i + 1][2] + wake_nodes[i][2]
+    #    ) / 2.0] for i in 1:(numwake - 1)
+    #]
+
 end
