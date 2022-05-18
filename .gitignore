@@ -15,3 +15,5 @@ Manifest.toml
 *.fdb_latexmk
 *.fls
 .DS_Store
+
+*.pdf
