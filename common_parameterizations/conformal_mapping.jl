@@ -85,7 +85,7 @@ function rawjoukowsky(center::Array{Float64}=[-0.1 0.1]; N::Int=360)
 
     #Solve for geometry
     zeta(theta) = 1 .+ r * (exp(im * theta) - exp(-im * beta)) #WHY??? Where in the world does this come from?
-    for i in 1:360
+    for i in 1:N
         w[i] = zeta(theta[i]) + 1 / zeta(theta[i]) #Joukowsky transformation w = z +1/z
     end
 
