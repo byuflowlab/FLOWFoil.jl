@@ -9,7 +9,7 @@ using LinearAlgebra
 # geometry types
 export Mesh, MeshSystem
 # operating point types
-export Freestream
+export Freestream, Parameters
 # problem types
 export Problem, Solution
 
@@ -28,11 +28,17 @@ include("types.jl")
 # Geometry Generation and Modification
 include("geometry.jl")
 
+# Singularity Distributions
+include("singularities.jl")
+
 # Inviscid Solver
 include("inviscid_analysis.jl")
 
 # Boundary Layer Integration
 include("viscous_analysis.jl")
+
+# Solver
+include("solve.jl")
 
 # Common Airfoil Parameterizations
 include("../common_parameterizations/conformal_mapping.jl")
