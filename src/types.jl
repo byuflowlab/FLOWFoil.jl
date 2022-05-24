@@ -25,8 +25,8 @@ Mesh for single body.
 """
 struct Mesh{TF}
     airfoil_nodes::Array{Array{TF,2}}
-#    wake_nodes::Array{Array{TF,2}}
- #   wake_midpoints::Array{Array{TF,2}}
+    #    wake_nodes::Array{Array{TF,2}}
+    #   wake_midpoints::Array{Array{TF,2}}
     blunt_te::Bool
 end
 
@@ -79,6 +79,7 @@ Problem definition and method selection.
 **Fields:**
  - 'meshsystem::MeshSystem' : Mesh System to solve
  - 'freestream::FreeStream' : Freestream parameters
+ - 'viscous::Bool' : Flag to solve viscous or inviscid only
  - 'verbose::Bool' : Flag to print out verbose statements
  - 'debug::Bool' : Flag to print out debugging statements
 
@@ -86,11 +87,13 @@ Problem definition and method selection.
 struct Problem{TM,TS,TB}
     meshsystem::TM
     freestream::TS
+    viscous::TB
     verbose::TB
     debug::TB
 end
 
-# TODO: figure out best way to normalize outputs
+# TODO: Need an inviscid solution object as well as a viscous solution object.  They will have some similar fields and some different.
+# # Also probably want to just have normal stuff in the outputs rather than every possible thing.  Probably create another type to house all of the minutia and if debug flag is true, also update and output that detailed object (come up with a reasonable name other than "Innards"
 """
     Solution{TM,TF}
 
@@ -123,4 +126,46 @@ struct Solution{TM,TF}
     moment::Vector{TF}
     surfacevelocity::Vector{TF}
     surfacepressure::Vector{TF}
+end
+
+"""
+    Parameters{TF}
+
+ - `gamma_air::Float' : ratio of specific heats for air
+ - `eta_crit::Float' : critical amplification factor
+ - `eta_D::Float' : wall/wake dissipation length ratio
+ - `GA::Float' : G - Beta locus A constant
+ - `GB::Float' : G - Beta locus B constant
+ - `GC::Float' : G - Beta locus C constant
+ - `Klag::Float' : shear lag constant
+ - `Ctau::Float' : shear stress initialization constant
+ - `Etau::Float' : shear stree initialization exponent
+ - `rSu::Float' : Sutherland temperature ratio
+ - `fw::Float' : wake gap continuation factor
+ - `dw::Float' : wake length, in airfoil chords
+ - `epsilonw::Float' : first wake point offset, in airfoil chords
+"""
+struct Parameters{TF}
+    gamma_air::TF
+    etacrit::TF
+    etaD::TF
+    GA::TF
+    GB::TF
+    GC::TF
+    Klag::TF
+    Ctau::TF
+    Etau::TF
+    rSu::TF
+    fw::TF
+    dw::TF
+    epsilonw::TF
+end
+
+"""
+    defaultparameters()
+
+Initializes Parameters struct with defaults, see `Parameters` docstring.
+"""
+function defaultparameters()
+    return Parameters(1.4, 9.0, 0.9, 6.7, 0.75, 18.0, 5.6, 1.8, 3.3, 0.35, 2.5, 1.0, 1e-5)
 end
