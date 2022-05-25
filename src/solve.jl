@@ -161,7 +161,7 @@ function initalize_viscous(problem; parameters=nothing)
     end
 
     # set thermodynamic properties TODO
-    properties = set_properties(problem, parameters, inviscid_solution)
+    properties = initialize_properties(problem, parameters, inviscid_solution)
 
     # locate stagnation point TODO
 

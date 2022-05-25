@@ -114,7 +114,13 @@ end
 """
 **Fields:**
 """
-struct ViscousSystem{} end
+struct ViscousSystem{TPa,TPr}
+    parameters::TPa
+    properties::TPr
+    vcoeffmat::Array{TF}
+    scoeffmat::Array{TF}
+    bccoeffvec::Array{TF}
+end
 
 """
     InviscidSolution{TM,TF,TD}
@@ -192,16 +198,16 @@ Thermodynamic properties for the viscous solution
 
 **Fields:**
  - 'machinf::Float' : freestream mach number
- - 'KTb::Float' : Karman-Tsien beta
- - 'KTl::Float' : Karman-Tsien lambda
+ - 'KTbeta::Float' : Karman-Tsien beta
+ - 'KTlambda::Float' : Karman-Tsien lambda
  - 'H0::Float' : stagnation enthalpy
  - 'rho0::Float' : stagnation density
  - 'mu0::Float' : stagnation dynamic viscosity
 """
 struct Properties{TF}
     machinf::TF
-    KTb::TF
-    KTl::TF
+    KTbeta::TF
+    KTlambda::TF
     H0::TF
     rho0::TF
     mu0::TF
@@ -222,7 +228,7 @@ Solver Parameters.
  - 'Klag::Float = 5.6' : shear lag constant
  - 'Ctau::Float = 1.8' : shear stress initialization constant
  - 'Etau::Float = 3.3' : shear stree initialization exponent
- - 'Tsrat::Float = 0.35' : Sutherland temperature ratio
+ - 'rSu::Float = 0.35' : Sutherland temperature ratio
  - 'fw::Float = 2.5' : wake gap continuation factor
  - 'dw::Float = 1.0' : wake length, in airfoil chords
  - 'epsilonw::Float = 1e-5' : first wake point offset, in airfoil chords
@@ -241,7 +247,7 @@ struct Parameters{TF}
     Klag::TF
     Ctau::TF
     Etau::TF
-    Tsrat::TF
+    rSu::TF
     fw::TF
     dw::TF
     epsilonw::TF
@@ -267,7 +273,7 @@ function defaultparameters()
         5.6, # Klag
         1.8, # Ctau
         3.3, # Etau
-        0.35, # Tsrat
+        0.35, # rSu
         2.5, # fw
         1.0, # dw
         1e-5, # epsilonw
@@ -293,7 +299,7 @@ Initialized parameters to defaults, but allows selective user override through k
  - 'Klag::Float' : shear lag constant
  - 'Ctau::Float' : shear stress initialization constant
  - 'Etau::Float' : shear stree initialization exponent
- - 'Tsrat::Float' : Sutherland temperature ratio
+ - 'rSu::Float' : Sutherland temperature ratio
  - 'fw::Float' : wake gap continuation factor
  - 'dw::Float' : wake length, in airfoil chords
  - 'epsilonw::Float' : first wake point offset, in airfoil chords
@@ -312,7 +318,7 @@ function defaultparameters(;
     Klag=5.6,
     Ctau=1.8,
     Etau=3.3,
-    Tsrat=0.35,
+    rSu=0.35,
     fw=2.5,
     dw=1.0,
     epsilonw=1e-5,
@@ -330,6 +336,6 @@ function defaultparameters(;
     end
 
     return Parameters(
-        gamma_air, eta_crit, eta_D, GA, GB, GC, Klag, Ctau, Etau, Tsrat, fw, dw, epsilonw
+        gamma_air, eta_crit, eta_D, GA, GB, GC, Klag, Ctau, Etau, rSu, fw, dw, epsilonw
     )
 end
