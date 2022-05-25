@@ -18,13 +18,13 @@ Create panels from input geometry coordinates.
  - 'y::Vector{Float}' : y coordinates defining airfoil geometry.
 
 **Keyword Arguments:**
- - chordlength::Float' : length of chord (default = 1)
+ - gaptolerance::Float' : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
  - wakelength::Float' : length of wake relative to chord (default = 1)
 
 **Returns**
- - mesh::Mesh : Geometry mesh, including panel nodes, wake nodes, and trailing edge condition.
+ - mesh::BodyMesh : Geometry mesh, including panel nodes and trailing edge condition.
 """
-function generatemesh(x, y; tegapsize=1e-10, chordlength=1.0, wakelength=1.0)
+function generate_mesh(x, y; gaptolerance=1e-10, wakelength=1.0)
 
     # check x and y are equal lengths
     if length(x) != length(y)
@@ -42,8 +42,11 @@ function generatemesh(x, y; tegapsize=1e-10, chordlength=1.0, wakelength=1.0)
     # get distance between trailing edge nodes
     _, rtemag = get_r(airfoil_nodes[1], airfoil_nodes[end])
 
+    # get chord length
+    chordlength = maximum(x) - minimum(x)
+
     # check if open trailing edge
-    if rtemag > tegapsize * chordlength
+    if rtemag > gaptolerance * chordlength
 
         # set blunt_te to true
         blunt_te = true
@@ -55,39 +58,56 @@ function generatemesh(x, y; tegapsize=1e-10, chordlength=1.0, wakelength=1.0)
     end
 
     # generate mesh object
-    mesh = FLOWFoil.Mesh(airfoil_nodes, blunt_te)
+    mesh = FLOWFoil.BodyMesh(airfoil_nodes, blunt_te)
 
     return mesh
 end
 
 """
-    sizesystem(meshsystem)
+    generate_mesh(coordinates; kwargs)
 
-Count size of inviscid system matrix.
+Identical to implementation with x and y separate, but here with x,y coordinates together in a single array [X Y].
 
 **Arguments:**
- - 'meshsystem::MeshSystem' : The system for which to calculate the linear system size.
+ - 'coordinates::Array{Float,2}' : array of both x and y coordinates (x first column, y second column).
 """
-function sizesystem(meshsystem)
+function generate_mesh(coordinates; gaptolerance=1e-10, wakelength=1.0)
 
-    # initialize
-    # number of bodies for convenience
-    numbodies = length(meshsystem.meshes)
+    # Separate out coordinates
+    x = coordinates[:, 1]
+    y = coordinates[:, 2]
 
-    # initialize total system size
-    N = 0
-
-    # initialize system size contributions from each mesh
-    Ns = ones(Int, numbodies)
-
-    # Count number of airfoil nodes in each mesh.
-    for i in 1:numbodies
-        Ns[i] = length(meshsystem.meshes[i].airfoil_nodes)
-        N += Ns[i]
-    end
-
-    return N, Ns
+    return generate_mesh(x, y; gaptolerance=gaptolerance, wakelength=wakelength)
 end
+
+# """
+#     sizesystem(meshsystem)
+
+# Count size of inviscid system matrix.
+
+# **Arguments:**
+#  - 'meshsystem::MeshSystem' : The system for which to calculate the linear system size.
+# """
+# function sizesystem(meshsystem)
+
+#     # initialize
+#     # number of bodies for convenience
+#     numbodies = length(meshsystem.meshes)
+
+#     # initialize total system size
+#     N = 0
+
+#     # initialize system size contributions from each mesh
+#     Ns = ones(Int, numbodies)
+
+#     # Count number of airfoil nodes in each mesh.
+#     for i in 1:numbodies
+#         Ns[i] = length(meshsystem.meshes[i].airfoil_nodes)
+#         N += Ns[i]
+#     end
+
+#     return N, Ns
+# end
 
 """
     function get_r(node,point)
@@ -193,7 +213,6 @@ Calculate distance from panel to evalulation point in the panel tangent directio
  - 'r1::Vector{Float}' : vector from node1 to evalulation point.
  - 'd::Vector{Float}' : vector from node1 to node2.
  - 'dmag::Float' : panel length
-    get_a(rmag1, dmag, theta1)
 
 """
 function get_a(r1, d, dmag)
@@ -262,10 +281,16 @@ Get vectors and magnitudes for panel and between nodes and validation points.
 
 """
 function get_distances(node1, node2, point)
-    #!NOTE: mfoil gets r's from h and a distances.
+
+    # Get vector and magnitude from node1 to point
     r1, r1mag = get_r(node1, point)
+
+    # Get vector and magnitude from node2 to point
     r2, r2mag = get_r(node2, point)
+
+    # Get vector and magnitude of panel
     d, dmag = get_d(node1, node2)
+
     return r1, r1mag, r2, r2mag, d, dmag
 end
 
@@ -297,7 +322,7 @@ function get_orientation(node1, node2, point; epsilon=1e-10)
     h = get_h(r1, d, dmag)
     a = get_a(r1, d, dmag)
 
-    # Calculate secondary distances and angles (taking into account whether or not the point lies on one of the nodes)
+    # Calculate natural log values, setting to zero if the point is close enough to the node
     if r1mag < epsilon
         ln1 = 0.0
     else
@@ -310,12 +335,15 @@ function get_orientation(node1, node2, point; epsilon=1e-10)
         ln2 = log(r2mag)
     end
 
+    # Calculate angles
     theta1 = get_theta(h, a)
     theta2 = get_theta(h, a, dmag)
 
     return theta1, theta2, ln1, ln2, h, a
 end
 
+"""
+"""
 function initialize_wake()
 
     # initialize the wake panel start point and direction
