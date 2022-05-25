@@ -19,11 +19,11 @@ Solve problem defined by the input Problem object and return the solution in a S
 **Returns:**
  - 'solution::{InviscidSolution or ViscousSolution}' : returns solution of type matching viscous flag in problem.
 """
-function solve(problem)
+function solve(problem; parameters)
 
     # Check viscosity and solve accordingly
     if problem.viscous
-        solution = solve_viscous(problem)
+        solution = solve_viscous(problem, parameters)
     else
         solution = solve_inviscid(problem)
     end
@@ -119,7 +119,7 @@ Solves the viscous problem.
 **Returns:**
  - 'solution::ViscousSolution'
 """
-function solve_viscous(problem)
+function solve_viscous(problem; parameters=nothing)
 
     # Check to make sure you want the invsicid solution:
     if !problem.viscous
@@ -148,20 +148,27 @@ Initialized viscous solution (solves invscid problem, initialized wake and bound
 **Returns:**
  - solution::ViscousSolution' : Initialized ViscousSolution
 """
-function initalize_viscous(problem)
+function initalize_viscous(problem; parameters=nothing)
 
     # solve inviscid problem first
     inviscid_solution = solve_inviscid(problem)
 
-    # set thermodynamic properties TODO
-    properties = set_properties(problem)
+    # initialize parameters if needed
+    if parameters == nothing
+        parameters = defaultparameters(;
+            muinf=inviscid_solution.mesh.chord / problem.reynolds
+        )
+    end
 
-    # generate wake TODO
-    wake = generate_wake(problem, inviscid_solution)
+    # set thermodynamic properties TODO
+    properties = set_properties(problem, parameters, inviscid_solution)
 
     # locate stagnation point TODO
 
     # split into pressure/suction sides TODO
+
+    # generate wake TODO
+    wake = generate_wake(problem, inviscid_solution)
 
     # set dead air space behind blunt trailing edges. TODO
 

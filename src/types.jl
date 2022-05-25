@@ -55,6 +55,7 @@ Mesh for single body.
 
 **Fields:**
  - 'airfoil_nodes::Array{Array{Float,2}}' : [x y] node (panel edge) locations for airfoil
+ - 'chord::Float' : airfoil chord length
  - 'blunt_te::Bool' : boolean for whether or not the trailing edge is blunt or not.
 **Assuptions:**
  - x and y coordinates start at the bottom trailing edge and proceed clockwise.
@@ -62,6 +63,7 @@ Mesh for single body.
 """
 struct BodyMesh{TF,TB}
     airfoil_nodes::Array{TF}
+    chord::TF
     blunt_te::TB
 end
 
@@ -184,24 +186,50 @@ struct Polar{TF}
 end
 
 """
+    Properties{TF}
+
+Thermodynamic properties for the viscous solution
+
+**Fields:**
+ - 'machinf::Float' : freestream mach number
+ - 'KTb::Float' : Karman-Tsien beta
+ - 'KTl::Float' : Karman-Tsien lambda
+ - 'H0::Float' : stagnation enthalpy
+ - 'rho0::Float' : stagnation density
+ - 'mu0::Float' : stagnation dynamic viscosity
+"""
+struct Properties{TF}
+    machinf::TF
+    KTb::TF
+    KTl::TF
+    H0::TF
+    rho0::TF
+    mu0::TF
+end
+
+"""
     Parameters{TF}
 
 Solver Parameters.
 
 **Fields:**
- - `gamma_air::Float = 1.4' : ratio of specific heats for air
- - `eta_crit::Float = 9.0' : critical amplification factor
- - `eta_D::Float = 0.9' : wall/wake dissipation length ratio
- - `GA::Float = 6.7' : G - Beta locus A constant
- - `GB::Float = 0.75' : G - Beta locus B constant
- - `GC::Float = 18.0' : G - Beta locus C constant
- - `Klag::Float = 5.6' : shear lag constant
- - `Ctau::Float = 1.8' : shear stress initialization constant
- - `Etau::Float = 3.3' : shear stree initialization exponent
- - `rSu::Float = 0.35' : Sutherland temperature ratio
- - `fw::Float = 2.5' : wake gap continuation factor
- - `dw::Float = 1.0' : wake length, in airfoil chords
- - `epsilonw::Float = 1e-5' : first wake point offset, in airfoil chords
+ - 'gamma_air::Float = 1.4' : ratio of specific heats for air
+ - 'eta_crit::Float = 9.0' : critical amplification factor
+ - 'eta_D::Float = 0.9' : wall/wake dissipation length ratio
+ - 'GA::Float = 6.7' : G - Beta locus A constant
+ - 'GB::Float = 0.75' : G - Beta locus B constant
+ - 'GC::Float = 18.0' : G - Beta locus C constant
+ - 'Klag::Float = 5.6' : shear lag constant
+ - 'Ctau::Float = 1.8' : shear stress initialization constant
+ - 'Etau::Float = 3.3' : shear stree initialization exponent
+ - 'Tsrat::Float = 0.35' : Sutherland temperature ratio
+ - 'fw::Float = 2.5' : wake gap continuation factor
+ - 'dw::Float = 1.0' : wake length, in airfoil chords
+ - 'epsilonw::Float = 1e-5' : first wake point offset, in airfoil chords
+ - 'iknowwhatimdoing::Bool' : boolean to silence warnings if you really know what you're doing.
+ - 'rhoinf::Float' : non-dimensional freestream density
+ - 'vinf::Float' : non-dimensional freestream velocity magnitude
+ - 'muinf::Float' : freestream dynamic viscosity
 """
 struct Parameters{TF}
     gamma_air::TF
@@ -213,19 +241,41 @@ struct Parameters{TF}
     Klag::TF
     Ctau::TF
     Etau::TF
-    rSu::TF
+    Tsrat::TF
     fw::TF
     dw::TF
     epsilonw::TF
+    iknowwhatimdoing::TB
+    rhoinf::TF
+    vinf::TF
+    muinf::TF
 end
 
 """
     defaultparameters()
 
-Initializes Parameters struct with defaults, see `Parameters` docstring.
+Initializes Parameters struct with defaults, see 'Parameters' docstring.
 """
 function defaultparameters()
-    return Parameters(1.4, 9.0, 0.9, 6.7, 0.75, 18.0, 5.6, 1.8, 3.3, 0.35, 2.5, 1.0, 1e-5)
+    return Parameters(
+        1.4, # gamma_air
+        9.0, # etacrit
+        0.9, # etaD
+        6.7, # GA
+        0.75, # GB
+        18.0, # GC
+        5.6, # Klag
+        1.8, # Ctau
+        3.3, # Etau
+        0.35, # Tsrat
+        2.5, # fw
+        1.0, # dw
+        1e-5, # epsilonw
+        false, # iknowwhatimdoing
+        1.0, # rhoinf
+        1.0, # vinf
+        0.0, # muinf
+    )
 end
 
 """
@@ -234,19 +284,23 @@ end
 Initialized parameters to defaults, but allows selective user override through keyword arguments.
 
 **Keyword Arguments:**
- - `gamma_air::Float' : ratio of specific heats for air
- - `eta_crit::Float' : critical amplification factor
- - `eta_D::Float' : wall/wake dissipation length ratio
- - `GA::Float' : G - Beta locus A constant
- - `GB::Float' : G - Beta locus B constant
- - `GC::Float' : G - Beta locus C constant
- - `Klag::Float' : shear lag constant
- - `Ctau::Float' : shear stress initialization constant
- - `Etau::Float' : shear stree initialization exponent
- - `rSu::Float' : Sutherland temperature ratio
- - `fw::Float' : wake gap continuation factor
- - `dw::Float' : wake length, in airfoil chords
- - `epsilonw::Float' : first wake point offset, in airfoil chords
+ - 'gamma_air::Float' : ratio of specific heats for air
+ - 'eta_crit::Float' : critical amplification factor
+ - 'eta_D::Float' : wall/wake dissipation length ratio
+ - 'GA::Float' : G - Beta locus A constant
+ - 'GB::Float' : G - Beta locus B constant
+ - 'GC::Float' : G - Beta locus C constant
+ - 'Klag::Float' : shear lag constant
+ - 'Ctau::Float' : shear stress initialization constant
+ - 'Etau::Float' : shear stree initialization exponent
+ - 'Tsrat::Float' : Sutherland temperature ratio
+ - 'fw::Float' : wake gap continuation factor
+ - 'dw::Float' : wake length, in airfoil chords
+ - 'epsilonw::Float' : first wake point offset, in airfoil chords
+ - 'iknowwhatimdoing::Bool' : boolean to silence warnings if you really know what you're doing.
+ - 'rhoinf::Float' : non-dimensional freestream density
+ - 'vinf::Float' : non-dimensional freestream velocity magnitude
+ - 'muinf::Float' : freestream dynamic viscosity
 """
 function defaultparameters(;
     gamma_air=1.4,
@@ -258,12 +312,24 @@ function defaultparameters(;
     Klag=5.6,
     Ctau=1.8,
     Etau=3.3,
-    rSu=0 / 35,
+    Tsrat=0.35,
     fw=2.5,
     dw=1.0,
     epsilonw=1e-5,
+    iknowwhatimdoing=false,
+    rhoinf=1.0,
+    vinf=1.0,
+    muinf=0.0,
 )
+
+    #check if vinf and rhoinf are not default
+    if !iknowwhatimdoing && (vinf != 1.0 || rhoinf != 1.0)
+        @warn(
+            "vinf and/or rhoinf have been changed from their defaults. Do you really want to do that??\n\nTo silence this warning in the future, set the field 'iknowwhatimdoing=true'."
+        )
+    end
+
     return Parameters(
-        gamma_air, eta_crit, eta_D, GA, GB, GC, Klag, Ctau, Etau, rSu, fw, dw, epsilonw
+        gamma_air, eta_crit, eta_D, GA, GB, GC, Klag, Ctau, Etau, Tsrat, fw, dw, epsilonw
     )
 end

@@ -58,7 +58,7 @@ function generate_mesh(x, y; gaptolerance=1e-10, wakelength=1.0)
     end
 
     # generate mesh object
-    mesh = FLOWFoil.BodyMesh(airfoil_nodes, blunt_te)
+    mesh = FLOWFoil.BodyMesh(airfoil_nodes, chordlength, blunt_te)
 
     return mesh
 end
