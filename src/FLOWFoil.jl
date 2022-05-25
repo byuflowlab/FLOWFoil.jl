@@ -32,10 +32,10 @@ include("geometry.jl")
 include("singularities.jl")
 
 # Inviscid Solver
-include("inviscid_analysis.jl")
+include("inviscid_system.jl")
 
 # Boundary Layer Integration
-include("viscous_analysis.jl")
+include("viscous_system.jl")
 
 # Solver
 include("solve.jl")
