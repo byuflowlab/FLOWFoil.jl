@@ -2,19 +2,19 @@
 @testset "Mesh" begin
     x = [1; 0.5; 0; 0.5; 1]
     y = [0; -0.5; 0; 0.5; 0]
-    mesh = FLOWFoil.generatemesh(x, y)
+    mesh = FLOWFoil.generate_mesh(x, y)
 
     xr = [1.0; 0; 0; 1; 1]
     yr = [0.0; 0; 1; 1; 0]
-    meshr = FLOWFoil.generatemesh(xr, yr)
+    meshr = FLOWFoil.generate_mesh(xr, yr)
 
     xd = x
     yd = [-0.01; -0.25; 0; 0.25; 0.01]
-    meshd = FLOWFoil.generatemesh(xd, yd)
+    meshd = FLOWFoil.generate_mesh(xd, yd)
 
     xdr = [0.0; 0; 2]
     ydr = [-1.0; 2; 1]
-    meshdr = FLOWFoil.generatemesh(xdr, ydr)
+    meshdr = FLOWFoil.generate_mesh(xdr, ydr)
 
     # Nodes:
     @testset "Nodes" begin
@@ -26,34 +26,13 @@
         @test isapprox(nodes[4], [0.5 0.5])
         @test isapprox(nodes[5], [1 0])
     end
-
-    #    # Wake:
-    #    @testset "Wake" begin
-    #        wnodes = mesh.wake_nodes
-
-    #        @test length(wnodes) == 11
-    #        @test isapprox(wnodes[1], [1 0])
-    #        @test isapprox(wnodes[end], [2 0])
-    #        @test isapprox(wnodes[2], [1.1 0])
-
-    #        wnodesr = meshr.wake_nodes
-    #        @test isapprox(wnodesr[1], [1 0])
-    #        @test isapprox(wnodesr[end], [1 0] .+ sqrt(2) / 2 * [1 -1])
-    #        @test isapprox(wnodesr[2], [1 0] .+ sqrt(2) / 2 * [0.1 -0.1])
-
-    #        wnodesd = meshd.wake_nodes
-    #        @test isapprox(wnodes, wnodesd)
-
-    #        wnodesdr = meshdr.wake_nodes
-    #        @test isapprox(wnodesdr, wnodesr)
-    #    end
 end
 
 # Test distance functions
 @testset "Distance Calculations" begin
     x = [1; 0.5; 0; 0.5; 1]
     y = [0; -0.5; 0; 0.5; 0]
-    mesh = FLOWFoil.generatemesh(x, y)
+    mesh = FLOWFoil.generate_mesh(x, y)
     nodes = mesh.airfoil_nodes
 
     @testset "Node on Panel" begin
@@ -120,7 +99,7 @@ end
 @testset "Influence Coefficients" begin
     x = [1; 0.5; 0; 0.5; 1]
     y = [0; -0.5; 0; 0.5; 0]
-    mesh = FLOWFoil.generatemesh(x, y)
+    mesh = FLOWFoil.generate_mesh(x, y)
     nodes = mesh.airfoil_nodes
 
     @testset "Vortex Coefficients on Panel" begin
@@ -155,9 +134,8 @@ end
     @testset "Vortex Coefficients Matrix" begin
         x = [1; 0.5; 0; 0.5; 1]
         y = [0; -0.5; 0; 0.5; 0]
-        mesh = FLOWFoil.generatemesh(x, y)
+        mesh = FLOWFoil.generate_mesh(x, y)
         nodes = mesh.airfoil_nodes
-        meshsystem = FLOWFoil.MeshSystem([mesh], [1.0], [0.0], [[0.0; 0.0]])
 
         # test psitilde13 as second part of a13
         s22 = sqrt(2) / 2
@@ -180,7 +158,7 @@ end
 
         _, c2 = FLOWFoil.get_vortex_influence(nodes[1], nodes[2], nodes[1])
         # Test that coefficient matrix is assembled correctly
-        a = FLOWFoil.assemblematrixa(meshsystem)
+        a = FLOWFoil.assemble_vortex_coefficients(mesh)
         @test a[1, 2] == c2 + c1
     end
 end
