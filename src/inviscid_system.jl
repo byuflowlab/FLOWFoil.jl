@@ -8,9 +8,8 @@ Date Started: 27 April 2022
 Change Log:
 =#
 
-#TODO: probably want to create another version of this that takes in a mesh only.
 """
-    assemblevortexcoefficients(meshsystem)
+    assemble_vortex_coefficients(mesh)
 
 Assemble matrix of vortex strength coefficients.
 
@@ -18,24 +17,16 @@ This function only assembles the NxN portion of the influence coefficient matrix
 Also note that multibody capabilities have not yet been implemented.
 
 **Arguments:**
- - 'meshsystem::MeshSystem' : mesh system for which to find influence coefficient matrix.
+ - 'mesh::BodyMesh' : mesh system for which to find influence coefficient matrix.
 
 """
-function assemblevortexcoefficients(meshsystem)
-
-    # get system size
-    N, Ns = FLOWFoil.sizesystem(meshsystem)
-
-    #check that multibody system hasn't been used yet
-    if N != Ns[1]
-        @warn("Multi-body systems are not yet supported")
-    end
-
-    # set N to Ns[1] for now.
-    N = Ns[1]
+function assemble_vortex_coefficients(mesh)
 
     # get nodes for convenience
-    nodes = meshsystem.meshes[1].airfoil_nodes
+    nodes = mesh.airfoil_nodes
+
+    # get system size
+    N = length(nodes)
 
     #initialize NxN coefficient matrix
     amat = Array{Float64,2}(undef, N, N)
@@ -63,7 +54,7 @@ function assemblevortexcoefficients(meshsystem)
     # TODO: Probably move most of these calculations to a separate function for organizational purposes.
     # get bisection vector
     # get vector along first panel
-    if meshsystem.meshes[1].blunt_te
+    if mesh.blunt_te
         nd1, _ = get_d(nodes[2], nodes[1])
 
         # get vector along second panel
@@ -113,18 +104,18 @@ function assemblevortexcoefficients(meshsystem)
 end
 
 """
-    assemblematrixa(meshsystem)
+    assemble_vortex_matrix(mesh)
 
 Assemble vortex coefficient matrix with full N+1 x N+1 system, including Kutta condition.
 
 **Arguments:**
- - 'meshsystem:MeshSystem' : Mesh System for which to solve.
+ - 'mesh::BodyMesh' : Mesh System for which to solve.
 
 """
-function assemblematrixa(meshsystem)
+function assemble_vortex_matrix(mesh)
 
     #get NxN square of a matrix
-    amat = assemblevortexcoefficients(meshsystem)
+    amat = assemble_vortex_coefficients(mesh)
 
     # get size of amat:
     r, c = size(amat)
@@ -132,7 +123,7 @@ function assemblematrixa(meshsystem)
     # Add column of ones to end of matrix for Psi_0
     psi0 = -1.0 * ones(r)
     # if sharp trailing edge, set a[N,N+1] to zero
-    if !meshsystem.meshes[1].blunt_te
+    if !mesh.blunt_te
         psi0[end] = 0.0
     end
     amat = [amat psi0]
@@ -147,24 +138,20 @@ function assemblematrixa(meshsystem)
 end
 
 """
-    assembleboundaryconditions(meshsystem, freestream)
+    assemble_boundary_conditions(mesh, freestream)
 
 Assemble boundary condition vector.
 
-Note that multiple operation conditions is not yet supported.
-If freestream fields contain more than one item, only the first will be used.
-
 **Arguments:**
- - 'meshsystem::MeshSystem' : mesh system for which to solve
- - 'freestream::Freestream' : freestream parameters
+ - 'mesh::BodyMesh' : mesh system for which to solve
 
 **Returns**
  - output::type : description.
 """
-function assembleboundaryconditions(meshsystem)
+function assemble_boundary_conditions(mesh)
 
     # get node locations for convenience
-    nodes = meshsystem.meshes[1].airfoil_nodes
+    nodes = mesh.airfoil_nodes
     N = length(nodes)
 
     # generate boundary condition array
@@ -174,7 +161,7 @@ function assembleboundaryconditions(meshsystem)
 
     #NOTE: mfoil does not do the following, but rather keeps the rhs as [-z,x] in all cases:
     # if closed trailing edge, set last element of psi_inf to zero
-    if !meshsystem.meshes[1].blunt_te
+    if !mesh.blunt_te
         psi_inf[end, :] = [0.0 0.0]
     end
 
@@ -182,4 +169,23 @@ function assembleboundaryconditions(meshsystem)
     psi_inf = vcat(psi_inf, [0.0 0.0])
 
     return psi_inf
+end
+
+"""
+    get_inviscid_system(mesh)
+
+Calculate, then gather the vortex and boundary condition matricies into an InviscidSystem object.
+
+**Arguments:**
+- 'mesh::BodyMesh' : BodyMesh for airfoil to analyze.
+"""
+function get_inviscid_system(mesh)
+
+    # Get coeffiecient matrix (A, left hand side)
+    vcoeffmat = assemble_vortex_matrix(mesh)
+
+    # Get boundary conditions (RHS)
+    bccoeffvec = assemble_boundary_conditions(mesh)
+
+    return InviscidSystem(vcoeffmat, bccoeffvec)
 end
