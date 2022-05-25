@@ -8,122 +8,177 @@ Date Started: 27 April 2022
 Change Log:
 =#
 
-"""
-    Mesh{TF}
+#=
+Organization TODO:
 
-Mesh for single body.
+- User input = Problem type.
+- problem includes airfoil coordinates and freestream definition (independant non-dim parameters)
+- For each body, an airfoil mesh is created
+- for each body, a wake mesh is created
+- an inviscid system is used to pass inviscid coefficients and boundary conditions, etc.
+- a viscous system is used to pass all the viscous coefficients, boundary layer numbers, etc.
+- solution objects include everything needed to understand the flow field solved for and can be passed into post-process function to get all the xfoil-like outputs (also need convenience function to go from problem straight to cl, cd, cp, cm, etc.)
+- debug option includes debug struct in solution.
+- debug struct contains the system objects and whatever else could be useful.
+
+=#
+
+"""
+    Problem{TF,TB}
+
+Problem definition (geometry, operating point(s), and method selection) and output behavior.
 
 **Fields:**
- - 'airfoil_nodes::Array{Array{Float,2}}' : [x y] node (panel edge) locations for airfoil
- - 'wake_nodes::Array{Array{Float,2}}' : [x y] node (panel edge) locations for wake
- - 'wake_midpoints::Array{Array{Float,2}}' : [x y] wake panel midpoint locations
- - 'blunt_te::Bool' : boolean for whether or not the trailing edge is blunt or not.
-**Assuptions:**
- - x and y coordinates start at the bottom trailing edge and proceed clockwise.
- - x and y coordinates are normalized such that the airfoil has chord length 1.0.
-
-"""
-struct Mesh{TF}
-    airfoil_nodes::Array{Array{TF,2}}
-    #    wake_nodes::Array{Array{TF,2}}
-    #   wake_midpoints::Array{Array{TF,2}}
-    blunt_te::Bool
-end
-
-"""
-    MeshSystem{TF}
-
-System of meshes to solve.
-
-**Fields:**
- - 'meshes::Array{Mesh}' : Array of mesh objects.
- - 'scales::Vector{Float}' : Airfoil scaling factors.
- - 'angles::Vector{Float}' : Airfoil angles of attack.
- - 'locations::Array{Array{TF}}' : Array of leading edge locations.
-
-"""
-struct MeshSystem{TM,TF}
-    meshes::Vector{TM}
-    scales::Vector{TF}
-    angles::Vector{TF}
-    locations::Vector{Vector{TF}}
-end
-
-# TODO: probably make these type unions and set things up to loop through fields that are vectors rather than floats
-"""
-    Freestream{TF}
-
-Freestream Definition.
-
-**Fields:**
- - 'reynolds::Vector{Float}' : Reynolds Numbers
- - 'density::Vector{Float}' : air density
- - 'dynamicviscosity::Vector{Float}' : air dynamic viscosity
- - 'mach::Vector{Float}' : Mach Numbers
- - 'angleofattack::Vector{Float}' : Angles of attack in degrees
-
-"""
-struct Freestream{TF}
-    reynolds::Vector{TF}
-    density::Vector{TF}
-    dynamicviscosity::Vector{TF}
-    mach::Vector{TF}
-    angleofattack::Vector{TF}
-end
-
-"""
-    Problem{TM,TS,TB}
-
-Problem definition and method selection.
-
-**Fields:**
- - 'meshsystem::MeshSystem' : Mesh System to solve
- - 'freestream::FreeStream' : Freestream parameters
+ - 'coordinates::Array{Float}' : x,y airfoil coordinates.
+ - 'angleofattack::Float' : angle of attack to analyze.
+ - 'reynolds::Float' : Reynolds number to analyze.
+ - 'mach::Float' : Mach number to analyze.
  - 'viscous::Bool' : Flag to solve viscous or inviscid only
  - 'verbose::Bool' : Flag to print out verbose statements
- - 'debug::Bool' : Flag to print out debugging statements
+ - 'debug::Bool' : Flag to save the system structs, etc.
 
 """
-struct Problem{TM,TS,TB}
-    meshsystem::TM
-    freestream::TS
+struct Problem{TF,TB}
+    coordinates::Array{TF}
+    angleofattack::TF
+    reynolds::TF
+    mach::TF
     viscous::TB
     verbose::TB
     debug::TB
 end
 
-# TODO: Need an inviscid solution object as well as a viscous solution object.  They will have some similar fields and some different.
-# # Also probably want to just have normal stuff in the outputs rather than every possible thing.  Probably create another type to house all of the minutia and if debug flag is true, also update and output that detailed object (come up with a reasonable name other than "Innards"
 """
-    Solution{TM,TF}
+    BodyMesh{TF,TB}
 
-Output object containing solution and useful items.
+Mesh for single body.
 
 **Fields:**
- - 'meshsystem::MeshSystem' : Mesh System used in solution (potentially modified from input meshes).
- - 'strengthsvec::Array{Float,2}' : singularity strengths.
+ - 'airfoil_nodes::Array{Array{Float,2}}' : [x y] node (panel edge) locations for airfoil
+ - 'blunt_te::Bool' : boolean for whether or not the trailing edge is blunt or not.
+**Assuptions:**
+ - x and y coordinates start at the bottom trailing edge and proceed clockwise.
+
+"""
+struct BodyMesh{TF,TB}
+    airfoil_nodes::Array{TF}
+    blunt_te::TB
+end
+
+# TODO: Mesh Systems will be needed for multi-body problems, but there will also need to be an overhaul of the other types to make it all work, so reset everything to be single meshes for now.
+# """
+#     BodyMeshSystem{TF}
+
+# System of meshes to solve.
+
+# **Fields:**
+#  - 'meshes::Array{Mesh}' : Array of mesh objects.
+#  - 'scales::Vector{Float}' : Airfoil scaling factors.
+#  - 'angles::Vector{Float}' : Airfoil angles of attack.
+#  - 'locations::Array{Array{TF}}' : Array of leading edge locations.
+
+# """
+# struct BodyMeshSystem{TM,TF}
+#     meshes::Vector{TM}
+#     scales::Vector{TF}
+#     angles::Vector{TF}
+#     locations::Vector{Vector{TF}}
+# end
+
+"""
+    WakeMesh{TF}
+
+**Fields:**
+ - 'wake_nodes::Array{Float,2}' : x,y wake panel node locations.
+ - 'wake_midpoints::Array{Float,2}' : x,y wake panel center point locations.
+"""
+struct WakeMesh{TF}
+    wake_nodes::Array{TF}
+    wake_midpoints::Array{TF}
+end
+
+"""
+    InviscidSystem{TF}
+
+**Fields:**
  - 'vcoeffmat::Array{Float,2}' : Vortex Coefficient Matrix used in solution.
- - 'scoeffmat::Array{Float,2}' : Source Coefficient Matrix used in solution.
- - 'bccoeffvec::Vector{Float}' : Boundary Coefficient Vector used in solution.
- - 'lift::Vector{Float}' : Lift Coefficients.
- - 'drag::Vector{Float}' : Total Drag Coefficients.
- - 'pdrag::Vector{Float}' : Pressure Drag Coefficients.
- - 'idrag::Vector{Float}' : Induced Drag Coefficients.
- - 'moment::Vector{Float}' : Moment Coefficients.
+ - 'bccoeffvec::Array{Float,2}' : Boundary Coefficient Vector used in solution.
+"""
+struct InviscidSystem{TF}
+    vcoeffmat::Array{TF}
+    bccoeffvec::Array{TF}
+end
+
+"""
+**Fields:**
+"""
+struct ViscousSystem{} end
+
+"""
+    InviscidSolution{TM,TF,TD}
+
+**Fields:**
+ - 'mesh::BodyMesh' : BodyMesh object describing airfoil nodes etc.
+ - 'panelgammas::Array{Float,2}' : \$\\gamma_0\$ and \$\\gamma_{90}\$ values at each airfoil node.
+ - 'psi0::Array{Float}' : \$\\Psi_0\$ (constant stream function) 0 and 90 values.
+ - 'debug::Debug' : Debug object (or nothing) depending on debug flag in Problem object.
+"""
+struct InviscidSolution{TM,TF,TD}
+    mesh::TM
+    panelgammas::Array{TF}
+    psi0::Array{TF}
+    debug::TD
+end
+
+"""
+    ViscousSolution{}
+
+**Fields:**
+ - 'panelgammas::Array{Float,2}' : \$\\gamma_0\$ and \$\\gamma_{90}\$ values at each airfoil node.
+ - 'panelsources::Array{Float,2}' : source values at each airfoil node.
+ - 'wakesources::Array{Float,2}' : source values at each wake node.
+ - 'psi0::Array{Float}' : \$\\Psi_0\$ (constant stream function) 0 and 90 values.
+
+"""
+struct ViscousSolution{TF,TD}
+    panelgammas::Array{TF}
+    panelsources::Array{TF}
+    wakesources::Array{TF}
+    psi0::Array{TF}
+    debug::TD
+end
+
+# TODO: Need to figure out how to define/use debug object.
+"""
+    Debug{TIS,TVS}
+
+**Fields:**
+ - 'isystem::InviscidSystem' : Inviscid System Object.
+ - 'vsystem::ViscousSystem' : Viscous System Object.
+"""
+struct Debug{TIS,TVS}
+    isystem::TIS
+    vsystem::TVS
+end
+
+"""
+    Polar{TF}
+
+**Fields:**
+ - 'lift::Float' : Lift Coefficient.
+ - 'drag::Float' : Total Drag Coefficient.
+ - 'pdrag::Float' : Pressure Drag Coefficient.
+ - 'idrag::Float' : Induced Drag Coefficient.
+ - 'moment::Float' : Moment Coefficient.
  - 'surfacevelocity::Vector{Float}' : surface velocity distribution
  - 'surfacepressure::Vector{Float}' : surface pressure distribution
 """
-struct Solution{TM,TF}
-    meshsystem::TM
-    strengthsvec::Array{TF}
-    vcoeffmat::Array{TF,2}
-    scoeffmat::Array{TF,2}
-    bccoeffvec::Vector{TF}
-    lift::Vector{TF}
-    drag::Vector{TF}
-    pdrag::Vector{TF}
-    idrag::Vector{TF}
-    moment::Vector{TF}
+struct Polar{TF}
+    lift::TF
+    drag::TF
+    pdrag::TF
+    idrag::TF
+    moment::TF
     surfacevelocity::Vector{TF}
     surfacepressure::Vector{TF}
 end
@@ -131,19 +186,22 @@ end
 """
     Parameters{TF}
 
- - `gamma_air::Float' : ratio of specific heats for air
- - `eta_crit::Float' : critical amplification factor
- - `eta_D::Float' : wall/wake dissipation length ratio
- - `GA::Float' : G - Beta locus A constant
- - `GB::Float' : G - Beta locus B constant
- - `GC::Float' : G - Beta locus C constant
- - `Klag::Float' : shear lag constant
- - `Ctau::Float' : shear stress initialization constant
- - `Etau::Float' : shear stree initialization exponent
- - `rSu::Float' : Sutherland temperature ratio
- - `fw::Float' : wake gap continuation factor
- - `dw::Float' : wake length, in airfoil chords
- - `epsilonw::Float' : first wake point offset, in airfoil chords
+Solver Parameters.
+
+**Fields:**
+ - `gamma_air::Float = 1.4' : ratio of specific heats for air
+ - `eta_crit::Float = 9.0' : critical amplification factor
+ - `eta_D::Float = 0.9' : wall/wake dissipation length ratio
+ - `GA::Float = 6.7' : G - Beta locus A constant
+ - `GB::Float = 0.75' : G - Beta locus B constant
+ - `GC::Float = 18.0' : G - Beta locus C constant
+ - `Klag::Float = 5.6' : shear lag constant
+ - `Ctau::Float = 1.8' : shear stress initialization constant
+ - `Etau::Float = 3.3' : shear stree initialization exponent
+ - `rSu::Float = 0.35' : Sutherland temperature ratio
+ - `fw::Float = 2.5' : wake gap continuation factor
+ - `dw::Float = 1.0' : wake length, in airfoil chords
+ - `epsilonw::Float = 1e-5' : first wake point offset, in airfoil chords
 """
 struct Parameters{TF}
     gamma_air::TF
@@ -168,4 +226,44 @@ Initializes Parameters struct with defaults, see `Parameters` docstring.
 """
 function defaultparameters()
     return Parameters(1.4, 9.0, 0.9, 6.7, 0.75, 18.0, 5.6, 1.8, 3.3, 0.35, 2.5, 1.0, 1e-5)
+end
+
+"""
+    defaultparameters(;kwargs)
+
+Initialized parameters to defaults, but allows selective user override through keyword arguments.
+
+**Keyword Arguments:**
+ - `gamma_air::Float' : ratio of specific heats for air
+ - `eta_crit::Float' : critical amplification factor
+ - `eta_D::Float' : wall/wake dissipation length ratio
+ - `GA::Float' : G - Beta locus A constant
+ - `GB::Float' : G - Beta locus B constant
+ - `GC::Float' : G - Beta locus C constant
+ - `Klag::Float' : shear lag constant
+ - `Ctau::Float' : shear stress initialization constant
+ - `Etau::Float' : shear stree initialization exponent
+ - `rSu::Float' : Sutherland temperature ratio
+ - `fw::Float' : wake gap continuation factor
+ - `dw::Float' : wake length, in airfoil chords
+ - `epsilonw::Float' : first wake point offset, in airfoil chords
+"""
+function defaultparameters(;
+    gamma_air=1.4,
+    eta_crit=9.0,
+    eta_D=0.9,
+    GA=6.7,
+    GB=0.75,
+    GC=18.0,
+    Klag=5.6,
+    Ctau=1.8,
+    Etau=3.3,
+    rSu=0 / 35,
+    fw=2.5,
+    dw=1.0,
+    epsilonw=1e-5,
+)
+    return Parameters(
+        gamma_air, eta_crit, eta_D, GA, GB, GC, Klag, Ctau, Etau, rSu, fw, dw, epsilonw
+    )
 end
