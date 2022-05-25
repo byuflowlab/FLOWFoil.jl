@@ -9,6 +9,15 @@ Change Log:
 =#
 
 """
+    solve(problem)
+
+Solve problem defined by the input Problem object and return the solution in a Solution object.
+
+**Arguments:**
+- 'problem::Problem' : Problem to solve
+
+**Returns:**
+ - 'solution::{InviscidSolution or ViscousSolution}' : returns solution of type matching viscous flag in problem.
 """
 function solve(problem)
 
@@ -27,8 +36,24 @@ end
 ###########################################
 
 """
+    solve_inviscid(problem)
+
+Solves the inviscid problem.
+
+**Arguments:**
+ - 'problem::Problem' : Problem to solve.  viscous field must be set to false.
+
+**Returns:**
+ - 'solution::InviscidSolution'
 """
 function solve_inviscid(problem)
+
+    # Check to make sure you want the invsicid solution:
+    if problem.viscous
+        @warn(
+            "Viscous mismatch, please set problem.viscous=false if you would like to solve the inviscid system alone."
+        )
+    end
 
     # Generate Mesh
     mesh = generate_mesh(problem.coordinates)
@@ -43,6 +68,22 @@ function solve_inviscid(problem)
 end
 
 """
+    solve_inviscid_system(inviscidsystem, mesh; debug=false)
+
+Solve the InviscidSystem for the vortex and streamfunction strengths.
+
+Outputs the InviscidSolution object which contains the inviscidsystem in the debug object if debug is set to true.
+
+**Arguments:**
+- 'inviscidsystem::InviscidSystem' : InviscidSystem to solve.
+- 'mesh::BodyMesh' : BodyMesh defining geometry (to put into solution object)
+
+**Keyword Arguments:**
+- 'debug::Bool = false' : flag to indicate whether or not to output all the system details.
+
+**Returns:**
+ - 'solution::InviscidSolution'
+
 """
 function solve_inviscid_system(inviscidsystem, mesh; debug=false)
 
@@ -68,8 +109,24 @@ end
 ###########################################
 
 """
+    solve_viscous(problem)
+
+Solves the viscous problem.
+
+**Arguments:**
+- 'problem::Problem' : Problem Definition.
+
+**Returns:**
+ - 'solution::ViscousSolution'
 """
 function solve_viscous(problem)
+
+    # Check to make sure you want the invsicid solution:
+    if !problem.viscous
+        @warn(
+            "Viscous mismatch, please set problem.viscous=true if you would like to solve the viscous problem."
+        )
+    end
 
     # initialize viscous solution
     solution = initialize_viscous(problem)
@@ -81,6 +138,15 @@ function solve_viscous(problem)
 end
 
 """
+    initalize_viscous(problem)
+
+Initialized viscous solution (solves invscid problem, initialized wake and boundary layer, etc.)
+
+**Arguments:**
+ - problem::Problem' : Problem to solve.
+
+**Returns:**
+ - solution::ViscousSolution' : Initialized ViscousSolution
 """
 function initalize_viscous(problem)
 
