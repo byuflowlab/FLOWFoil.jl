@@ -10,17 +10,6 @@ Change Log:
 
 """
 """
-function solve_inviscid_system(amat, psi_inf, alpha)
-    gammas = amat \ psi_inf
-    gamma0 = gammas[1:(end - 1), 1]
-    gamma90 = gammas[1:(end - 1), 2]
-    gammatot = gammas[:, 1] .* cosd(alpha) .+ gammas[:, 2] .* sind(alpha)
-
-    return gamma0, gamma90, gammatot
-end
-
-"""
-"""
 function solve(problem)
 
     # Check viscosity and solve accordingly
@@ -33,27 +22,60 @@ function solve(problem)
     return solution
 end
 
+###########################################
+#######      INVISCID PROBLEM       #######
+###########################################
+
 """
 """
 function solve_inviscid(problem)
 
-    # Unpack problem components for convenience.
-    # mesh system
-    ms = problem.meshsystem
-
-    # freestream
-    fs = problem.freestream
+    # Generate Mesh
+    mesh = generate_mesh(problem.coordinates)
 
     # get inviscid system
-    gammas, A, rhs = get_inviscid_system(ms)
+    inviscidsystem = get_inviscid_system(mesh)
 
-    # initalize solution
-    #TODO: decide format of solution objects
+    # solve inviscid system
+    solution = solve_inviscid_system(inviscidsystem, mesh; debug=problem.debug)
 
-    for i in 1:length(fs.alpha)
-        # get solution and post processing for each angle of attack.
-        #TODO: obviously...
+    return solution
+end
+
+"""
+"""
+function solve_inviscid_system(inviscidsystem, mesh; debug=false)
+
+    # Solve System
+    gammas = inviscidsystem.vcoeffmat \ inviscidsystem.bccoeffvec
+
+    # Separate Outputs
+    panelgammas = gammas[1:(end - 1), :]
+    psi0 = gammas[end, :]
+
+    # Generate Solution Object
+    if debug
+        solution = InviscidSolution(mesh, panelgammas, psi0, inviscidsystem)
+    else
+        solution = InviscidSolution(mesh, panelgammas, psi0, nothing)
     end
+
+    return solution
+end
+
+###########################################
+#######      VISCOUS  PROBLEM       #######
+###########################################
+
+"""
+"""
+function solve_viscous(problem)
+
+    # initialize viscous solution
+    solution = initialize_viscous(problem)
+
+    # solve coupled system
+    coupled_solve!(solution)
 
     return solution
 end
@@ -62,7 +84,7 @@ end
 """
 function initalize_viscous(problem)
 
-    # solve inviscid problem first TODO
+    # solve inviscid problem first
     inviscid_solution = solve_inviscid(problem)
 
     # set thermodynamic properties TODO
@@ -85,22 +107,6 @@ function initalize_viscous(problem)
 
     # initialize viscous solution object TODO
     solution = ViscousSolution()
-
-    return solution
-end
-
-"""
-"""
-function solve_viscous(problem)
-
-    # initialize viscous solution
-    solution = initialize_viscous(problem)
-
-    # solve coupled system
-    coupled_solve!(solution)
-
-    # post process viscous solution
-    post_process_viscous!(solution)
 
     return solution
 end
