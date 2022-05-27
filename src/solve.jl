@@ -19,7 +19,7 @@ Solve problem defined by the input Problem object and return the solution in a S
 **Returns:**
  - 'solution::{InviscidSolution or ViscousSolution}' : returns solution of type matching viscous flag in problem.
 """
-function solve(problem; parameters)
+function solve(problem; parameters=nothing)
 
     # Check viscosity and solve accordingly
     if problem.viscous

@@ -40,6 +40,9 @@ include("viscous_system.jl")
 # Solver
 include("solve.jl")
 
+# Post Processing
+include("inviscid_post.jl")
+
 # Common Airfoil Parameterizations
 include("../common_parameterizations/conformal_mapping.jl")
 include("../common_parameterizations/naca.jl")

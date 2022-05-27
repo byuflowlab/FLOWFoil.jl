@@ -52,12 +52,19 @@ function initialize_properties(problem, parameters, inviscid_solution)
         # Sutherland's Law
         SuTT0 = TT0^1.5 * (1.0 + rSu) / (TT0 + rSu)
 
-        #cps = 2/(g*Minf^2)*(((1+0.5*gmi*Minf^2)/(1+0.5*gmi))^(g/gmi) - 1) #is this needed?
+        sonic_cp =
+            2.0 / (gamma_air * machinf^2) * (
+                (
+                    (1.0 + 0.5 * (gamma_air - 1.0) * machinf^2) /
+                    (1.0 + 0.5 * (gamma_air - 1.0))
+                )^(gamma_air / (gamma_air - 1.0)) - 1.0
+            ) # CANT FIND THIS IN PAPER... seems to only be used for plotting?
     else
         #else, none of these matters.
-        KTbeta = 0.0
-        KTlambda = 0.0
+        KTbeta = 1.0 #sqrt(1) = 1
+        KTlambda = 0.0 #0^2 = 0
         H0 = 0.0
+        sonic_cp = 0.0
 
         # and T/T0 = 1.0
         SuTT0 = 1.0
@@ -71,5 +78,5 @@ function initialize_properties(problem, parameters, inviscid_solution)
     rho0 = rhoinf * (1.0 + 0.5 * (gamma_air - 1.0) * machinf^2)^(1.0 / (gamma_air - 1.0))
 
     # return initialized properties
-    return Properties(machinf, KTbeta, KTlambda, H0, rho0, mu0)
+    return Properties(machinf, KTbeta, KTlambda, H0, sonic_cp, rho0, mu0)
 end

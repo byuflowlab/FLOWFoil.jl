@@ -48,6 +48,11 @@ struct Problem{TF,TB}
     debug::TB
 end
 
+function Problem(
+    coordinates, angleofattack, reynolds, mach=0.0; viscous=true, verbose=false, debug=false
+)
+    return Problem(coordinates, angleofattack, reynolds, mach, viscous, verbose, debug)
+end
 """
     BodyMesh{TF,TB}
 
@@ -62,7 +67,7 @@ Mesh for single body.
 
 """
 struct BodyMesh{TF,TB}
-    airfoil_nodes::Array{TF}
+    airfoil_nodes::Array{Matrix{TF}}
     chord::TF
     blunt_te::TB
 end
@@ -114,7 +119,7 @@ end
 """
 **Fields:**
 """
-struct ViscousSystem{TPa,TPr}
+struct ViscousSystem{TPa,TPr,TF}
     parameters::TPa
     properties::TPr
     vcoeffmat::Array{TF}
@@ -201,6 +206,7 @@ Thermodynamic properties for the viscous solution
  - 'KTbeta::Float' : Karman-Tsien beta
  - 'KTlambda::Float' : Karman-Tsien lambda
  - 'H0::Float' : stagnation enthalpy
+ - 'sonic_cp::Float' : sonic cp
  - 'rho0::Float' : stagnation density
  - 'mu0::Float' : stagnation dynamic viscosity
 """
@@ -209,6 +215,7 @@ struct Properties{TF}
     KTbeta::TF
     KTlambda::TF
     H0::TF
+    sonic_cp::TF
     rho0::TF
     mu0::TF
 end
@@ -237,7 +244,7 @@ Solver Parameters.
  - 'vinf::Float' : non-dimensional freestream velocity magnitude
  - 'muinf::Float' : freestream dynamic viscosity
 """
-struct Parameters{TF}
+struct Parameters{TF,TB}
     gamma_air::TF
     etacrit::TF
     etaD::TF
@@ -255,33 +262,6 @@ struct Parameters{TF}
     rhoinf::TF
     vinf::TF
     muinf::TF
-end
-
-"""
-    defaultparameters()
-
-Initializes Parameters struct with defaults, see 'Parameters' docstring.
-"""
-function defaultparameters()
-    return Parameters(
-        1.4, # gamma_air
-        9.0, # etacrit
-        0.9, # etaD
-        6.7, # GA
-        0.75, # GB
-        18.0, # GC
-        5.6, # Klag
-        1.8, # Ctau
-        3.3, # Etau
-        0.35, # rSu
-        2.5, # fw
-        1.0, # dw
-        1e-5, # epsilonw
-        false, # iknowwhatimdoing
-        1.0, # rhoinf
-        1.0, # vinf
-        0.0, # muinf
-    )
 end
 
 """
