@@ -39,14 +39,14 @@ function generate_mesh(x, y; gaptolerance=1e-10, wakelength=1.0)
     # Get node locations from x,y coordinates
     airfoil_nodes = [[x[i] y[i]] for i in 1:numnodes]
 
-    # get distance between trailing edge nodes
-    _, rtemag = get_r(airfoil_nodes[1], airfoil_nodes[end])
+    # get trailing edge information
+    tdp, txp, trailing_edge_gap = get_trailing_edge_info(airfoil_nodes)
 
     # get chord length
     chordlength = maximum(x) - minimum(x)
 
     # check if open trailing edge
-    if rtemag > gaptolerance * chordlength
+    if abs(trailing_edge_gap) > gaptolerance * chordlength
 
         # set blunt_te to true
         blunt_te = true
@@ -58,7 +58,9 @@ function generate_mesh(x, y; gaptolerance=1e-10, wakelength=1.0)
     end
 
     # generate mesh object
-    mesh = FLOWFoil.BodyMesh(airfoil_nodes, chordlength, blunt_te)
+    mesh = FLOWFoil.BodyMesh(
+        airfoil_nodes, chordlength, blunt_te, trailing_edge_gap, tdp, txp
+    )
 
     return mesh
 end
@@ -108,6 +110,42 @@ end
 
 #     return N, Ns
 # end
+
+"""
+"""
+function get_trailing_edge_info(nodes)
+    # get bisection vector
+    # get vector along first panel
+    d1, d1mag = get_d(nodes[2], nodes[1])
+    d1 /= d1mag
+
+    # get vector along second panel
+    dn, dnmag = get_d(nodes[end - 1], nodes[end])
+    dn /= dnmag
+
+    # calculate vector that bisects the first and last panel vectors
+    bisector = 0.5 * (d1 + dn)
+
+    # normalize to get the unit vector
+    ttehat = bisector / sqrt(bisector[1]^2 + bisector[2]^2)
+
+    # get panel vector
+    dte, dtemag = get_d(nodes[1], nodes[end])
+
+    # normalize panelvector
+    dtehat = dte / dtemag
+
+    # get dot product of bisection vector and panel vector.
+    tdp = ttehat[1] * dtehat[1] + ttehat[2] * dtehat[2]
+
+    # get cross product of bisection vector and panel vector
+    txp = abs(ttehat[1] * dtehat[2] - ttehat[2] * dtehat[1])
+
+    # get trailing edge gap
+    trailing_edge_gap = -dte[1] * ttehat[2] + dte[2] * ttehat[1]
+
+    return isnan(tdp) ? 0.0 : tdp, isnan(txp) ? 0.0 : txp, trailing_edge_gap
+end
 
 """
     function get_r(node,point)
@@ -222,7 +260,6 @@ function get_a(r1, d, dmag)
 
     # calculate a (dot product of unit tangent and r1 vector)
     a = r1[1] * that[1] + r1[2] * that[2]
-
     return a
 end
 
@@ -237,7 +274,7 @@ Get unit tangent to panel.
 
 """
 function get_tangent(d, dmag)
-    return d / dmag
+    return (dmag == 0.0) ? [0.0; 0.0] : (d / dmag)
 end
 
 """
@@ -313,7 +350,7 @@ Get angles between panel and evaluation point, ln of distances from nodes to eva
  - 'a::Float' : Distance from node1 to evaluation in panel tangent direction.
 
 """
-function get_orientation(node1, node2, point; epsilon=1e-10)
+function get_orientation(node1, node2, point; epsilon=1e-9)
 
     # get distances
     r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
@@ -325,19 +362,19 @@ function get_orientation(node1, node2, point; epsilon=1e-10)
     # Calculate natural log values, setting to zero if the point is close enough to the node
     if r1mag < epsilon
         ln1 = 0.0
+        theta1 = pi
     else
         ln1 = log(r1mag)
+        theta1 = get_theta(h, a)
     end
 
     if r2mag < epsilon
         ln2 = 0.0
+        theta2 = pi
     else
         ln2 = log(r2mag)
+        theta2 = get_theta(h, a, dmag)
     end
-
-    # Calculate angles
-    theta1 = get_theta(h, a)
-    theta2 = get_theta(h, a, dmag)
 
     return theta1, theta2, ln1, ln2, h, a
 end
