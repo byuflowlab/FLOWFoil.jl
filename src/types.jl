@@ -70,6 +70,9 @@ struct BodyMesh{TF,TB}
     airfoil_nodes::Array{Matrix{TF}}
     chord::TF
     blunt_te::TB
+    trailing_edge_gap::TF
+    tdp::TF
+    txp::TF
 end
 
 # TODO: Mesh Systems will be needed for multi-body problems, but there will also need to be an overhaul of the other types to make it all work, so reset everything to be single meshes for now.
