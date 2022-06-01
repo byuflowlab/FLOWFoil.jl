@@ -8,7 +8,6 @@ Date Started: 27 April 2022
 Change Log:
 =#
 
-
 """
     get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
 
@@ -47,10 +46,10 @@ Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
 
 """
 function get_psitildegamma(psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a)
-    return (
+    ptg =
         a * psibargamma +
         1 / (4 * pi) * (r2mag^2 * ln2 - r1mag^2 * ln1 - r2mag^2 / 2 + r1mag^2 / 2)
-    ) / dmag
+    return (dmag == 0.0) ? 0.0 : (ptg / dmag)
 end
 
 """
@@ -116,7 +115,6 @@ function get_vortex_influence(node1, node2, point)
     psitildegamma = get_psitildegamma(
         psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a
     )
-
     # put psi's together
     return (psibargamma - psitildegamma), psitildegamma
 end
