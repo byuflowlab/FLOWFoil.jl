@@ -115,18 +115,21 @@ function rawjoukowsky2(center, R; N=360)
 end
 
 function joukowskysurface(center, R, alpha, U; N=360)
+    alpha_rad = alpha * pi / 180.0
 
     x, y, theta, beta, a = rawjoukowsky2(center, R; N=N)
 
     z = a * (1.0 .+ R / a * (exp.(im * theta) .- exp(-im * beta)))
 
     vmag =
-        2.0 * U * (sin.(theta) .- alpha .+ sin(alpha) .+ beta) .* abs.(z) ./
-        (abs.((z .- a^2) ./ z))
+        2.0 * U * (sin.(theta .- alpha_rad) .+ sin(alpha_rad .+ beta)) .* abs.(z) ./
+        (abs.(z .- a^2 ./ z))
 
     cp = 1.0 .- vmag .^ 2.0 / U^2.0
 
-    return x, y, vmag, cp
+    cl = 8.0 * pi * R / (maximum(x) - minimum(x)) * sin(alpha + beta)
+
+    return x, y, vmag, cp, cl
 end
 
 """
