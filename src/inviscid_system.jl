@@ -50,46 +50,22 @@ function assemble_vortex_coefficients(mesh)
     end
 
     # add in trailing edge contributions
-    #!NOTE: mfoil seems to apply blunt trailing edge contributions always, whether or not there actually is a blunt trailing edge.  Theoretically, the TE contributions would go to zero if the TE points were coincident, but they may, in fact, be within 1e-10.
-    # TODO: Probably move most of these calculations to a separate function for organizational purposes.
-    # get bisection vector
-    # get vector along first panel
+    # NOTE!: mfoil applies these all the time.
     if mesh.blunt_te
-        nd1, _ = get_d(nodes[2], nodes[1])
-
-        # get vector along second panel
-        dn, _ = get_d(nodes[end - 1], nodes[end])
-
-        # calculate vector that bisects the first and last panel vectors using formula c = |a|*b + |b|*a
-        bisector = nd1 * sqrt(dn[1]^2 + dn[2]^2) + dn * sqrt(nd1[1]^2 + nd1[2]^2)
-
-        # normalize to get the unit vector
-        ttehat = bisector / sqrt(bisector[1]^2 + bisector[2]^2)
-
-        # get panel vector
-        dte, _ = get_d(nodes[end], nodes[1])
-
-        # normalize panelvector
-        dtehat = dte / sqrt(dte[1]^2 + dte[2]^2)
-
-        # get dot product of bisection vector and panel vector.
-        tdp = ttehat[1] * dtehat[1] + ttehat[2] * dtehat[2]
-
-        # get cross product of bisection vector and panel vector
-        txp = abs(ttehat[1] * dtehat[2] - ttehat[2] * dtehat[1])
-
-        # Apply trailing edge contributions
         for i in 1:N
 
             # Get panel influence coefficients
             sigmate = get_source_influence(nodes[N], nodes[1], nodes[i])
             gammate = sum(get_vortex_influence(nodes[N], nodes[1], nodes[i]))
+            # println("i: $i")
 
             # Add/subtract from relevant matrix entries
-            amat[i, 1] += 0.5 * (gammate * tdp - sigmate * txp)
-            amat[i, N] += 0.5 * (sigmate * txp - gammate * tdp)
+            amat[i, 1] += 0.5 * (gammate * mesh.tdp - sigmate * mesh.txp)
+            amat[i, N] += 0.5 * (sigmate * mesh.txp - gammate * mesh.tdp)
         end
-    else
+    end
+
+    if !mesh.blunt_te
         # Replace Nth row of the matrix with the extrapolation of the mean vortex strength to the trailing edge.
         amat[end, :] .= 0.0
         amat[end, 1] = 1.0
