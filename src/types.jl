@@ -38,8 +38,8 @@ Problem definition (geometry, operating point(s), and method selection) and outp
  - 'debug::Bool' : Flag to save the system structs, etc.
 
 """
-struct Problem{TF,TB}
-    coordinates::Array{TF}
+struct Problem{TM,TF,TB}
+    meshes::Array{TM}
     angleofattack::TF
     reynolds::TF
     mach::TF
@@ -49,10 +49,11 @@ struct Problem{TF,TB}
 end
 
 function Problem(
-    coordinates, angleofattack, reynolds, mach=0.0; viscous=true, verbose=false, debug=false
+    meshes, angleofattack, reynolds, mach=0.0; viscous=true, verbose=false, debug=false
 )
-    return Problem(coordinates, angleofattack, reynolds, mach, viscous, verbose, debug)
+    return Problem(meshes, angleofattack, reynolds, mach, viscous, verbose, debug)
 end
+
 """
     BodyMesh{TF,TB}
 
@@ -75,9 +76,8 @@ struct BodyMesh{TF,TB}
     txp::TF
 end
 
-# TODO: Mesh Systems will be needed for multi-body problems, but there will also need to be an overhaul of the other types to make it all work, so reset everything to be single meshes for now.
-# """
-#     BodyMeshSystem{TF}
+"""
+    BodyMeshSystem{TF}
 
 # System of meshes to solve.
 
@@ -87,13 +87,13 @@ end
 #  - 'angles::Vector{Float}' : Airfoil angles of attack.
 #  - 'locations::Array{Array{TF}}' : Array of leading edge locations.
 
-# """
-# struct BodyMeshSystem{TM,TF}
-#     meshes::Vector{TM}
-#     scales::Vector{TF}
-#     angles::Vector{TF}
-#     locations::Vector{Vector{TF}}
-# end
+"""
+struct BodyMeshSystem{TM,TF}
+    meshes::Vector{TM}
+    scales::Vector{TF}
+    angles::Vector{TF}
+    locations::Vector{Vector{TF}}
+end
 
 """
     WakeMesh{TF}
@@ -114,9 +114,10 @@ end
  - 'vcoeffmat::Array{Float,2}' : Vortex Coefficient Matrix used in solution.
  - 'bccoeffvec::Array{Float,2}' : Boundary Coefficient Vector used in solution.
 """
-struct InviscidSystem{TF}
+struct InviscidSystem{TF,TI}
     vcoeffmat::Array{TF}
     bccoeffvec::Array{TF}
+    Ns::Array{TI}
 end
 
 """
@@ -139,10 +140,11 @@ end
  - 'psi0::Array{Float}' : \$\\Psi_0\$ (constant stream function) 0 and 90 values.
  - 'debug::Debug' : Debug object (or nothing) depending on debug flag in Problem object.
 """
-struct InviscidSolution{TM,TF,TD}
-    mesh::TM
+struct InviscidSolution{TM,TF,TI,TD}
+    meshes::Array{TM}
     panelgammas::Array{TF}
     psi0::Array{TF}
+    Ns::Array{TI}
     debug::TD
 end
 

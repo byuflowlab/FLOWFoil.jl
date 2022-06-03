@@ -82,34 +82,60 @@ function generate_mesh(coordinates; gaptolerance=1e-10, wakelength=1.0)
     return generate_mesh(x, y; gaptolerance=gaptolerance, wakelength=wakelength)
 end
 
-# """
-#     sizesystem(meshsystem)
+"""
+"""
+function position_meshes!(meshes, angles, scales=[1.0], locations=[0.0 0.0])
 
-# Count size of inviscid system matrix.
+    # Scale, rotate, and translate mesh nodes
+    for i in 1:length(meshes)
 
-# **Arguments:**
-#  - 'meshsystem::MeshSystem' : The system for which to calculate the linear system size.
-# """
-# function sizesystem(meshsystem)
+        # rename for convenience
+        nodes = meshes[i].airfoil_nodes
 
-#     # initialize
-#     # number of bodies for convenience
-#     numbodies = length(meshsystem.meshes)
+        # scale
+        nodes .*= scales[i]
 
-#     # initialize total system size
-#     N = 0
+        # get rotation matrix
+        R = [cosd(angles[i]) -sind(angles[i]); sind(angles[i]) cosd(angles[i])]
 
-#     # initialize system size contributions from each mesh
-#     Ns = ones(Int, numbodies)
+        # rotate and translate
+        for j in 1:length(nodes)
+            nodes[j] = R * nodes[j]'
+            nodes[j] .+= locations[i]
+        end
+    end
 
-#     # Count number of airfoil nodes in each mesh.
-#     for i in 1:numbodies
-#         Ns[i] = length(meshsystem.meshes[i].airfoil_nodes)
-#         N += Ns[i]
-#     end
+    return nothing
+end
 
-#     return N, Ns
-# end
+"""
+    sizesystem(meshsystem)
+
+Count size of inviscid system matrix.
+
+**Arguments:**
+ - 'meshsystem::MeshSystem' : The system for which to calculate the linear system size.
+"""
+function size_system(meshes)
+
+    # initialize
+    # number of bodies for convenience
+    numbodies = length(meshes)
+
+    # initialize total system size
+    N = 0
+
+    # initialize system size contributions from each mesh
+    Ns = ones(Int, numbodies)
+
+    # Count number of airfoil nodes in each mesh.
+    for i in 1:numbodies
+        Ns[i] = length(meshes[i].airfoil_nodes)
+        N += Ns[i]
+    end
+
+    return N, Ns
+end
 
 """
 """

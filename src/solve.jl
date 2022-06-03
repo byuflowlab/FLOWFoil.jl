@@ -55,14 +55,11 @@ function solve_inviscid(problem)
         )
     end
 
-    # Generate Mesh
-    mesh = generate_mesh(problem.coordinates)
-
     # get inviscid system
-    inviscidsystem = get_inviscid_system(mesh)
+    inviscidsystem = get_inviscid_system(problem.meshes)
 
     # solve inviscid system
-    solution = solve_inviscid_system(inviscidsystem, mesh; debug=problem.debug)
+    solution = solve_inviscid_system(inviscidsystem, problem.meshes; debug=problem.debug)
 
     return solution
 end
@@ -85,20 +82,20 @@ Outputs the InviscidSolution object which contains the inviscidsystem in the deb
  - 'solution::InviscidSolution'
 
 """
-function solve_inviscid_system(inviscidsystem, mesh; debug=false)
+function solve_inviscid_system(inviscidsystem, meshes; debug=false)
 
     # Solve System
     gammas = inviscidsystem.vcoeffmat \ inviscidsystem.bccoeffvec
 
     # Separate Outputs
-    panelgammas = gammas[1:(end - 1), :]
-    psi0 = gammas[end, :]
+    panelgammas = gammas[1:(end - length(inviscidsystem.Ns)), :]
+    psi0 = gammas[end-length(inviscidsystem.Ns):end, :]
 
     # Generate Solution Object
     if debug
-        solution = InviscidSolution(mesh, panelgammas, psi0, inviscidsystem)
+        solution = InviscidSolution(meshes, panelgammas, psi0, inviscidsystem.Ns, inviscidsystem)
     else
-        solution = InviscidSolution(mesh, panelgammas, psi0, nothing)
+        solution = InviscidSolution(meshes, panelgammas, psi0, inviscidsystem.Ns, nothing)
     end
 
     return solution
