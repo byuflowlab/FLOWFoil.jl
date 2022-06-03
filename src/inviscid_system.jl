@@ -57,7 +57,6 @@ function assemble_vortex_coefficients(mesh)
             # Get panel influence coefficients
             sigmate = get_source_influence(nodes[N], nodes[1], nodes[i])
             gammate = sum(get_vortex_influence(nodes[N], nodes[1], nodes[i]))
-            # println("i: $i")
 
             # Add/subtract from relevant matrix entries
             amat[i, 1] += 0.5 * (gammate * mesh.tdp - sigmate * mesh.txp)
@@ -99,9 +98,9 @@ function assemble_vortex_matrix(mesh)
     # Add column of ones to end of matrix for Psi_0
     psi0 = -1.0 * ones(r)
     # if sharp trailing edge, set a[N,N+1] to zero
-    if !mesh.blunt_te
-        psi0[end] = 0.0
-    end
+    # if !mesh.blunt_te
+    #     psi0[end] = 0.0
+    # end
     amat = [amat psi0]
 
     # add kutta condition row to bottom of matrix
@@ -137,9 +136,9 @@ function assemble_boundary_conditions(mesh)
 
     #NOTE: mfoil does not do the following, but rather keeps the rhs as [-z,x] in all cases:
     # if closed trailing edge, set last element of psi_inf to zero
-    if !mesh.blunt_te
-        psi_inf[end, :] = [0.0 0.0]
-    end
+    # if !mesh.blunt_te
+    #     psi_inf[end, :] = [0.0 0.0]
+    # end
 
     # For Kutta Condition, RHS = 0.0
     psi_inf = vcat(psi_inf, [0.0 0.0])
