@@ -48,7 +48,7 @@ Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
 function get_psitildegamma(psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a)
     ptg =
         a * psibargamma +
-        1 / (4 * pi) * (r2mag^2 * ln2 - r1mag^2 * ln1 - r2mag^2 / 2 + r1mag^2 / 2)
+        1.0 / (4.0 * pi) * (r2mag^2 * ln2 - r1mag^2 * ln1 - r2mag^2 / 2.0 + r1mag^2 / 2.0)
     return (dmag == 0.0) ? 0.0 : (ptg / dmag)
 end
 
