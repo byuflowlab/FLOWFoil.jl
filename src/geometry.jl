@@ -359,21 +359,23 @@ function get_orientation(node1, node2, point; epsilon=1e-9)
     h = get_h(r1, d, dmag)
     a = get_a(r1, d, dmag)
 
-    # Calculate natural log values, setting to zero if the point is close enough to the node
+    # Calculate natural log values, setting to zero if the point is close enough to the node, also get theta values and change based on point location if necessary
+    theta1 = get_theta(h, a)
+    theta2 = get_theta(h, a, dmag)
     if r1mag < epsilon
         ln1 = 0.0
         theta1 = pi
+        theta2 = pi
     else
         ln1 = log(r1mag)
-        theta1 = get_theta(h, a)
     end
 
     if r2mag < epsilon
         ln2 = 0.0
-        theta2 = pi
+        theta1 = 0.0
+        theta2 = 0.0
     else
         ln2 = log(r2mag)
-        theta2 = get_theta(h, a, dmag)
     end
 
     return theta1, theta2, ln1, ln2, h, a
