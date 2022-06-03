@@ -127,7 +127,7 @@ function joukowskysurface(center, R, alpha, U; N=360)
 
     cp = 1.0 .- vmag .^ 2.0 / U^2.0
 
-    cl = 8.0 * pi * R / (maximum(x) - minimum(x)) * sin(alpha + beta)
+    cl = 8.0 * pi * R / (maximum(x) - minimum(x)) * sin(alpha_rad + beta)
 
     return x, y, vmag, cp, cl
 end
