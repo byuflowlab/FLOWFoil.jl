@@ -30,7 +30,7 @@ function inviscid_post(inviscid_solution, angleofattack)
     # Get Mean Pressure at PANEL MIDPOINTS
     cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
 
-    # Get Panel Midpoints
+    # Get Panel Vectors
     dn = nodes[2:end] .- nodes[1:(end - 1)]
 
     # Get Lift Coefficient
