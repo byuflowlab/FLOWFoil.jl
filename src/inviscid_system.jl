@@ -20,7 +20,7 @@ This function only assembles the NxM portion of the system influence coefficient
  - 'meshj::BodyMesh' : mesh doing the influencing.
 
 """
-function assemble_vortex_coefficients(mehsi, meshj)
+function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
 
     # get nodes for convenience
     nodesi = meshi.airfoil_nodes
@@ -51,29 +51,31 @@ function assemble_vortex_coefficients(mehsi, meshj)
         end
     end
 
-    # add in trailing edge contributions
-    # NOTE!: mfoil applies these all the time.
-    if meshj.blunt_te
-        for i in 1:N
+    if trailing_edge_treatment
+        # add in trailing edge contributions
+        # NOTE!: mfoil applies these all the time.
+        if meshj.blunt_te
+            for i in 1:N
 
-            # Get panel influence coefficients
-            sigmate = get_source_influence(nodesj[M], nodesj[1], nodesi[i])
-            gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i]))
+                # Get panel influence coefficients
+                sigmate = get_source_influence(nodesj[M], nodesj[1], nodesi[i])
+                gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i]))
 
-            # Add/subtract from relevant matrix entries
-            amat[i, 1] += 0.5 * (gammate * mesh.tdp - sigmate * mesh.txp)
-            amat[i, M] += 0.5 * (sigmate * mesh.txp - gammate * mesh.tdp)
+                # Add/subtract from relevant matrix entries
+                amat[i, 1] += 0.5 * (gammate * meshj.tdp - sigmate * meshj.txp)
+                amat[i, M] += 0.5 * (sigmate * meshj.txp - gammate * meshj.tdp)
+            end
+
+        else
+            # Replace Nth row of the matrix with the extrapolation of the mean vortex strength to the trailing edge.
+            amat[N, :] .= 0.0
+            amat[N, 1] = 1.0
+            amat[N, 2] = -2.0
+            amat[N, 3] = 1.0
+            amat[N, M - 2] = -1.0
+            amat[N, M - 1] = 2.0
+            amat[N, M] = -1.0
         end
-
-    else
-        # Replace Nth row of the matrix with the extrapolation of the mean vortex strength to the trailing edge.
-        amat[N, :] .= 0.0
-        amat[N, 1] = 1.0
-        amat[N, 2] = -2.0
-        amat[N, 3] = 1.0
-        amat[N, M - 2] = -1.0
-        amat[N, M - 1] = 2.0
-        amat[N, M] = -1.0
     end
 
     return amat
@@ -101,13 +103,6 @@ function assemble_vortex_matrix(meshes)
     # Loop through system
     for x in 1:n
         for y in 1:n
-
-            # get influence coefficients for each portion of the sysetm (mesh y acts on mesh x)
-            # put things in the correct place in the system matrix
-            amat[(1 + offset[x]):(Ns[x] + offset[x]), (1 + offset[y]):(Ns[y] + offset[y])] .= assemble_vortex_coefficients(
-                meshes[x], meshes[y]
-            )
-
             if x == y
                 # put in the kutta condition for each airfoil (end rows of the system matrix)
                 amat[N + x, 1 + offset[y]] = 1.0
@@ -121,11 +116,20 @@ function assemble_vortex_matrix(meshes)
                     # otherwise keep everything at -1.0
                     amat[(1 + offset[x]):(Ns[x] + offset[x]), N + y] .= -1.0
                 end
+                trailing_edge_treatment = true
+            else
+                trailing_edge_treatment = false
             end
+
+            # get influence coefficients for each portion of the sysetm (mesh y acts on mesh x)
+            # put things in the correct place in the system matrix
+            amat[(1 + offset[x]):(Ns[x] + offset[x]), (1 + offset[y]):(Ns[y] + offset[y])] .= assemble_vortex_coefficients(
+                meshes[x], meshes[y], trailing_edge_treatment
+            )
         end
     end
 
-    return amat
+    return amat, Ns
 end
 
 """
@@ -146,27 +150,29 @@ function assemble_boundary_conditions(meshes)
     offset = get_offset(Ns)
 
     # initialize boundary condition array
-    bc = [0.0 for i in 1:N, j in 1:2]
+    bc = [0.0 for i in 1:(N + length(Ns)), j in 1:2]
 
     # Loop through system
     for m in 1:length(Ns)
 
         # get node locations for convenience
-        nodes = mesh.airfoil_nodes
+        nodes = meshes[m].airfoil_nodes
         N = length(nodes)
 
         # generate boundary condition array
-        if !mesh.blunt_te
+        if !meshes[m].blunt_te
             # NOTE: mfoil does not do the following, but rather keeps the rhs as [-z,x] in all cases:
             # if closed trailing edge, set last element of the boundary conditions to zero
-            bc[(1 + offset[m]):(Ns[m] + offset[m] - 1), :] .= [
-                [-nodes[i][2]; nodes[i][1]] for i in 1:N
+            bc[(1 + offset[m]):(Ns[m] + offset[m] - 1), 1] = [
+                -nodes[i][2] for i in 1:(N - 1)
+            ]
+            bc[(1 + offset[m]):(Ns[m] + offset[m] - 1), 2] = [
+                nodes[i][1] for i in 1:(N - 1)
             ]
 
         else
-            bc[(1 + offset[m]):(Ns[m] + offset[m]), :] .= [
-                [-nodes[i][2]; nodes[i][1]] for i in 1:N
-            ]
+            bc[(1 + offset[m]):(Ns[m] + offset[m]), 1] = [-nodes[i][2] for i in 1:N]
+            bc[(1 + offset[m]):(Ns[m] + offset[m]), 2] = [nodes[i][1] for i in 1:N]
         end
     end
 
@@ -174,20 +180,20 @@ function assemble_boundary_conditions(meshes)
 end
 
 """
-    get_inviscid_system(mesh)
+    get_inviscid_system(meshes)
 
 Calculate, then gather the vortex and boundary condition matricies into an InviscidSystem object.
 
 **Arguments:**
-- 'mesh::BodyMesh' : BodyMesh for airfoil to analyze.
+- 'meshes::Array{BodyMesh}' : BodyMesh for airfoil to analyze.
 """
-function get_inviscid_system(mesh)
+function get_inviscid_system(meshes)
 
     # Get coeffiecient matrix (A, left hand side)
-    vcoeffmat = assemble_vortex_matrix(mesh)
+    vcoeffmat, Ns = assemble_vortex_matrix(meshes)
 
     # Get boundary conditions (RHS)
-    bccoeffvec = assemble_boundary_conditions(mesh)
+    bccoeffvec = assemble_boundary_conditions(meshes)
 
-    return InviscidSystem(vcoeffmat, bccoeffvec)
+    return InviscidSystem(vcoeffmat, bccoeffvec, Ns)
 end
