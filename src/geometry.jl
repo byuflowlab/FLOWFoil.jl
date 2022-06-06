@@ -19,12 +19,11 @@ Create panels from input geometry coordinates.
 
 **Keyword Arguments:**
  - gaptolerance::Float' : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
- - wakelength::Float' : length of wake relative to chord (default = 1)
 
 **Returns**
  - mesh::BodyMesh : Geometry mesh, including panel nodes and trailing edge condition.
 """
-function generate_mesh(x, y; gaptolerance=1e-10, wakelength=1.0)
+function generate_mesh(x, y; gaptolerance=1e-10)
 
     # check x and y are equal lengths
     if length(x) != length(y)
@@ -32,8 +31,6 @@ function generate_mesh(x, y; gaptolerance=1e-10, wakelength=1.0)
     else
         # get number of airfoil nodes for convenience
         numnodes = length(x)
-        # get number of wake nodes for convenience
-        #  numwake = ceil(Int, numnodes / 10 + 10 * wakelength)
     end
 
     # Get node locations from x,y coordinates
@@ -73,18 +70,27 @@ Identical to implementation with x and y separate, but here with x,y coordinates
 **Arguments:**
  - 'coordinates::Array{Float,2}' : array of both x and y coordinates (x first column, y second column).
 """
-function generate_mesh(coordinates; gaptolerance=1e-10, wakelength=1.0)
+function generate_mesh(coordinates; gaptolerance=1e-10)
 
     # Separate out coordinates
     x = coordinates[:, 1]
     y = coordinates[:, 2]
 
-    return generate_mesh(x, y; gaptolerance=gaptolerance, wakelength=wakelength)
+    return generate_mesh(x, y; gaptolerance=gaptolerance)
 end
 
 """
+    position_meshes!(meshes, scales, angles, locations)
+
+Take in meshes and adjust scale, leading edge location, and angle of attack of the individual meshes in the system.  Updates mesh objects in place.
+
+**Arguments:**
+ - 'meshes::Array{BodyMesh}' : Array of mesh objects.
+ - 'scales::Array{Float}' : Array of numbers by which to scale respective meshes.
+ - 'locations::Array{Array{Float}}' : Array of [x y] positions of leading edges for respective meshes.
+
 """
-function position_meshes!(meshes, angles, scales=[1.0], locations=[0.0 0.0])
+function position_meshes!(meshes, scales, angles, locations)
 
     # Scale, rotate, and translate mesh nodes
     for i in 1:length(meshes)
@@ -109,12 +115,28 @@ function position_meshes!(meshes, angles, scales=[1.0], locations=[0.0 0.0])
 end
 
 """
+    position_meshes!(meshsystem)
+
+Identical to position_meshes!, but taking the inputs in as a BodyMeshSystem object.
+
+**Arguments:**
+ - 'meshsystem::BodyMeshSystem' : Mesh system object to position.
+"""
+function position_meshes!(meshsystem)
+    position_meshes!(
+        meshsystem.meshes, meshsystem.scales, meshsystem.angles, meshsystem.locations
+    )
+
+    return nothing
+end
+
+"""
     sizesystem(meshsystem)
 
 Count size of inviscid system matrix.
 
 **Arguments:**
- - 'meshsystem::MeshSystem' : The system for which to calculate the linear system size.
+ - 'meshsystem::Array{BodyMesh}' : The system for which to calculate the linear system size.
 """
 function size_system(meshes)
 
@@ -138,12 +160,29 @@ function size_system(meshes)
 end
 
 """
+    get_offset(Ns)
+
+Get the offset values for the mesh system to be used in the system matrix assembly.
+
+**Arguments:**
+ - 'Ns::Array{Float}' : Array of numbers of nodes for each airfoil in the system.
 """
 function get_offset(Ns)
     return [0; Ns[1:(end - 1)]]
 end
 
 """
+    get_trailing_edge_info(nodes)
+
+Calculate various items needed for trailing edge treatment.
+
+**Arguments:**
+ - nodes::Array{Float,2}' : Array of [x y] locations for the airfoil nodes.
+
+**Returns:**
+ - 'tdp::Float' : dot product of TE bisection and TE gap unit vectors
+ - 'txp::Float' : "cross product" of TE bisection and TE gap unit vectors
+ - 'trailing_edge_gap::Float' : TE gap distance
 """
 function get_trailing_edge_info(nodes)
     # get bisection vector
@@ -413,46 +452,46 @@ function get_orientation(node1, node2, point; epsilon=1e-9)
     return theta1, theta2, ln1, ln2, h, a
 end
 
-"""
-"""
-function initialize_wake()
+#"""
+#"""
+#function initialize_wake()
 
-    # initialize the wake panel start point and direction
-    # wakestart = airfoil_nodes[1]
-    # wakedir = [1.0; 0.0]
+#    # initialize the wake panel start point and direction
+#    # wakestart = airfoil_nodes[1]
+#    # wakedir = [1.0; 0.0]
 
-    #TODO LATER (probably in different function)
-    # update the wake panel starting location to be the midpoint of the gap panel.
-    #        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
+#    #TODO LATER (probably in different function)
+#    # update the wake panel starting location to be the midpoint of the gap panel.
+#    #        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
 
-    # and update the wake panel initial direction to be the normal of that panel
-    #       wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
-    #TODO: probably put this elsewhere
-    # update wake panel direction to be bisection of trailing edge panel vectors
-    # get vector along first panel
-    #        a1 = airfoil_nodes[1] - airfoil_nodes[2]
+#    # and update the wake panel initial direction to be the normal of that panel
+#    #       wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
+#    #TODO: probably put this elsewhere
+#    # update wake panel direction to be bisection of trailing edge panel vectors
+#    # get vector along first panel
+#    #        a1 = airfoil_nodes[1] - airfoil_nodes[2]
 
-    # get vector along second panel
-    #       an = airfoil_nodes[end] - airfoil_nodes[end - 1]
+#    # get vector along second panel
+#    #       an = airfoil_nodes[end] - airfoil_nodes[end - 1]
 
-    # calculate vector that bisects the first and last panel vectors
-    #      bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)
+#    # calculate vector that bisects the first and last panel vectors
+#    #      bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)
 
-    # normalize to get the unit vector
-    #     wakedir = bisector / LinearAlgebra.norm(bisector)
+#    # normalize to get the unit vector
+#    #     wakedir = bisector / LinearAlgebra.norm(bisector)
 
-    #TODO: There is something in the method about a trailing half panel, find out what that means and if you should remove the final wake node or not.
-    # get initial wake geometry: equidistant panels starting at wakestart point and extending the input percentage of the airfoil chord in the calculated direction.
-    # wake_nodes = [
-    #    wakestart .+ x .* wakedir for
-    #     x in range(0.0; stop=wakelength * chordlength, length=numwake)
-    # ]
+#    #TODO: There is something in the method about a trailing half panel, find out what that means and if you should remove the final wake node or not.
+#    # get initial wake geometry: equidistant panels starting at wakestart point and extending the input percentage of the airfoil chord in the calculated direction.
+#    # wake_nodes = [
+#    #    wakestart .+ x .* wakedir for
+#    #     x in range(0.0; stop=wakelength * chordlength, length=numwake)
+#    # ]
 
-    # get wake midpoints as well
-    #wake_midpoints = [
-    #    [(wake_nodes[i + 1][1] + wake_nodes[i][1]) / 2.0 (
-    #        wake_nodes[i + 1][2] + wake_nodes[i][2]
-    #    ) / 2.0] for i in 1:(numwake - 1)
-    #]
+#    # get wake midpoints as well
+#    #wake_midpoints = [
+#    #    [(wake_nodes[i + 1][1] + wake_nodes[i][1]) / 2.0 (
+#    #        wake_nodes[i + 1][2] + wake_nodes[i][2]
+#    #    ) / 2.0] for i in 1:(numwake - 1)
+#    #]
 
-end
+#end
