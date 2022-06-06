@@ -140,7 +140,7 @@ end
 """
 """
 function get_offset(Ns)
-    return [0; Ns[1:end-1]]
+    return [0; Ns[1:(end - 1)]]
 end
 
 """
