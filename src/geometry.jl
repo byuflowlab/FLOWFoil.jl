@@ -96,7 +96,7 @@ function position_meshes!(meshes, angles, scales=[1.0], locations=[0.0 0.0])
         nodes .*= scales[i]
 
         # get rotation matrix
-        R = [cosd(angles[i]) -sind(angles[i]); sind(angles[i]) cosd(angles[i])]
+        R = [cosd(-angles[i]) -sind(-angles[i]); sind(-angles[i]) cosd(-angles[i])]
 
         # rotate and translate
         for j in 1:length(nodes)
@@ -126,7 +126,7 @@ function size_system(meshes)
     N = 0
 
     # initialize system size contributions from each mesh
-    Ns = ones(Int, numbodies)
+    Ns = [1 for i in 1:numbodies]
 
     # Count number of airfoil nodes in each mesh.
     for i in 1:numbodies
