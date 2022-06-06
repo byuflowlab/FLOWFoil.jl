@@ -9,34 +9,36 @@ Change Log:
 =#
 
 """
-    assemble_vortex_coefficients(mesh)
+    assemble_vortex_coefficients(meshi, meshj)
 
 Assemble matrix of vortex strength coefficients.
 
-This function only assembles the NxN portion of the influence coefficient matrix. It does not include the kutta condition.
-Also note that multibody capabilities have not yet been implemented.
+This function only assembles the NxM portion of the system influence coefficient matrix associated with the M-1 panels of meshj acting on the N nodes of meshi. It does not include the kutta condition or the influence of the constant stream function on the airfoil nodes.
 
 **Arguments:**
- - 'mesh::BodyMesh' : mesh system for which to find influence coefficient matrix.
+ - 'meshi::BodyMesh' : mesh being influenced.
+ - 'meshj::BodyMesh' : mesh doing the influencing.
 
 """
-function assemble_vortex_coefficients(mesh)
+function assemble_vortex_coefficients(mehsi, meshj)
 
     # get nodes for convenience
-    nodes = mesh.airfoil_nodes
+    nodesi = meshi.airfoil_nodes
+    nodesj = meshj.airfoil_nodes
 
     # get system size
-    N = length(nodes)
+    N = length(nodesi)
+    M = length(nodesj)
 
     #initialize NxN coefficient matrix
-    amat = Array{Float64,2}(undef, N, N)
+    amat = [0.0 for i in 1:N, j in 1:M]
 
     # loop through setting up influence coefficients
     for i in 1:N
-        for j in 1:(N - 1)
+        for j in 1:(M - 1)
 
             # obtain influence coefficient for ith evaluation point and j and j+1 panel
-            aij, aijp1 = FLOWFoil.get_vortex_influence(nodes[j], nodes[j + 1], nodes[i])
+            aij, aijp1 = FLOWFoil.get_vortex_influence(nodesj[j], nodesj[j + 1], nodesi[i])
 
             # add coefficients to matrix at correct nodes
             if j == 1
@@ -51,99 +53,124 @@ function assemble_vortex_coefficients(mesh)
 
     # add in trailing edge contributions
     # NOTE!: mfoil applies these all the time.
-    if mesh.blunt_te
+    if meshj.blunt_te
         for i in 1:N
 
             # Get panel influence coefficients
-            sigmate = get_source_influence(nodes[N], nodes[1], nodes[i])
-            gammate = sum(get_vortex_influence(nodes[N], nodes[1], nodes[i]))
+            sigmate = get_source_influence(nodesj[M], nodesj[1], nodesi[i])
+            gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i]))
 
             # Add/subtract from relevant matrix entries
             amat[i, 1] += 0.5 * (gammate * mesh.tdp - sigmate * mesh.txp)
-            amat[i, N] += 0.5 * (sigmate * mesh.txp - gammate * mesh.tdp)
+            amat[i, M] += 0.5 * (sigmate * mesh.txp - gammate * mesh.tdp)
+        end
+
+    else
+        # Replace Nth row of the matrix with the extrapolation of the mean vortex strength to the trailing edge.
+        amat[N, :] .= 0.0
+        amat[N, 1] = 1.0
+        amat[N, 2] = -2.0
+        amat[N, 3] = 1.0
+        amat[N, M - 2] = -1.0
+        amat[N, M - 1] = 2.0
+        amat[N, M] = -1.0
+    end
+
+    return amat
+end
+
+"""
+    assemble_vortex_matrix(meshes)
+
+Assemble vortex coefficient matrix with full N+n x N+n system, including Kutta condition, where n is the number of meshes (airfoils) in the system, and N is the total number of nodes between all the meshes.
+
+**Arguments:**
+ - 'meshes::Array{BodyMesh}' : Mesh System for which to solve.
+
+"""
+function assemble_vortex_matrix(meshes)
+
+    # size sysetm
+    N, Ns = size_system(meshes)
+    n = length(Ns)
+    offset = get_offset(Ns)
+
+    # initialize coefficient matrix
+    amat = [0.0 for i in 1:(N + n), j in 1:(N + n)]
+
+    # Loop through system
+    for x in 1:n
+        for y in 1:n
+
+            # get influence coefficients for each portion of the sysetm (mesh y acts on mesh x)
+            # put things in the correct place in the system matrix
+            amat[(1 + offset[x]):(Ns[x] + offset[x]), (1 + offset[y]):(Ns[y] + offset[y])] .= assemble_vortex_coefficients(
+                meshes[x], meshes[y]
+            )
+
+            if x == y
+                # put in the kutta condition for each airfoil (end rows of the system matrix)
+                amat[N + x, 1 + offset[y]] = 1.0
+                amat[N + x, Ns[y] + offset[y]] = 1.0
+
+                # put in the constant stream function influences for each airfoil (end columns of the system matrix)
+                if !meshes[x].blunt_te
+                    # if sharp trailing edge, set the constant stream value associated with the Nth node equation for the airfoil to zero (since that equation is replaced)
+                    amat[(1 + offset[x]):(Ns[x] + offset[x] - 1), N + y] .= -1.0
+                else
+                    # otherwise keep everything at -1.0
+                    amat[(1 + offset[x]):(Ns[x] + offset[x]), N + y] .= -1.0
+                end
+            end
         end
     end
 
-    if !mesh.blunt_te
-        # Replace Nth row of the matrix with the extrapolation of the mean vortex strength to the trailing edge.
-        amat[end, :] .= 0.0
-        amat[end, 1] = 1.0
-        amat[end, 2] = -2.0
-        amat[end, 3] = 1.0
-        amat[end, end - 2] = -1.0
-        amat[end, end - 1] = 2.0
-        amat[end, end] = -1.0
-    end
-
     return amat
 end
 
 """
-    assemble_vortex_matrix(mesh)
-
-Assemble vortex coefficient matrix with full N+1 x N+1 system, including Kutta condition.
-
-**Arguments:**
- - 'mesh::BodyMesh' : Mesh System for which to solve.
-
-"""
-function assemble_vortex_matrix(mesh)
-
-    #get NxN square of a matrix
-    amat = assemble_vortex_coefficients(mesh)
-
-    # get size of amat:
-    r, c = size(amat)
-
-    # Add column of ones to end of matrix for Psi_0
-    psi0 = -1.0 * ones(r)
-    # if sharp trailing edge, set a[N,N+1] to zero
-    # if !mesh.blunt_te
-    #     psi0[end] = 0.0
-    # end
-    amat = [amat psi0]
-
-    # add kutta condition row to bottom of matrix
-    kutta = zeros(c + 1)
-    kutta[1] = 1.0
-    kutta[end - 1] = 1.0
-    amat = [amat; kutta']
-
-    return amat
-end
-
-"""
-    assemble_boundary_conditions(mesh, freestream)
+    assemble_boundary_conditions(meshes)
 
 Assemble boundary condition vector.
 
 **Arguments:**
- - 'mesh::BodyMesh' : mesh system for which to solve
+ - 'meshes::Array{BodyMesh}' : mesh system for which to solve
 
 **Returns**
- - output::type : description.
+ - psi_inf::Array{Float,2} : Boundary condition array.
 """
-function assemble_boundary_conditions(mesh)
+function assemble_boundary_conditions(meshes)
 
-    # get node locations for convenience
-    nodes = mesh.airfoil_nodes
-    N = length(nodes)
+    # size the system
+    N, Ns = size_system(meshes)
+    offset = get_offset(Ns)
 
-    # generate boundary condition array
-    psi_inf1 = [-nodes[i][2] for i in 1:N]
-    psi_inf2 = [nodes[i][1] for i in 1:N]
-    psi_inf = [psi_inf1 psi_inf2]
+    # initialize boundary condition array
+    bc = [0.0 for i in 1:N, j in 1:2]
 
-    #NOTE: mfoil does not do the following, but rather keeps the rhs as [-z,x] in all cases:
-    # if closed trailing edge, set last element of psi_inf to zero
-    # if !mesh.blunt_te
-    #     psi_inf[end, :] = [0.0 0.0]
-    # end
+    # Loop through system
+    for m in 1:length(Ns)
 
-    # For Kutta Condition, RHS = 0.0
-    psi_inf = vcat(psi_inf, [0.0 0.0])
+        # get node locations for convenience
+        nodes = mesh.airfoil_nodes
+        N = length(nodes)
 
-    return psi_inf
+        # generate boundary condition array
+        if !mesh.blunt_te
+            # NOTE: mfoil does not do the following, but rather keeps the rhs as [-z,x] in all cases:
+            # if closed trailing edge, set last element of the boundary conditions to zero
+            bc[(1 + offset[m]):(Ns[m] + offset[m] - 1), :] .= [
+                [-nodes[i][2]; nodes[i][1]] for i in 1:N
+            ]
+
+        else
+            bc[(1 + offset[m]):(Ns[m] + offset[m]), :] .= [
+                [-nodes[i][2]; nodes[i][1]] for i in 1:N
+            ]
+        end
+    end
+
+    return bc
 end
 
 """
