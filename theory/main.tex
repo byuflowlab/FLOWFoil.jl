@@ -377,7 +377,70 @@ This gives us the following system for the inviscid solution of an airfoil with 
 \end{align}
 
 
+\subsection{Multi-body System}
 
+The multi-body system is treated much the same as a single body system, just with the size of the system increasing.
+The portions of the system related to the individual airfoils are identical to those above, thus each individual airfoil will have its respective system along the diagonal of the total system.
+The airfoils' influences on eachother are included in the influence coefficients in the off-diagonal positions of the full system.
+See \cref{eqn:multisystem} for a general outline of what a full system might look like.
+
+
+\setcounter{MaxMatrixCols}{20}
+ \begin{align}
+ 	\label{eqn:multisystem}
+	\vect{A} &= \begin{pmatrix}
+		& & & & & -1& & & && & 0 \\
+		%
+		& & \multirow{2}{*}{\Large $a_{ij}^{11}$} & & & -1 & & &\multirow{2}{*}{\Large $a_{ij}^{1N}$} & && 0 \\
+		%
+		& & & & & -1 & & & & && 0\\
+		%
+		& & & & & -1 & & & & && 0\\
+		%
+		1 & 0 & \cdots & 0 & 1 & 0 & 0 & 0 & \cdots & 0 & 0 &0 \\
+		%
+		& & & & & 0& & & & && -1 \\
+		%
+		& & \multirow{2}{*}{\Large $a_{ij}^{N1}$} & & & 0& & & \multirow{2}{*}{\Large $a_{ij}^{NN}$} & && -1 \\
+		%
+		& & & & & 0& & & & &&  -1 \\
+		%
+		& & & & & 0& & & & & & -1 \\
+		%
+		& 0 & 0 & \cdots & 0 & 0 & 1 & 0 & \cdots & 0 & 1& 0  
+	\end{pmatrix} \\
+	%
+	\vect{\gamma} &= \begin{pmatrix}
+		\gamma^0_{11} & \gamma^{90}_{11} \\
+		\gamma^0_{21} & \gamma^{90}_{21} \\
+		\vdots \\
+		\gamma^0_{N1} & \gamma^{90}_{N1} \\
+		\Psi^0_{01} & \Psi^{90}_{01}\\
+		%
+		\gamma^0_{1N} & \gamma^{90}_{1N} \\
+		\gamma^0_{2N} & \gamma^{90}_{2N} \\
+		\vdots \\
+		\gamma^0_{NN} & \gamma^{90}_{NN} \\
+		\Psi^0_{0N} & \Psi^{90}_{0N}\\
+	\end{pmatrix} \\
+	%
+	\vect{\Psi}^\infty &= \begin{pmatrix}
+		-z_{11} & x_{11} \\
+		-z_{21} & x_{21} \\
+		\vdots \\
+		-z_{N1} & x_{N1} \\
+		0 & 0 \\
+		-z_{1N} & x_{1N} \\
+		-z_{2N} & x_{2N} \\
+		\vdots \\
+		-z_{NN} & x_{NN} \\
+		0 & 0 \\
+	\end{pmatrix}
+\end{align}
+
+\noindent where \(a_{ij}^{XY}\) indicates the influence coefficient of the \(j\)th panel of the \(Y\)th airfoil on the \(i\)th node of the \(X\)th airfoil, \(\gamma_{jY}\) indicates the stregth of the vortex at the \(j\)th node on the \(Y\)th airfoil, and \(z_{jY}\) indicates the boundary condition at the \(j\)th node on the \(Y\)th airfoil.
+
+[TODO: how are trailing edges treated in the system case?]
 
 \newpage
 
