@@ -39,10 +39,37 @@ function inviscid_post(inviscid_solution, angleofattack; cascade=false)
     # Get Mean Pressure at PANEL MIDPOINTS
     cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
 
-    # Get Panel Vectors
-    dn = [
-        meshes[j].airfoil_nodes[2:end] .- meshes[j].airfoil_nodes[1:(end - 1)] for j in 1:M
-    ][1]
+    # Get Lift, Drag, and Moment Coefficients
+    # leading edge location for moment reference)
+    # _, leadingedgeidx = findmin(getindex.(nodes, 1))
+    # x0 = nodes[leadingedgeidx][1]
+    # z0 = nodes[leadingedgeidx][2]
+    #quarter chord location (moment reference location for inviscid case)
+    x0 = chord / 4.0
+    z0 = 0.0
+
+    # initialize pieces of moment calculation
+    cmmat = [2 1; 1 2] ./ 6.0
+    dxddmi = [0.0 for i in 1:N]
+    dxddmip1 = [0.0 for i in 1:N]
+
+    # initialize panel lengths
+    dn = [[0.0 0.0] for i in 1:(N - 1)]
+
+    offset = 0
+    for m in 1:M
+        for i in 1:(Ns[m] - 1)
+            dxddmi[i + offset] =
+                dn[i + offset][1] * (meshes[m].airfoil_nodes[i][1] - x0) +
+                dn[i + offset][2] * (meshes[m].airfoil_nodes[i][2] - z0)
+
+            dxddmip1[i + offset] =
+                dn[i + offset][1] * (meshes[m].airfoil_nodes[i + 1][1] - x0) +
+                dn[i + offset][2] * (meshes[m].airfoil_nodes[i + 1][2] - z0)
+            dn[i + offset] = meshes[m].airfoil_nodes[i + 1] .- meshes[m].airfoil_nodes[i]
+        end
+        offset += Ns[m]
+    end
 
     # Get Lift Coefficient
     cl =
@@ -59,35 +86,6 @@ function inviscid_post(inviscid_solution, angleofattack; cascade=false)
             for i in 1:(N - 1)
         ]) / chord
     cd = cdi
-
-    # Get Moment Coefficient
-    # leading edge location for moment reference)
-    # _, leadingedgeidx = findmin(getindex.(nodes, 1))
-    # x0 = nodes[leadingedgeidx][1]
-    # z0 = nodes[leadingedgeidx][2]
-    #quarter chord location (moment reference location for inviscid case)
-    x0 = chord / 4.0
-    z0 = 0.0
-
-    #define portions of moment calculation
-    cmmat = [2 1; 1 2] ./ 6.0
-    dxddmi = [0.0 for i in 1:N]
-
-    dxddmip1 = [0.0 for i in 1:N]
-
-    offset = 0
-    for m in 1:M
-        for i in 1:(Ns[m] - 1)
-            dxddmi[i + offset] =
-                dn[i + offset][1] * (meshes[m].airfoil_nodes[i][1] - x0) +
-                dn[i + offset][2] * (meshes[m].airfoil_nodes[i][2] - z0)
-
-            dxddmip1[i + offset] =
-                dn[i + offset][1] * (meshes[m].airfoil_nodes[i + 1][1] - x0) +
-                dn[i + offset][2] * (meshes[m].airfoil_nodes[i + 1][2] - z0)
-        end
-        offset += Ns[m]
-    end
 
     #calculate moment coefficient about leading edge
     cmi =
