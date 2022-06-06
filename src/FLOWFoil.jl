@@ -8,17 +8,16 @@ using LinearAlgebra
 #TYPES
 # geometry types
 export Mesh, MeshSystem
-# operating point types
-export Freestream, Parameters
 # problem types
 export Problem, Solution
 
 #FUNCTIONS
 # geometry functions
-export generatemesh
-
+export generatemesh, position_meshes!
+# inviscid solver functions
+export solve, inviscid_post
 # common airfoil parameterizations
-export karmantrefftz, joukowsky
+export karmantrefftz, joukowskysurface, naca4
 
 # INCLUDED FILES
 
@@ -35,7 +34,7 @@ include("singularities.jl")
 include("inviscid_system.jl")
 
 # Boundary Layer Integration
-include("viscous_system.jl")
+# include("viscous_system.jl")
 
 # Solver
 include("solve.jl")
