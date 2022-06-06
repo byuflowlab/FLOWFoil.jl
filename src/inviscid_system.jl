@@ -18,6 +18,7 @@ This function only assembles the NxM portion of the system influence coefficient
 **Arguments:**
  - 'meshi::BodyMesh' : mesh being influenced.
  - 'meshj::BodyMesh' : mesh doing the influencing.
+ - 'trailing_edge_treatment::Bool' : flag for whether to treat trailing edge or not (is meshi==meshj?)
 
 """
 function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
