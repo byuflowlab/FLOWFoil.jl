@@ -89,7 +89,7 @@ function solve_inviscid_system(inviscidsystem, meshes; debug=false)
 
     # Separate Outputs
     panelgammas = gammas[1:(end - length(inviscidsystem.Ns)), :]
-    psi0 = gammas[end-length(inviscidsystem.Ns):end, :]
+    psi0 = gammas[end-(length(inviscidsystem.Ns)-1):end, :]
 
     # Generate Solution Object
     if debug
