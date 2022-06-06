@@ -139,6 +139,12 @@ end
 
 """
 """
+function get_offset(Ns)
+    return [0; Ns[1:end-1]]
+end
+
+"""
+"""
 function get_trailing_edge_info(nodes)
     # get bisection vector
     # get vector along first panel
