@@ -69,5 +69,8 @@ plot(x, cpj; label="Joukowsky")
 plot(x, polar.surfacepressure, "--"; linewidth=2, label="FLOWFoil")
 ylim(1.0, -1.75)
 legend()
+
+savefig("joukowsky.png", bbox_inches="tight")
 ```
-![](../assets/joukowsky.pdf)
+
+![](joukowsky.png)
