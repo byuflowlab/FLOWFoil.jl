@@ -21,7 +21,7 @@ Create panels from input geometry coordinates.
  - `gaptolerance::Float` : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
 
 **Returns**
- - mesh::BodyMesh : Geometry mesh, including panel nodes and trailing edge condition.
+ - `mesh::BodyMesh` : Geometry mesh, including panel nodes and trailing edge condition.
 """
 function generate_mesh(x, y; gaptolerance=1e-10)
 
