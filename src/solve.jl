@@ -14,10 +14,10 @@ Change Log:
 Solve problem defined by the input Problem object and return the solution in a Solution object.
 
 **Arguments:**
-- 'problem::Problem' : Problem to solve
+- `problem::Problem` : Problem to solve
 
 **Returns:**
- - 'solution::{InviscidSolution or ViscousSolution}' : returns solution of type matching viscous flag in problem.
+ - `solution::{InviscidSolution or ViscousSolution}` : returns solution of type matching viscous flag in problem.
 """
 function solve(problem; parameters=nothing)
 
@@ -41,10 +41,10 @@ end
 Solves the inviscid problem.
 
 **Arguments:**
- - 'problem::Problem' : Problem to solve.  viscous field must be set to false.
+ - `problem::Problem` : Problem to solve.  viscous field must be set to false.
 
 **Returns:**
- - 'solution::InviscidSolution'
+ - `solution::InviscidSolution`
 """
 function solve_inviscid(problem)
 
@@ -55,14 +55,11 @@ function solve_inviscid(problem)
         )
     end
 
-    # Generate Mesh
-    mesh = generate_mesh(problem.coordinates)
-
     # get inviscid system
-    inviscidsystem = get_inviscid_system(mesh)
+    inviscidsystem = get_inviscid_system(problem.meshes)
 
     # solve inviscid system
-    solution = solve_inviscid_system(inviscidsystem, mesh; debug=problem.debug)
+    solution = solve_inviscid_system(inviscidsystem, problem.meshes; debug=problem.debug)
 
     return solution
 end
@@ -75,111 +72,111 @@ Solve the InviscidSystem for the vortex and streamfunction strengths.
 Outputs the InviscidSolution object which contains the inviscidsystem in the debug object if debug is set to true.
 
 **Arguments:**
-- 'inviscidsystem::InviscidSystem' : InviscidSystem to solve.
-- 'mesh::BodyMesh' : BodyMesh defining geometry (to put into solution object)
+- `inviscidsystem::InviscidSystem` : InviscidSystem to solve.
+- `mesh::BodyMesh` : BodyMesh defining geometry (to put into solution object)
 
 **Keyword Arguments:**
-- 'debug::Bool = false' : flag to indicate whether or not to output all the system details.
+- `debug::Bool = false` : flag to indicate whether or not to output all the system details.
 
 **Returns:**
- - 'solution::InviscidSolution'
+ - `solution::InviscidSolution`
 
 """
-function solve_inviscid_system(inviscidsystem, mesh; debug=false)
+function solve_inviscid_system(inviscidsystem, meshes; debug=false)
 
     # Solve System
     gammas = inviscidsystem.vcoeffmat \ inviscidsystem.bccoeffvec
 
     # Separate Outputs
-    panelgammas = gammas[1:(end - 1), :]
-    psi0 = gammas[end, :]
+    panelgammas = gammas[1:(end - length(inviscidsystem.Ns)), :]
+    psi0 = gammas[end-(length(inviscidsystem.Ns)-1):end, :]
 
     # Generate Solution Object
     if debug
-        solution = InviscidSolution(mesh, panelgammas, psi0, inviscidsystem)
+        solution = InviscidSolution(meshes, panelgammas, psi0, inviscidsystem.Ns, inviscidsystem)
     else
-        solution = InviscidSolution(mesh, panelgammas, psi0, nothing)
+        solution = InviscidSolution(meshes, panelgammas, psi0, inviscidsystem.Ns, nothing)
     end
 
     return solution
 end
 
-###########################################
-#######      VISCOUS  PROBLEM       #######
-###########################################
+############################################
+########      VISCOUS  PROBLEM       #######
+############################################
 
-"""
-    solve_viscous(problem)
+#"""
+#    solve_viscous(problem)
 
-Solves the viscous problem.
+#Solves the viscous problem.
 
-**Arguments:**
-- 'problem::Problem' : Problem Definition.
+#**Arguments:**
+#- `problem::Problem` : Problem Definition.
 
-**Returns:**
- - 'solution::ViscousSolution'
-"""
-function solve_viscous(problem; parameters=nothing)
+#**Returns:**
+# - `solution::ViscousSolution`
+#"""
+#function solve_viscous(problem; parameters=nothing)
 
-    # Check to make sure you want the invsicid solution:
-    if !problem.viscous
-        @warn(
-            "Viscous mismatch, please set problem.viscous=true if you would like to solve the viscous problem."
-        )
-    end
+#    # Check to make sure you want the invsicid solution:
+#    if !problem.viscous
+#        @warn(
+#            "Viscous mismatch, please set problem.viscous=true if you would like to solve the viscous problem."
+#        )
+#    end
 
-    # initialize viscous solution
-    solution = initialize_viscous(problem)
+#    # initialize viscous solution
+#    solution = initialize_viscous(problem)
 
-    # solve coupled system
-    coupled_solve!(solution)
+#    # solve coupled system
+#    coupled_solve!(solution)
 
-    return solution
-end
+#    return solution
+#end
 
-"""
-    initalize_viscous(problem)
+#"""
+#    initalize_viscous(problem)
 
-Initialized viscous solution (solves invscid problem, initialized wake and boundary layer, etc.)
+#Initialized viscous solution (solves invscid problem, initialized wake and boundary layer, etc.)
 
-**Arguments:**
- - problem::Problem' : Problem to solve.
+#**Arguments:**
+# - problem::Problem` : Problem to solve.
 
-**Returns:**
- - solution::ViscousSolution' : Initialized ViscousSolution
-"""
-function initalize_viscous(problem; parameters=nothing)
+#**Returns:**
+# - solution::ViscousSolution` : Initialized ViscousSolution
+#"""
+#function initalize_viscous(problem; parameters=nothing)
 
-    # solve inviscid problem first
-    inviscid_solution = solve_inviscid(problem)
+#    # solve inviscid problem first
+#    inviscid_solution = solve_inviscid(problem)
 
-    # initialize parameters if needed
-    if parameters == nothing
-        parameters = defaultparameters(;
-            muinf=inviscid_solution.mesh.chord / problem.reynolds
-        )
-    end
+#    # initialize parameters if needed
+#    if parameters == nothing
+#        parameters = defaultparameters(;
+#            muinf=inviscid_solution.mesh.chord / problem.reynolds
+#        )
+#    end
 
-    # set thermodynamic properties TODO
-    properties = initialize_properties(problem, parameters, inviscid_solution)
+#    # set thermodynamic properties TODO
+#    properties = initialize_properties(problem, parameters, inviscid_solution)
 
-    # locate stagnation point TODO
+#    # locate stagnation point TODO
 
-    # split into pressure/suction sides TODO
+#    # split into pressure/suction sides TODO
 
-    # generate wake TODO
-    wake = generate_wake(problem, inviscid_solution)
+#    # generate wake TODO
+#    wake = generate_wake(problem, inviscid_solution)
 
-    # set dead air space behind blunt trailing edges. TODO
+#    # set dead air space behind blunt trailing edges. TODO
 
-    # initialize edge velocity TODO
+#    # initialize edge velocity TODO
 
-    # initialize boundary layer TODO
+#    # initialize boundary layer TODO
 
-    # update stagnation point location based on edge velocities of initialized boundary layer. TODO
+#    # update stagnation point location based on edge velocities of initialized boundary layer. TODO
 
-    # initialize viscous solution object TODO
-    solution = ViscousSolution()
+#    # initialize viscous solution object TODO
+#    solution = ViscousSolution()
 
-    return solution
-end
+#    return solution
+#end

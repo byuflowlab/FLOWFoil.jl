@@ -10,15 +10,16 @@ makedocs(;
     sitename="FLOWFoil.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://byuflowlab.github.io/FLOWFoil.jl",
+        canonical="https://flow.byu.edu/FLOWFoil.jl",
         assets=String[],
     ),
     pages=[
-        "Home" => "index.md",
+        "Intro" => "index.md",
+        "Quick Start" => "tutorial.md",
+        "Guided Examples" => "examples.md",
+        "API Reference" => "reference.md",
+        "Theory" => "theory.md",
     ],
 )
 
-deploydocs(;
-    repo="github.com/byuflowlab/FLOWFoil.jl",
-    devbranch="main",
-)
+deploydocs(; repo="github.com/byuflowlab/FLOWFoil.jl", devbranch="main")

@@ -14,17 +14,16 @@ Change Log:
 Create panels from input geometry coordinates.
 
 **Arguments:**
- - 'x::Vector{Float}' : x coordinates defining airfoil geometry.
- - 'y::Vector{Float}' : y coordinates defining airfoil geometry.
+ - `x::Vector{Float}` : x coordinates defining airfoil geometry.
+ - `y::Vector{Float}` : y coordinates defining airfoil geometry.
 
 **Keyword Arguments:**
- - gaptolerance::Float' : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
- - wakelength::Float' : length of wake relative to chord (default = 1)
+ - `gaptolerance::Float` : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
 
 **Returns**
- - mesh::BodyMesh : Geometry mesh, including panel nodes and trailing edge condition.
+ - `mesh::BodyMesh` : Geometry mesh, including panel nodes and trailing edge condition.
 """
-function generate_mesh(x, y; gaptolerance=1e-10, wakelength=1.0)
+function generate_mesh(x, y; gaptolerance=1e-10)
 
     # check x and y are equal lengths
     if length(x) != length(y)
@@ -32,8 +31,6 @@ function generate_mesh(x, y; gaptolerance=1e-10, wakelength=1.0)
     else
         # get number of airfoil nodes for convenience
         numnodes = length(x)
-        # get number of wake nodes for convenience
-        #  numwake = ceil(Int, numnodes / 10 + 10 * wakelength)
     end
 
     # Get node locations from x,y coordinates
@@ -71,47 +68,121 @@ end
 Identical to implementation with x and y separate, but here with x,y coordinates together in a single array [X Y].
 
 **Arguments:**
- - 'coordinates::Array{Float,2}' : array of both x and y coordinates (x first column, y second column).
+ - `coordinates::Array{Float,2}` : array of both x and y coordinates (x first column, y second column).
 """
-function generate_mesh(coordinates; gaptolerance=1e-10, wakelength=1.0)
+function generate_mesh(coordinates; gaptolerance=1e-10)
 
     # Separate out coordinates
     x = coordinates[:, 1]
     y = coordinates[:, 2]
 
-    return generate_mesh(x, y; gaptolerance=gaptolerance, wakelength=wakelength)
+    return generate_mesh(x, y; gaptolerance=gaptolerance)
 end
 
-# """
-#     sizesystem(meshsystem)
+"""
+    position_meshes!(meshes, scales, angles, locations)
 
-# Count size of inviscid system matrix.
+Take in meshes and adjust scale, leading edge location, and angle of attack of the individual meshes in the system.  Updates mesh objects in place.
 
-# **Arguments:**
-#  - 'meshsystem::MeshSystem' : The system for which to calculate the linear system size.
-# """
-# function sizesystem(meshsystem)
-
-#     # initialize
-#     # number of bodies for convenience
-#     numbodies = length(meshsystem.meshes)
-
-#     # initialize total system size
-#     N = 0
-
-#     # initialize system size contributions from each mesh
-#     Ns = ones(Int, numbodies)
-
-#     # Count number of airfoil nodes in each mesh.
-#     for i in 1:numbodies
-#         Ns[i] = length(meshsystem.meshes[i].airfoil_nodes)
-#         N += Ns[i]
-#     end
-
-#     return N, Ns
-# end
+**Arguments:**
+ - `meshes::Array{BodyMesh}` : Array of mesh objects.
+ - `scales::Array{Float}` : Array of numbers by which to scale respective meshes.
+ - `locations::Array{Array{Float}}` : Array of [x y] positions of leading edges for respective meshes.
 
 """
+function position_meshes!(meshes, scales, angles, locations)
+
+    # Scale, rotate, and translate mesh nodes
+    for i in 1:length(meshes)
+
+        # rename for convenience
+        nodes = meshes[i].airfoil_nodes
+
+        # scale
+        nodes .*= scales[i]
+
+        # get rotation matrix
+        R = [cosd(-angles[i]) -sind(-angles[i]); sind(-angles[i]) cosd(-angles[i])]
+
+        # rotate and translate
+        for j in 1:length(nodes)
+            nodes[j] = R * nodes[j]'
+            nodes[j] .+= locations[i]
+        end
+    end
+
+    return nothing
+end
+
+"""
+    position_meshes!(meshsystem)
+
+Identical to position_meshes!, but taking the inputs in as a BodyMeshSystem object.
+
+**Arguments:**
+ - `meshsystem::BodyMeshSystem` : Mesh system object to position.
+"""
+function position_meshes!(meshsystem)
+    position_meshes!(
+        meshsystem.meshes, meshsystem.scales, meshsystem.angles, meshsystem.locations
+    )
+
+    return nothing
+end
+
+"""
+    sizesystem(meshsystem)
+
+Count size of inviscid system matrix.
+
+**Arguments:**
+ - `meshsystem::Array{BodyMesh}` : The system for which to calculate the linear system size.
+"""
+function size_system(meshes)
+
+    # initialize
+    # number of bodies for convenience
+    numbodies = length(meshes)
+
+    # initialize total system size
+    N = 0
+
+    # initialize system size contributions from each mesh
+    Ns = [1 for i in 1:numbodies]
+
+    # Count number of airfoil nodes in each mesh.
+    for i in 1:numbodies
+        Ns[i] = length(meshes[i].airfoil_nodes)
+        N += Ns[i]
+    end
+
+    return N, Ns
+end
+
+"""
+    get_offset(Ns)
+
+Get the offset values for the mesh system to be used in the system matrix assembly.
+
+**Arguments:**
+ - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
+"""
+function get_offset(Ns)
+    return [0; Ns[1:(end - 1)]]
+end
+
+"""
+    get_trailing_edge_info(nodes)
+
+Calculate various items needed for trailing edge treatment.
+
+**Arguments:**
+ - `nodes::Array{Float,2}` : Array of [x y] locations for the airfoil nodes.
+
+**Returns:**
+ - `tdp::Float` : dot product of TE bisection and TE gap unit vectors
+ - `txp::Float` : "cross product" of TE bisection and TE gap unit vectors
+ - `trailing_edge_gap::Float` : TE gap distance
 """
 function get_trailing_edge_info(nodes)
     # get bisection vector
@@ -157,8 +228,8 @@ Calculate the vector, \$\\mathbf{r}\$, and distance, \$|r|\$, from the node to t
  - `point::Array{Float}` : [x y] position of point.
 
 **Returns**
- - 'r::Vector{Float}' : vector from node to evaluation point
- - 'rmag::Float' : length of panel between node and evaluation point
+ - `r::Vector{Float}` : vector from node to evaluation point
+ - `rmag::Float` : length of panel between node and evaluation point
 """
 function get_r(node, point)
 
@@ -178,16 +249,16 @@ Calculate panel length (between adjacent nodes).
 
 
 **Arguments:**
- - 'node1::Array{Float}(2)' : [x y] location of first node
- - 'node2::Array{Float}(2)' : [x y] location of second node
+ - `node1::Array{Float}(2)` : [x y] location of first node
+ - `node2::Array{Float}(2)` : [x y] location of second node
 
 **Returns**
- - 'd::Vector{Float}' : vector from node1 to node2
- - 'dmag::Float' : length of panel between node1 and node2
+ - `d::Vector{Float}` : vector from node1 to node2
+ - `dmag::Float` : length of panel between node1 and node2
 """
 function get_d(node1, node2)
 
-    # simply call get_r, since it's exactly what is needed
+    # simply call get_r, since it`s exactly what is needed
     return get_r(node1, node2)
 end
 
@@ -197,8 +268,8 @@ end
 Get angle (in radians) between panel and vector from node1 to evaluation point.
 
 **Arguments:**
- - 'h::Float' : Distance, normal to panel, between panel and evaluation point.
- - 'a::Float' : Distance, tangent to panel, between node1 and evaluation point.
+ - `h::Float` : Distance, normal to panel, between panel and evaluation point.
+ - `a::Float` : Distance, tangent to panel, between node1 and evaluation point.
 
 """
 function get_theta(h, a)
@@ -211,9 +282,9 @@ end
 Get angle (in radians) between panel and vector from node2 to evaluation point.
 
 **Arguments:**
- - 'h::Float' : Distance, normal to panel, between panel and evaluation point.
- - 'a::Float' : Distance, tangent to panel, between node1 and evaluation point.
- - 'dmag::Float' : Panel lentgh.
+ - `h::Float` : Distance, normal to panel, between panel and evaluation point.
+ - `a::Float` : Distance, tangent to panel, between node1 and evaluation point.
+ - `dmag::Float` : Panel lentgh.
 
 """
 function get_theta(h, a, dmag)
@@ -226,9 +297,9 @@ end
 Calculate distance from panel to evalulation point in the panel normal direction.
 
 **Arguments:**
- - 'r1::Vector{Float}' : vector from node1 to evalulation point.
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `r1::Vector{Float}` : vector from node1 to evalulation point.
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_h(r1, d, dmag)
@@ -248,9 +319,9 @@ end
 Calculate distance from panel to evalulation point in the panel tangent direction.
 
 **Arguments:**
- - 'r1::Vector{Float}' : vector from node1 to evalulation point.
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `r1::Vector{Float}` : vector from node1 to evalulation point.
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_a(r1, d, dmag)
@@ -269,8 +340,8 @@ end
 Get unit tangent to panel.
 
 **Arguments:**
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_tangent(d, dmag)
@@ -283,8 +354,8 @@ end
 Get unit normal to panel.
 
 **Arguments:**
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_normal(d, dmag)
@@ -304,17 +375,17 @@ end
 Get vectors and magnitudes for panel and between nodes and validation points.
 
 **Arguments:**
- - 'node1::Array{Float}' : [x y] position of node1.
- - 'node2::Array{Float}' : [x y] position of node2.
- - 'point::Array{Float}' : [x y] position of evaluation point.
+ - `node1::Array{Float}` : [x y] position of node1.
+ - `node2::Array{Float}` : [x y] position of node2.
+ - `point::Array{Float}` : [x y] position of evaluation point.
 
 **Returns:**
- - 'r1::Vector{Float}' : vector from node1 to evaluation point.
- - 'r1mag::Float' : distance from node1 to evaluation point.
- - 'r2::Vector{Float}' : vector from node2 to evaluation point.
- - 'r2mag::Float' : distance from node2 to evaluation point.
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `r1::Vector{Float}` : vector from node1 to evaluation point.
+ - `r1mag::Float` : distance from node1 to evaluation point.
+ - `r2::Vector{Float}` : vector from node2 to evaluation point.
+ - `r2mag::Float` : distance from node2 to evaluation point.
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_distances(node1, node2, point)
@@ -337,17 +408,17 @@ end
 Get angles between panel and evaluation point, ln of distances from nodes to evaluation point, and evaluation point position relative to panel.
 
 **Arguments:**
- - 'node1::Array{Float}' : [x y] position of node1.
- - 'node2::Array{Float}' : [x y] position of node2.
- - 'point::Array{Float}' : [x y] position of evaluation point.
+ - `node1::Array{Float}` : [x y] position of node1.
+ - `node2::Array{Float}` : [x y] position of node2.
+ - `point::Array{Float}` : [x y] position of evaluation point.
 
 **Returns:**
- - 'theta1::Float' : Angle between panel and evaluation point, centered at node1.
- - 'theta2::Float' : Angle between panel and evaluation point, centered at node2.
- - 'ln1::Float' : Natural log of distance from node1 to evaluation point.
- - 'ln2::Float' : Natural log of distance from node2 to evaluation point.
- - 'h::Float' : Distance from panel to evaluation in panel normal direction.
- - 'a::Float' : Distance from node1 to evaluation in panel tangent direction.
+ - `theta1::Float` : Angle between panel and evaluation point, centered at node1.
+ - `theta2::Float` : Angle between panel and evaluation point, centered at node2.
+ - `ln1::Float` : Natural log of distance from node1 to evaluation point.
+ - `ln2::Float` : Natural log of distance from node2 to evaluation point.
+ - `h::Float` : Distance from panel to evaluation in panel normal direction.
+ - `a::Float` : Distance from node1 to evaluation in panel tangent direction.
 
 """
 function get_orientation(node1, node2, point; epsilon=1e-9)
@@ -381,46 +452,46 @@ function get_orientation(node1, node2, point; epsilon=1e-9)
     return theta1, theta2, ln1, ln2, h, a
 end
 
-"""
-"""
-function initialize_wake()
+#"""
+#"""
+#function initialize_wake()
 
-    # initialize the wake panel start point and direction
-    # wakestart = airfoil_nodes[1]
-    # wakedir = [1.0; 0.0]
+#    # initialize the wake panel start point and direction
+#    # wakestart = airfoil_nodes[1]
+#    # wakedir = [1.0; 0.0]
 
-    #TODO LATER (probably in different function)
-    # update the wake panel starting location to be the midpoint of the gap panel.
-    #        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
+#    #TODO LATER (probably in different function)
+#    # update the wake panel starting location to be the midpoint of the gap panel.
+#    #        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
 
-    # and update the wake panel initial direction to be the normal of that panel
-    #       wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
-    #TODO: probably put this elsewhere
-    # update wake panel direction to be bisection of trailing edge panel vectors
-    # get vector along first panel
-    #        a1 = airfoil_nodes[1] - airfoil_nodes[2]
+#    # and update the wake panel initial direction to be the normal of that panel
+#    #       wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
+#    #TODO: probably put this elsewhere
+#    # update wake panel direction to be bisection of trailing edge panel vectors
+#    # get vector along first panel
+#    #        a1 = airfoil_nodes[1] - airfoil_nodes[2]
 
-    # get vector along second panel
-    #       an = airfoil_nodes[end] - airfoil_nodes[end - 1]
+#    # get vector along second panel
+#    #       an = airfoil_nodes[end] - airfoil_nodes[end - 1]
 
-    # calculate vector that bisects the first and last panel vectors
-    #      bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)
+#    # calculate vector that bisects the first and last panel vectors
+#    #      bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)
 
-    # normalize to get the unit vector
-    #     wakedir = bisector / LinearAlgebra.norm(bisector)
+#    # normalize to get the unit vector
+#    #     wakedir = bisector / LinearAlgebra.norm(bisector)
 
-    #TODO: There is something in the method about a trailing half panel, find out what that means and if you should remove the final wake node or not.
-    # get initial wake geometry: equidistant panels starting at wakestart point and extending the input percentage of the airfoil chord in the calculated direction.
-    # wake_nodes = [
-    #    wakestart .+ x .* wakedir for
-    #     x in range(0.0; stop=wakelength * chordlength, length=numwake)
-    # ]
+#    #TODO: There is something in the method about a trailing half panel, find out what that means and if you should remove the final wake node or not.
+#    # get initial wake geometry: equidistant panels starting at wakestart point and extending the input percentage of the airfoil chord in the calculated direction.
+#    # wake_nodes = [
+#    #    wakestart .+ x .* wakedir for
+#    #     x in range(0.0; stop=wakelength * chordlength, length=numwake)
+#    # ]
 
-    # get wake midpoints as well
-    #wake_midpoints = [
-    #    [(wake_nodes[i + 1][1] + wake_nodes[i][1]) / 2.0 (
-    #        wake_nodes[i + 1][2] + wake_nodes[i][2]
-    #    ) / 2.0] for i in 1:(numwake - 1)
-    #]
+#    # get wake midpoints as well
+#    #wake_midpoints = [
+#    #    [(wake_nodes[i + 1][1] + wake_nodes[i][1]) / 2.0 (
+#    #        wake_nodes[i + 1][2] + wake_nodes[i][2]
+#    #    ) / 2.0] for i in 1:(numwake - 1)
+#    #]
 
-end
+#end

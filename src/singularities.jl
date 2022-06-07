@@ -14,13 +14,13 @@ Change Log:
 Calculate value of  \$\\overbar{\\Psi}^\\gamma\$
 
 **Arguments:**
- - 'theta1::Float' : angle between panel and vector from node1 to evaluation point
- - 'theta2::Float' : angle between panel and vector from node2 to evaluation point
- - 'ln1::Float' : value of ln(rmag1), which may be that or 0.0, depening on evaluation point location
- - 'ln2::Float' : value of ln(rmag2), which may be that or 0.0, depening on evaluation point location
- - 'dmag::Float' : panel length
- - 'h::Float' : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
- - 'a::Float' : length of base of right triangle with height, h, and hypontenuse, r1.
+ - `theta1::Float` : angle between panel and vector from node1 to evaluation point
+ - `theta2::Float` : angle between panel and vector from node2 to evaluation point
+ - `ln1::Float` : value of ln(rmag1), which may be that or 0.0, depening on evaluation point location
+ - `ln2::Float` : value of ln(rmag2), which may be that or 0.0, depening on evaluation point location
+ - `dmag::Float` : panel length
+ - `h::Float` : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
+ - `a::Float` : length of base of right triangle with height, h, and hypontenuse, r1.
 
 """
 function get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
@@ -33,16 +33,16 @@ end
 Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
 
 **Arguments:**
- - 'psibargamma::Float' : value of \$\\overbar{\\Psi}^\\gamma\$
- - 'r1mag::Float' : distance from node1 to evaluation point
- - 'r2mag::Float' : distance from node2 to evaluation point
- - 'theta1::Float' : angle between panel and vector from node1 to evaluation point
- - 'theta2::Float' : angle between panel and vector from node2 to evaluation point
- - 'ln1::Float' : value of ln(rmag1), which may be that or 0.0, depening on evaluation point location
- - 'ln2::Float' : value of ln(rmag2), which may be that or 0.0, depening on evaluation point location
- - 'dmag::Float' : panel length
- - 'h::Float' : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
- - 'a::Float' : length of base of right triangle with height, h, and hypontenuse, r1.
+ - `psibargamma::Float` : value of \$\\overbar{\\Psi}^\\gamma\$
+ - `r1mag::Float` : distance from node1 to evaluation point
+ - `r2mag::Float` : distance from node2 to evaluation point
+ - `theta1::Float` : angle between panel and vector from node1 to evaluation point
+ - `theta2::Float` : angle between panel and vector from node2 to evaluation point
+ - `ln1::Float` : value of ln(rmag1), which may be that or 0.0, depening on evaluation point location
+ - `ln2::Float` : value of ln(rmag2), which may be that or 0.0, depening on evaluation point location
+ - `dmag::Float` : panel length
+ - `h::Float` : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
+ - `a::Float` : length of base of right triangle with height, h, and hypontenuse, r1.
 
 """
 function get_psitildegamma(psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a)
@@ -58,12 +58,12 @@ end
 Calculate value of  \$\\overbar{\\Psi}^\\sigma\$
 
 **Arguments:**
- - 'theta1::Float' : Angle between panel and evaluation point, centered at node1.
- - 'theta2::Float' : Angle between panel and evaluation point, centered at node2.
- - 'ln1::Float' : Natural log of distance from node1 to evaluation point.
- - 'ln2::Float' : Natural log of distance from node2 to evaluation point.
- - 'h::Float' : Distance from panel to evaluation in panel normal direction.
- - 'a::Float' : Distance from node1 to evaluation in panel tangent direction.
+ - `theta1::Float` : Angle between panel and evaluation point, centered at node1.
+ - `theta2::Float` : Angle between panel and evaluation point, centered at node2.
+ - `ln1::Float` : Natural log of distance from node1 to evaluation point.
+ - `ln2::Float` : Natural log of distance from node2 to evaluation point.
+ - `h::Float` : Distance from panel to evaluation in panel normal direction.
+ - `a::Float` : Distance from node1 to evaluation in panel tangent direction.
 """
 function get_psibarsigma(theta1, theta2, ln1, ln2, dmag, h, a)
     return 1 / (2 * pi) * (a * (theta1 - theta2) + dmag * theta2 + h * ln1 - h * ln2)
@@ -75,14 +75,14 @@ end
 Calculate value of  \$\\widetilde{\\Psi}^\\sigma\$
 
 **Arguments:**
- - 'psibargamma::Float' : value of \$\\overbar{\\Psi}^\\gamma\$
- - 'r1mag::Float' : distance from node1 to evaluation point
- - 'r2mag::Float' : distance from node2 to evaluation point
- - 'theta1::Float' : angle between panel and vector from node1 to evaluation point
- - 'theta2::Float' : angle between panel and vector from node2 to evaluation point
- - 'dmag::Float' : panel length
- - 'h::Float' : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
- - 'a::Float' : length of base of right triangle with height, h, and hypontenuse, r1.
+ - `psibargamma::Float` : value of \$\\overbar{\\Psi}^\\gamma\$
+ - `r1mag::Float` : distance from node1 to evaluation point
+ - `r2mag::Float` : distance from node2 to evaluation point
+ - `theta1::Float` : angle between panel and vector from node1 to evaluation point
+ - `theta2::Float` : angle between panel and vector from node2 to evaluation point
+ - `dmag::Float` : panel length
+ - `h::Float` : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
+ - `a::Float` : length of base of right triangle with height, h, and hypontenuse, r1.
 """
 function get_psitildesigma(psibarsigma, r1mag, r2mag, theta1, theta2, dmag, h, a)
     return a / dmag * phibarsigma +
@@ -95,9 +95,9 @@ end
 Calculate vortex influence coefficients on the evaluation point from the panel between node1 and node2.
 
 **Arguments:**
- - 'node1::Array{Float}(2)' : [x y] location of node1
- - 'node2::Array{Float}(2)' : [x y] location of node2
- - 'point::Array{Float}(2)' : [x y] location of evaluation point
+ - `node1::Array{Float}(2)` : [x y] location of node1
+ - `node2::Array{Float}(2)` : [x y] location of node2
+ - `point::Array{Float}(2)` : [x y] location of evaluation point
 
 """
 function get_vortex_influence(node1, node2, point)
@@ -115,7 +115,7 @@ function get_vortex_influence(node1, node2, point)
     psitildegamma = get_psitildegamma(
         psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a
     )
-    # put psi's together
+    # put psi`s together
     return (psibargamma - psitildegamma), psitildegamma
 end
 
@@ -125,9 +125,9 @@ end
 Calculate source influence coefficients on the evaluation point from the panel between node1 and node2.
 
 **Arguments:**
- - 'node1::Array{Float}(2)' : [x y] location of node1
- - 'node2::Array{Float}(2)' : [x y] location of node2
- - 'point::Array{Float}(2)' : [x y] location of evaluation point
+ - `node1::Array{Float}(2)` : [x y] location of node1
+ - `node2::Array{Float}(2)` : [x y] location of node2
+ - `point::Array{Float}(2)` : [x y] location of evaluation point
 """
 function get_source_influence(node1, node2, point)
 

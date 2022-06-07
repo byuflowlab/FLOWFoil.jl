@@ -158,7 +158,7 @@ end
 
         _, c2 = FLOWFoil.get_vortex_influence(nodes[1], nodes[2], nodes[1])
         # Test that coefficient matrix is assembled correctly
-        a = FLOWFoil.assemble_vortex_coefficients(mesh)
+        a = FLOWFoil.assemble_vortex_coefficients(mesh,mesh,false)
         @test a[1, 2] == c2 + c1
     end
 end

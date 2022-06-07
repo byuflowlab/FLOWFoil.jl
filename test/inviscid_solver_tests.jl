@@ -10,7 +10,7 @@
     mach = 0.0
     alpha = 0.0
 
-    coeffs = FLOWFoil.assemble_vortex_coefficients(mesh)
+    coeffs = FLOWFoil.assemble_vortex_coefficients(mesh,mesh,true)
 
     @test !isapprox(LinearAlgebra.det(coeffs), 0.0)
 end
