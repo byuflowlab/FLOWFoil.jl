@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Quick Start · FLOWFoil.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link rel="canonical" href="https://flow.byu.edu/FLOWFoil.jl/tutorial/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">FLOWFoil.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Intro</a></li><li class="is-active"><a class="tocitem" href>Quick Start</a><ul class="internal"><li><a class="tocitem" href="#Single-Airfoil-Inviscid-Solution"><span>Single Airfoil Inviscid Solution</span></a></li><li><a class="tocitem" href="#Multiple-Airfoil-Inviscid-Solution"><span>Multiple Airfoil Inviscid Solution</span></a></li></ul></li><li><a class="tocitem" href="../examples/">Guided Examples</a></li><li><a class="tocitem" href="../reference/">API Reference</a></li><li><a class="tocitem" href="../theory/">Theory</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Quick Start</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Quick Start</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/byuflowlab/FLOWFoil.jl/blob/master/docs/src/tutorial.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Quick-Start"><a class="docs-heading-anchor" href="#Quick-Start">Quick Start</a><a id="Quick-Start-1"></a><a class="docs-heading-anchor-permalink" href="#Quick-Start" title="Permalink"></a></h1><p>FLOWFoil is structured as follows:</p><ul><li>The user generates a <code>Problem</code>.</li><li>The <code>Problem</code> is solved, generating a <code>Solution</code>.</li><li>The <code>Solution</code> is post-processed, generating a <code>Polar</code>.</li></ul><p>There are also some included convenience functions for geometry generation and manipulation.</p><h2 id="Single-Airfoil-Inviscid-Solution"><a class="docs-heading-anchor" href="#Single-Airfoil-Inviscid-Solution">Single Airfoil Inviscid Solution</a><a id="Single-Airfoil-Inviscid-Solution-1"></a><a class="docs-heading-anchor-permalink" href="#Single-Airfoil-Inviscid-Solution" title="Permalink"></a></h2><p>Let&#39;s first look at the simplest case, a single inviscid airfoil. We&#39;ll first set up the geometry, then defin the problem, then solve the problem, then post process it, and finally plot some of the outputs.</p><pre><code class="language- hljs">using FLOWFoil
+using PyPlot
+
+## -- SET UP GEOMETRY
+# arbitrarily pick some joukowsky airfoil parameters
+center = [-0.1; 0.1]
+radius = 1.0
+num_nodes = 160
+
+# set freestream to unity
+vinf = 1.0
+re = 1.0
+
+# arbitrarily pick an angle of attack
+alpha = 4.0
+
+# get airfoil coordinates for joukowsky airfoil
+x, z = FLOWFoil.joukowsky(center, radius; N=num_nodes)
+
+# get analytic joukowsky solution for later
+vj, cpj, clj = FLOWFoil.joukowskyflow(center, radius, alpha, vinf; N=num_nodes)
+
+# generate mesh object
+meshes = [FLOWFoil.generate_mesh([x z])]
+
+## -- DEFINE PROBLEM
+problem = FLOWFoil.Problem(meshes, alpha, re; viscous=false)
+
+## -- SOLVE PROBLEM
+inviscid_solution = FLOWFoil.solve(problem)
+
+## -- POST PROCESS SOLUTION
+polar = FLOWFoil.inviscid_post(inviscid_solution, alpha)
+
+## -- PLOT
+figure(1; figsize=(12, 3))
+
+subplot(131)
+plot(x, z)
+axis(&quot;equal&quot;)
+axis(&quot;off&quot;)
+
+subplot(132)
+xlabel(&quot;x&quot;)
+ylabel(L&quot;\frac{V_T}{V_\infty}&quot;)
+plot(x, vj; label=&quot;Joukowsky&quot;)
+plot(x, polar.surfacevelocity, &quot;--&quot;; linewidth=2, label=&quot;FLOWFoil&quot;)
+legend()
+
+subplot(133)
+xlabel(&quot;x&quot;)
+ylabel(L&quot;c_p&quot;)
+plot(x, cpj; label=&quot;Joukowsky&quot;)
+plot(x, polar.surfacepressure, &quot;--&quot;; linewidth=2, label=&quot;FLOWFoil&quot;)
+ylim(1.0, -1.75)
+legend()</code></pre><p><img src="../joukowsky.jpg" alt/></p><h2 id="Multiple-Airfoil-Inviscid-Solution"><a class="docs-heading-anchor" href="#Multiple-Airfoil-Inviscid-Solution">Multiple Airfoil Inviscid Solution</a><a id="Multiple-Airfoil-Inviscid-Solution-1"></a><a class="docs-heading-anchor-permalink" href="#Multiple-Airfoil-Inviscid-Solution" title="Permalink"></a></h2><p>For a multi-element airfoil system, the procedure is identical, except an array of meshes is used for the problem definition. For this case, we&#39;ll use data that comes from &quot;An Exact Test Case for the Plane Potential Flow About Two Adjacent Lifting Aerofoils&quot; by B. R. Williams.</p><pre><code class="language- hljs">using FLOWFoil
+using PyPlot
+
+## -- SET UP GEOMETRY
+include(&quot;two_inviscid_airfoils.jl&quot;)
+
+# set freestream to unity
+vinf = 1.0
+re = 1.0
+
+# arbitrarily pick an angle of attack
+alpha = 0.0
+
+# generate mesh object
+meshes = [FLOWFoil.generate_mesh([ximain etamain]); FLOWFoil.generate_mesh([xiflap etaflap])]
+
+## -- DEFINE PROBLEM
+problem = FLOWFoil.Problem(meshes, alpha, re; viscous=false)
+
+## -- SOLVE PROBLEM
+inviscid_solution = FLOWFoil.solve(problem)
+
+## -- POST PROCESS SOLUTION
+polar = FLOWFoil.inviscid_post(inviscid_solution, alpha)
+
+## -- PLOT
+figure(2; figsize=(9, 3))
+clf()
+subplot(121)
+plot(ximain, etamain, label=&quot;Main Airfoil&quot;)
+plot(xiflap, etaflap, label=&quot;Flap Airfoil&quot;)
+axis(&quot;equal&quot;)
+axis(&quot;off&quot;)
+
+subplot(122)
+xlabel(&quot;x&quot;)
+ylabel(L&quot;c_p&quot;)
+plot(ximain, cpmain; label=&quot;Analytic&quot;)
+plot(xiflap, cpflap)
+plot(ximain, polar.surfacepressure[1:length(ximain)], &quot;.C0&quot;; linewidth=2, label=&quot;FLOWFoil&quot;)
+plot(xiflap, polar.surfacepressure[length(ximain)+1:end], &quot;.C1&quot;; linewidth=2)
+ylim(maximum(polar.surfacepressure)*1.1, minimum(polar.surfacepressure)*1.1)
+legend()</code></pre><p><img src="../two_inviscid_airfoils.jpg" alt/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Intro</a><a class="docs-footer-nextpage" href="../examples/">Guided Examples »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.16 on <span class="colophon-date" title="Tuesday 7 June 2022 22:51">Tuesday 7 June 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
