@@ -75,7 +75,7 @@ end
 Identical to `karman_trefftz(beta, radius, wedge)` but using center-based version.
 
 **Arguments:**
- - `center::Array{Float}` : [x y] location of circle center relative to origin
+ - `center::Array{Float}` : [x z] location of circle center relative to origin
  - `wedge::Float` : angle, in radians, of airfoil wedge angle
 
 **Keyword Arguments:**
@@ -136,7 +136,7 @@ function joukowsky(center, radius; N=360, fortest=false, normalize=true, split=f
     end
 
     if fortest
-        return theta, beta, a
+        return theta, beta, a, maximum(x) - minimum(x)
     else
         if split
             return split_upper_lower(x, z)
@@ -168,7 +168,7 @@ Calculate the analytic surface velocities and pressures as well as lift coeffici
 function joukowskyflow(center, radius, alpha, vinf; N=360)
     alpha_rad = alpha * pi / 180.0
 
-    theta, beta, a = joukowsky2(center, radius; N=N, fortest=true)
+    theta, beta, a, chord = joukowsky(center, radius; N=N, fortest=true)
 
     z = a * (1.0 .+ radius / a * (exp.(im * theta) .- exp(-im * beta)))
 
@@ -178,7 +178,7 @@ function joukowskyflow(center, radius, alpha, vinf; N=360)
 
     cpsurf = 1.0 .- vsurf .^ 2.0 / vinf^2.0
 
-    cl = 8.0 * pi * radius / (maximum(x) - minimum(x)) * sin(alpha_rad + beta)
+    cl = 8.0 * pi * radius / chord * sin(alpha_rad + beta)
 
     return vsurf, cpsurf, cl
 end
