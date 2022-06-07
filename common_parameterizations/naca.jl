@@ -8,11 +8,11 @@ NACA 4-series Parametrization Functions
 Compute thickness at a given chord-normalized x-position by NACA 4-series thickness equations.
 
 **Arguments:**
- - 'x::Float' : x position along chordline
- - 'maxthick::Float' : Maximum thickness value
+ - `x::Float` : x position along chordline
+ - `maxthick::Float` : Maximum thickness value
 
 **Keyword Arguments:**
- - 'blunt_TE::Bool' : Flag whether trailing edge is blunt or not
+ - `blunt_TE::Bool` : Flag whether trailing edge is blunt or not
 """
 function thickness(x, maxthick; blunt_TE=false)
 
@@ -31,9 +31,9 @@ end
 Compute camber at a given chord-normalized x-position by NACA 4-series camber equations.
 
 **Arguments:**
- - 'x::Float' : x position along chordline
- - 'maxcamber::Float64' : Maximum camber value
- - 'camberpose::Float64' : Position of maximum camber
+ - `x::Float` : x position along chordline
+ - `maxcamber::Float64` : Maximum camber value
+ - `camberpose::Float64` : Position of maximum camber
 """
 function camber(x, maxcamber, camberpose)
     if real(maxcamber) != 0.0 && real(camberpose) != 0.0
@@ -56,15 +56,15 @@ end
 Compute x, y airfoil coordinates for N nodes, based on NACA 4-Series Parameterization.
 
 **Arguments:**
- - 'c::Float' : Maximum camber value (percent of chord)
- - 'p::Float' : Position along chord (in 10ths of chord) where maximum camber lies
- - 't::Float' : Maximum thickness of airfoil in percent chord
+ - `c::Float` : Maximum camber value (percent of chord)
+ - `p::Float` : Position along chord (in 10ths of chord) where maximum camber lies
+ - `t::Float` : Maximum thickness of airfoil in percent chord
 
 **Keyword Arguments:**
- - 'N::Int' : Total number of coordinates to use (should be odd)
- - 'x::Array{Float}' : x coordinates (cosine spaced coordinates used by default)
- - 'blunt_TE::Bool' : Flag whether trailing edge is blunt or not
- - 'split::Bool' : Flag wheter to split into upper and lower halves.
+ - `N::Int` : Total number of coordinates to use (should be odd)
+ - `x::Array{Float}` : x coordinates (cosine spaced coordinates used by default)
+ - `blunt_TE::Bool` : Flag whether trailing edge is blunt or not
+ - `split::Bool` : Flag wheter to split into upper and lower halves.
 """
 function naca4(c=2.0, p=4.0, t=12.0, N=161; x=nothing, blunt_TE=false, split=false)
 

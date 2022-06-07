@@ -14,10 +14,10 @@ Change Log:
 Solve problem defined by the input Problem object and return the solution in a Solution object.
 
 **Arguments:**
-- 'problem::Problem' : Problem to solve
+- `problem::Problem` : Problem to solve
 
 **Returns:**
- - 'solution::{InviscidSolution or ViscousSolution}' : returns solution of type matching viscous flag in problem.
+ - `solution::{InviscidSolution or ViscousSolution}` : returns solution of type matching viscous flag in problem.
 """
 function solve(problem; parameters=nothing)
 
@@ -41,10 +41,10 @@ end
 Solves the inviscid problem.
 
 **Arguments:**
- - 'problem::Problem' : Problem to solve.  viscous field must be set to false.
+ - `problem::Problem` : Problem to solve.  viscous field must be set to false.
 
 **Returns:**
- - 'solution::InviscidSolution'
+ - `solution::InviscidSolution`
 """
 function solve_inviscid(problem)
 
@@ -72,14 +72,14 @@ Solve the InviscidSystem for the vortex and streamfunction strengths.
 Outputs the InviscidSolution object which contains the inviscidsystem in the debug object if debug is set to true.
 
 **Arguments:**
-- 'inviscidsystem::InviscidSystem' : InviscidSystem to solve.
-- 'mesh::BodyMesh' : BodyMesh defining geometry (to put into solution object)
+- `inviscidsystem::InviscidSystem` : InviscidSystem to solve.
+- `mesh::BodyMesh` : BodyMesh defining geometry (to put into solution object)
 
 **Keyword Arguments:**
-- 'debug::Bool = false' : flag to indicate whether or not to output all the system details.
+- `debug::Bool = false` : flag to indicate whether or not to output all the system details.
 
 **Returns:**
- - 'solution::InviscidSolution'
+ - `solution::InviscidSolution`
 
 """
 function solve_inviscid_system(inviscidsystem, meshes; debug=false)
@@ -111,10 +111,10 @@ end
 #Solves the viscous problem.
 
 #**Arguments:**
-#- 'problem::Problem' : Problem Definition.
+#- `problem::Problem` : Problem Definition.
 
 #**Returns:**
-# - 'solution::ViscousSolution'
+# - `solution::ViscousSolution`
 #"""
 #function solve_viscous(problem; parameters=nothing)
 
@@ -140,10 +140,10 @@ end
 #Initialized viscous solution (solves invscid problem, initialized wake and boundary layer, etc.)
 
 #**Arguments:**
-# - problem::Problem' : Problem to solve.
+# - problem::Problem` : Problem to solve.
 
 #**Returns:**
-# - solution::ViscousSolution' : Initialized ViscousSolution
+# - solution::ViscousSolution` : Initialized ViscousSolution
 #"""
 #function initalize_viscous(problem; parameters=nothing)
 

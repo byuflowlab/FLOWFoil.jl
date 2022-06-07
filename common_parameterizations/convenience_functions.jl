@@ -9,7 +9,7 @@ Various convenience functions for dealing with airfoil parameterizations and coo
 Calculate N cosine spaced points.
 
 **Arguments:**
- - 'N::Int' : Number of points
+ - `N::Int` : Number of points
 
 """
 function cosinespacing(N=80)
@@ -22,14 +22,14 @@ end
 Split the upper and lower halves of the airfoil coordinates. Assumes odd number of coordinates (leading edge repeated).
 
 **Arguments:**
- - 'x::Array{Float}' : Array of x coordinates
- - 'z::Array{Float}' : Array of z coordinates
+ - `x::Array{Float}` : Array of x coordinates
+ - `z::Array{Float}` : Array of z coordinates
 
 **Returns:**
- - 'xu::Array{Float}' : Array of upper half of x coordinates
- - 'xl::Array{Float}' : Array of lower half of x coordinates
- - 'zu::Array{Float}' : Array of upper half of z coordinates
- - 'zl::Array{Float}' : Array of lower half of z coordinates
+ - `xu::Array{Float}` : Array of upper half of x coordinates
+ - `xl::Array{Float}` : Array of lower half of x coordinates
+ - `zu::Array{Float}` : Array of upper half of z coordinates
+ - `zl::Array{Float}` : Array of lower half of z coordinates
 
 """
 function split_upper_lower(x, z)
@@ -46,8 +46,8 @@ end
 Normalize airfoil to unit chord and shift leading edge to zero. Adjusts coordinates in place.
 
 **Arguments:**
- - 'x::Array{Float}' : Array of x coordinates
- - 'z::Array{Float}' : Array of z coordinates
+ - `x::Array{Float}` : Array of x coordinates
+ - `z::Array{Float}` : Array of z coordinates
 
 """
 function normalize_airfoil!(x, z)

@@ -16,9 +16,9 @@ Assemble matrix of vortex strength coefficients.
 This function only assembles the NxM portion of the system influence coefficient matrix associated with the M-1 panels of meshj acting on the N nodes of meshi. It does not include the kutta condition or the influence of the constant stream function on the airfoil nodes.
 
 **Arguments:**
- - 'meshi::BodyMesh' : mesh being influenced.
- - 'meshj::BodyMesh' : mesh doing the influencing.
- - 'trailing_edge_treatment::Bool' : flag for whether to treat trailing edge or not (is meshi==meshj?)
+ - `meshi::BodyMesh` : mesh being influenced.
+ - `meshj::BodyMesh` : mesh doing the influencing.
+ - `trailing_edge_treatment::Bool` : flag for whether to treat trailing edge or not (is meshi==meshj?)
 
 """
 function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
@@ -88,7 +88,7 @@ end
 Assemble vortex coefficient matrix with full N+n x N+n system, including Kutta condition, where n is the number of meshes (airfoils) in the system, and N is the total number of nodes between all the meshes.
 
 **Arguments:**
- - 'meshes::Array{BodyMesh}' : Mesh System for which to solve.
+ - `meshes::Array{BodyMesh}` : Mesh System for which to solve.
 
 """
 function assemble_vortex_matrix(meshes)
@@ -139,10 +139,10 @@ end
 Assemble boundary condition vector.
 
 **Arguments:**
- - 'meshes::Array{BodyMesh}' : mesh system for which to solve
+ - `meshes::Array{BodyMesh}` : mesh system for which to solve
 
 **Returns**
- - psi_inf::Array{Float,2} : Boundary condition array.
+ - `psi_inf::Array{Float,2}` : Boundary condition array.
 """
 function assemble_boundary_conditions(meshes)
 
@@ -186,7 +186,7 @@ end
 Calculate, then gather the vortex and boundary condition matricies into an InviscidSystem object.
 
 **Arguments:**
-- 'meshes::Array{BodyMesh}' : BodyMesh for airfoil to analyze.
+- `meshes::Array{BodyMesh}` : BodyMesh for airfoil to analyze.
 """
 function get_inviscid_system(meshes)
 

@@ -12,24 +12,24 @@ Also functions used in tests/examples for inviscid solutions.
 Karman-Trefftz airfoil parameterization based on angle beta, raidus, and wedge angle.
 
 **Arguments:**
- - 'beta::Float' : angle, in radians indicating center of circle relative to origin
- - 'radius::Float' : radius of circle
- - 'wedge::Float' : angle, in radians, of airfoil wedge angle
+ - `beta::Float` : angle, in radians indicating center of circle relative to origin
+ - `radius::Float` : radius of circle
+ - `wedge::Float` : angle, in radians, of airfoil wedge angle
 
 **Keyword Arguments:**
- - 'N::Int' : number of coordinates (for entire airfoil)
- - normalize::Bool' : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
- - split::Bool' : Flag wheter to split into upper and lower halves.
+ - `N::Int` : number of coordinates (for entire airfoil)
+ - normalize::Bool` : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
+ - split::Bool` : Flag wheter to split into upper and lower halves.
 
 **Returns:**
 IF split == False:
- - 'x::Array{Float}' : Array of x coordinates
- - 'z::Array{Float}' : Array of z coordinates
+ - `x::Array{Float}` : Array of x coordinates
+ - `z::Array{Float}` : Array of z coordinates
 IF split == True:
- - 'xu::Array{Float}' : Array of upper half of x coordinates
- - 'xl::Array{Float}' : Array of lower half of x coordinates
- - 'zu::Array{Float}' : Array of upper half of z coordinates
- - 'zl::Array{Float}' : Array of lower half of z coordinates
+ - `xu::Array{Float}` : Array of upper half of x coordinates
+ - `xl::Array{Float}` : Array of lower half of x coordinates
+ - `zu::Array{Float}` : Array of upper half of z coordinates
+ - `zl::Array{Float}` : Array of lower half of z coordinates
 """
 function karman_trefftz(beta, radius, wedge; N=360, normalize=true, split=false)
 
@@ -72,26 +72,26 @@ end
 """
     karman_trefftz(center=[-0.1 0.1], wedge=0.0; N=360, normalize=true, split=false)
 
-Identical to 'karman_trefftz(beta, radius, wedge)' but using center-based version.
+Identical to `karman_trefftz(beta, radius, wedge)` but using center-based version.
 
 **Arguments:**
- - 'center::Array{Float}' : [x y] location of circle center relative to origin
- - 'wedge::Float' : angle, in radians, of airfoil wedge angle
+ - `center::Array{Float}` : [x y] location of circle center relative to origin
+ - `wedge::Float` : angle, in radians, of airfoil wedge angle
 
 **Keyword Arguments:**
- - 'N::Int' : number of coordinates (for entire airfoil)
- - 'normalize::Bool' : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
- - 'split::Bool' : Flag wheter to split into upper and lower halves.
+ - `N::Int` : number of coordinates (for entire airfoil)
+ - `normalize::Bool` : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
+ - `split::Bool` : Flag wheter to split into upper and lower halves.
 
 **Returns:**
 IF split == False:
- - 'x::Array{Float}' : Array of x coordinates
- - 'z::Array{Float}' : Array of z coordinates
+ - `x::Array{Float}` : Array of x coordinates
+ - `z::Array{Float}` : Array of z coordinates
 IF split == True:
- - 'xu::Array{Float}' : Array of upper half of x coordinates
- - 'xl::Array{Float}' : Array of lower half of x coordinates
- - 'zu::Array{Float}' : Array of upper half of z coordinates
- - 'zl::Array{Float}' : Array of lower half of z coordinates
+ - `xu::Array{Float}` : Array of upper half of x coordinates
+ - `xl::Array{Float}` : Array of lower half of x coordinates
+ - `zu::Array{Float}` : Array of upper half of z coordinates
+ - `zl::Array{Float}` : Array of lower half of z coordinates
 """
 function karman_trefftz(center=[-0.1 0.1], wedge=0.0; N=360, normalize=true, split=false)
     radius = sqrt((1 - center[1])^2 + center[2]^2) #radius
@@ -107,14 +107,14 @@ end
 Joukowsky airfoil parameterization.
 
 **Arguments:**
- - 'center::Array{Float}' : [x z] location of center of circle relative to origin
- - 'radius::Float' : radius of circle
+ - `center::Array{Float}` : [x z] location of center of circle relative to origin
+ - `radius::Float` : radius of circle
 
 **Keyword Arguments:**
- - 'N::Int' : Number of coordinates to use
- - 'fortest::Bool' : Flag to output non-coordinate paramters used in 'joukowskyflow()'
- - 'normalize::Bool' : Flag whether to normalize to unit chord and translate the leading edge to zero.
- - 'split::Bool' : Flag wheter to split output into upper and lower surfaces.
+ - `N::Int` : Number of coordinates to use
+ - `fortest::Bool` : Flag to output non-coordinate paramters used in 'joukowskyflow()'
+ - `normalize::Bool` : Flag whether to normalize to unit chord and translate the leading edge to zero.
+ - `split::Bool` : Flag wheter to split output into upper and lower surfaces.
 """
 function joukowsky(center, radius; N=360, fortest=false, normalize=true, split=false)
     beta = asin(center[2] / radius) #solve for beta
@@ -152,18 +152,18 @@ end
 Calculate the analytic surface velocities and pressures as well as lift coefficient for a joukowsky airfoil.
 
 **Arguments:**
- - 'center::Array{Float}' : [x z] location of circle center relative to origin
- - 'radius::Float' : Radius of circle
- - 'alpha::Float' : Angle of attack in degrees
- - 'vinf::Float' : Freestream velocity
+ - `center::Array{Float}` : [x z] location of circle center relative to origin
+ - `radius::Float` : Radius of circle
+ - `alpha::Float` : Angle of attack in degrees
+ - `vinf::Float` : Freestream velocity
 
 **Keyword Arguments:**
- - 'N::Int' : Number of coordinates to use
+ - `N::Int` : Number of coordinates to use
 
 **Returns:**
- - 'vsurf::Array{Float}' : Magnitude of surface velocities at the nodes
- - 'cpsurf::Array{Float}' : Surface pressures at the nodes
- - 'cl::Float' : Lift coefficient
+ - `vsurf::Array{Float}` : Magnitude of surface velocities at the nodes
+ - `cpsurf::Array{Float}` : Surface pressures at the nodes
+ - `cl::Float` : Lift coefficient
 """
 function joukowskyflow(center, radius, alpha, vinf; N=360)
     alpha_rad = alpha * pi / 180.0

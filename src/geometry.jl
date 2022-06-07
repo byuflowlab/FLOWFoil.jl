@@ -14,11 +14,11 @@ Change Log:
 Create panels from input geometry coordinates.
 
 **Arguments:**
- - 'x::Vector{Float}' : x coordinates defining airfoil geometry.
- - 'y::Vector{Float}' : y coordinates defining airfoil geometry.
+ - `x::Vector{Float}` : x coordinates defining airfoil geometry.
+ - `y::Vector{Float}` : y coordinates defining airfoil geometry.
 
 **Keyword Arguments:**
- - gaptolerance::Float' : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
+ - `gaptolerance::Float` : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
 
 **Returns**
  - mesh::BodyMesh : Geometry mesh, including panel nodes and trailing edge condition.
@@ -68,7 +68,7 @@ end
 Identical to implementation with x and y separate, but here with x,y coordinates together in a single array [X Y].
 
 **Arguments:**
- - 'coordinates::Array{Float,2}' : array of both x and y coordinates (x first column, y second column).
+ - `coordinates::Array{Float,2}` : array of both x and y coordinates (x first column, y second column).
 """
 function generate_mesh(coordinates; gaptolerance=1e-10)
 
@@ -85,9 +85,9 @@ end
 Take in meshes and adjust scale, leading edge location, and angle of attack of the individual meshes in the system.  Updates mesh objects in place.
 
 **Arguments:**
- - 'meshes::Array{BodyMesh}' : Array of mesh objects.
- - 'scales::Array{Float}' : Array of numbers by which to scale respective meshes.
- - 'locations::Array{Array{Float}}' : Array of [x y] positions of leading edges for respective meshes.
+ - `meshes::Array{BodyMesh}` : Array of mesh objects.
+ - `scales::Array{Float}` : Array of numbers by which to scale respective meshes.
+ - `locations::Array{Array{Float}}` : Array of [x y] positions of leading edges for respective meshes.
 
 """
 function position_meshes!(meshes, scales, angles, locations)
@@ -120,7 +120,7 @@ end
 Identical to position_meshes!, but taking the inputs in as a BodyMeshSystem object.
 
 **Arguments:**
- - 'meshsystem::BodyMeshSystem' : Mesh system object to position.
+ - `meshsystem::BodyMeshSystem` : Mesh system object to position.
 """
 function position_meshes!(meshsystem)
     position_meshes!(
@@ -136,7 +136,7 @@ end
 Count size of inviscid system matrix.
 
 **Arguments:**
- - 'meshsystem::Array{BodyMesh}' : The system for which to calculate the linear system size.
+ - `meshsystem::Array{BodyMesh}` : The system for which to calculate the linear system size.
 """
 function size_system(meshes)
 
@@ -165,7 +165,7 @@ end
 Get the offset values for the mesh system to be used in the system matrix assembly.
 
 **Arguments:**
- - 'Ns::Array{Float}' : Array of numbers of nodes for each airfoil in the system.
+ - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
 """
 function get_offset(Ns)
     return [0; Ns[1:(end - 1)]]
@@ -177,12 +177,12 @@ end
 Calculate various items needed for trailing edge treatment.
 
 **Arguments:**
- - nodes::Array{Float,2}' : Array of [x y] locations for the airfoil nodes.
+ - `nodes::Array{Float,2}` : Array of [x y] locations for the airfoil nodes.
 
 **Returns:**
- - 'tdp::Float' : dot product of TE bisection and TE gap unit vectors
- - 'txp::Float' : "cross product" of TE bisection and TE gap unit vectors
- - 'trailing_edge_gap::Float' : TE gap distance
+ - `tdp::Float` : dot product of TE bisection and TE gap unit vectors
+ - `txp::Float` : "cross product" of TE bisection and TE gap unit vectors
+ - `trailing_edge_gap::Float` : TE gap distance
 """
 function get_trailing_edge_info(nodes)
     # get bisection vector
@@ -228,8 +228,8 @@ Calculate the vector, \$\\mathbf{r}\$, and distance, \$|r|\$, from the node to t
  - `point::Array{Float}` : [x y] position of point.
 
 **Returns**
- - 'r::Vector{Float}' : vector from node to evaluation point
- - 'rmag::Float' : length of panel between node and evaluation point
+ - `r::Vector{Float}` : vector from node to evaluation point
+ - `rmag::Float` : length of panel between node and evaluation point
 """
 function get_r(node, point)
 
@@ -249,16 +249,16 @@ Calculate panel length (between adjacent nodes).
 
 
 **Arguments:**
- - 'node1::Array{Float}(2)' : [x y] location of first node
- - 'node2::Array{Float}(2)' : [x y] location of second node
+ - `node1::Array{Float}(2)` : [x y] location of first node
+ - `node2::Array{Float}(2)` : [x y] location of second node
 
 **Returns**
- - 'd::Vector{Float}' : vector from node1 to node2
- - 'dmag::Float' : length of panel between node1 and node2
+ - `d::Vector{Float}` : vector from node1 to node2
+ - `dmag::Float` : length of panel between node1 and node2
 """
 function get_d(node1, node2)
 
-    # simply call get_r, since it's exactly what is needed
+    # simply call get_r, since it`s exactly what is needed
     return get_r(node1, node2)
 end
 
@@ -268,8 +268,8 @@ end
 Get angle (in radians) between panel and vector from node1 to evaluation point.
 
 **Arguments:**
- - 'h::Float' : Distance, normal to panel, between panel and evaluation point.
- - 'a::Float' : Distance, tangent to panel, between node1 and evaluation point.
+ - `h::Float` : Distance, normal to panel, between panel and evaluation point.
+ - `a::Float` : Distance, tangent to panel, between node1 and evaluation point.
 
 """
 function get_theta(h, a)
@@ -282,9 +282,9 @@ end
 Get angle (in radians) between panel and vector from node2 to evaluation point.
 
 **Arguments:**
- - 'h::Float' : Distance, normal to panel, between panel and evaluation point.
- - 'a::Float' : Distance, tangent to panel, between node1 and evaluation point.
- - 'dmag::Float' : Panel lentgh.
+ - `h::Float` : Distance, normal to panel, between panel and evaluation point.
+ - `a::Float` : Distance, tangent to panel, between node1 and evaluation point.
+ - `dmag::Float` : Panel lentgh.
 
 """
 function get_theta(h, a, dmag)
@@ -297,9 +297,9 @@ end
 Calculate distance from panel to evalulation point in the panel normal direction.
 
 **Arguments:**
- - 'r1::Vector{Float}' : vector from node1 to evalulation point.
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `r1::Vector{Float}` : vector from node1 to evalulation point.
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_h(r1, d, dmag)
@@ -319,9 +319,9 @@ end
 Calculate distance from panel to evalulation point in the panel tangent direction.
 
 **Arguments:**
- - 'r1::Vector{Float}' : vector from node1 to evalulation point.
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `r1::Vector{Float}` : vector from node1 to evalulation point.
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_a(r1, d, dmag)
@@ -340,8 +340,8 @@ end
 Get unit tangent to panel.
 
 **Arguments:**
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_tangent(d, dmag)
@@ -354,8 +354,8 @@ end
 Get unit normal to panel.
 
 **Arguments:**
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_normal(d, dmag)
@@ -375,17 +375,17 @@ end
 Get vectors and magnitudes for panel and between nodes and validation points.
 
 **Arguments:**
- - 'node1::Array{Float}' : [x y] position of node1.
- - 'node2::Array{Float}' : [x y] position of node2.
- - 'point::Array{Float}' : [x y] position of evaluation point.
+ - `node1::Array{Float}` : [x y] position of node1.
+ - `node2::Array{Float}` : [x y] position of node2.
+ - `point::Array{Float}` : [x y] position of evaluation point.
 
 **Returns:**
- - 'r1::Vector{Float}' : vector from node1 to evaluation point.
- - 'r1mag::Float' : distance from node1 to evaluation point.
- - 'r2::Vector{Float}' : vector from node2 to evaluation point.
- - 'r2mag::Float' : distance from node2 to evaluation point.
- - 'd::Vector{Float}' : vector from node1 to node2.
- - 'dmag::Float' : panel length
+ - `r1::Vector{Float}` : vector from node1 to evaluation point.
+ - `r1mag::Float` : distance from node1 to evaluation point.
+ - `r2::Vector{Float}` : vector from node2 to evaluation point.
+ - `r2mag::Float` : distance from node2 to evaluation point.
+ - `d::Vector{Float}` : vector from node1 to node2.
+ - `dmag::Float` : panel length
 
 """
 function get_distances(node1, node2, point)
@@ -408,17 +408,17 @@ end
 Get angles between panel and evaluation point, ln of distances from nodes to evaluation point, and evaluation point position relative to panel.
 
 **Arguments:**
- - 'node1::Array{Float}' : [x y] position of node1.
- - 'node2::Array{Float}' : [x y] position of node2.
- - 'point::Array{Float}' : [x y] position of evaluation point.
+ - `node1::Array{Float}` : [x y] position of node1.
+ - `node2::Array{Float}` : [x y] position of node2.
+ - `point::Array{Float}` : [x y] position of evaluation point.
 
 **Returns:**
- - 'theta1::Float' : Angle between panel and evaluation point, centered at node1.
- - 'theta2::Float' : Angle between panel and evaluation point, centered at node2.
- - 'ln1::Float' : Natural log of distance from node1 to evaluation point.
- - 'ln2::Float' : Natural log of distance from node2 to evaluation point.
- - 'h::Float' : Distance from panel to evaluation in panel normal direction.
- - 'a::Float' : Distance from node1 to evaluation in panel tangent direction.
+ - `theta1::Float` : Angle between panel and evaluation point, centered at node1.
+ - `theta2::Float` : Angle between panel and evaluation point, centered at node2.
+ - `ln1::Float` : Natural log of distance from node1 to evaluation point.
+ - `ln2::Float` : Natural log of distance from node2 to evaluation point.
+ - `h::Float` : Distance from panel to evaluation in panel normal direction.
+ - `a::Float` : Distance from node1 to evaluation in panel tangent direction.
 
 """
 function get_orientation(node1, node2, point; epsilon=1e-9)
