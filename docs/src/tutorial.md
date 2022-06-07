@@ -72,3 +72,58 @@ legend()
 ```
 
 ![](joukowsky.jpg)
+
+
+
+## Multiple Airfoil Inviscid Solution
+
+For a multi-element airfoil system, the procedure is identical, except an array of meshes is used for the problem definition.
+For this case, we'll use data that comes from "An Exact Test Case for the Plane Potential Flow About Two Adjacent Lifting Aerofoils" by B. R. Williams.
+
+```@example
+using FLOWFoil
+using PyPlot
+
+## -- SET UP GEOMETRY
+include("two_inviscid_airfoils.jl")
+
+# set freestream to unity
+vinf = 1.0
+re = 1.0
+
+# arbitrarily pick an angle of attack
+alpha = 0.0
+
+# generate mesh object
+meshes = [FLOWFoil.generate_mesh([ximain etamain]); FLOWFoil.generate_mesh([xiflap etaflap])]
+
+## -- DEFINE PROBLEM
+problem = FLOWFoil.Problem(meshes, alpha, re; viscous=false)
+
+## -- SOLVE PROBLEM
+inviscid_solution = FLOWFoil.solve(problem)
+
+## -- POST PROCESS SOLUTION
+polar = FLOWFoil.inviscid_post(inviscid_solution, alpha)
+
+## -- PLOT
+figure(2; figsize=(9, 3))
+clf()
+subplot(121)
+plot(ximain, etamain, label="Main Airfoil")
+plot(xiflap, etaflap, label="Flap Airfoil")
+axis("equal")
+axis("off")
+
+subplot(122)
+xlabel("x")
+ylabel(L"c_p")
+plot(ximain, cpmain; label="Analytic")
+plot(xiflap, cpflap)
+plot(ximain, polar.surfacepressure[1:length(ximain)], ".C0"; linewidth=2, label="FLOWFoil")
+plot(xiflap, polar.surfacepressure[length(ximain)+1:end], ".C1"; linewidth=2)
+ylim(maximum(polar.surfacepressure)*1.1, minimum(polar.surfacepressure)*1.1)
+legend()
+```
+
+![](two_inviscid_airfoils.jpg)
