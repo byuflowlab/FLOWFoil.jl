@@ -17,7 +17,7 @@ export generatemesh, position_meshes!
 # inviscid solver functions
 export solve, inviscid_post
 # common airfoil parameterizations
-export karmantrefftz, joukowskysurface, naca4
+export karman_trefftz, joukowsky, naca4
 
 # INCLUDED FILES
 
@@ -43,6 +43,7 @@ include("solve.jl")
 include("inviscid_post.jl")
 
 # Common Airfoil Parameterizations
+include("../common_parameterizations/convenience_functions.jl")
 include("../common_parameterizations/conformal_mapping.jl")
 include("../common_parameterizations/naca.jl")
 
