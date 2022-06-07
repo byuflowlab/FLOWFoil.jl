@@ -48,7 +48,7 @@ inviscid_solution = FLOWFoil.solve(problem)
 polar = FLOWFoil.inviscid_post(inviscid_solution, alpha)
 
 ## -- PLOT
-figure(1; figsize=(9, 3))
+figure(1; figsize=(12, 3))
 
 subplot(131)
 plot(x, z)
@@ -70,7 +70,7 @@ plot(x, polar.surfacepressure, "--"; linewidth=2, label="FLOWFoil")
 ylim(1.0, -1.75)
 legend()
 
-savefig("joukowsky.png", bbox_inches="tight")
+savefig("joukowsky.png")
 ```
 
 ![](joukowsky.png)
