@@ -440,7 +440,9 @@ See \cref{eqn:multisystem} for a general outline of what a full system might loo
 
 \noindent where \(a_{ij}^{XY}\) indicates the influence coefficient of the \(j\)th panel of the \(Y\)th airfoil on the \(i\)th node of the \(X\)th airfoil, \(\gamma_{jY}\) indicates the stregth of the vortex at the \(j\)th node on the \(Y\)th airfoil, and \(z_{jY}\) indicates the boundary condition at the \(j\)th node on the \(Y\)th airfoil.
 
-[TODO: how are trailing edges treated in the system case?]
+Treatment of the trailing edges is very similar to the single airfoil case as well.  For sharp trailing edges the Nth row (the row associated with the last node of the airfoil) of the block diagonals are replaced as before in \cref{sssec:trailingedge}. The remainder of the row (in the off diagonals) and the relevant row of the right hand side array are set to zeros.  For blunt trailing edges, the block diagonals and off diagonals are treated the same. For any node influenced by the trailing edge gap panel the associated row of the matrix recieves the additions explained in \cref{sssec:trailingedge}.
+
+
 
 \newpage
 
