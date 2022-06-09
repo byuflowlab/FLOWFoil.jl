@@ -1,5 +1,5 @@
 #=
-Inviscid Panel Method Post Processing
+Panel Method Post Processing
 
 Authors: Judd Mehr,
 
@@ -9,7 +9,7 @@ Change Log:
 =#
 
 """
-    inviscid_post(inviscid_solution, angleofattack; cascade=false)
+    inviscid_polar(inviscid_solution, angleofattack; cascade=false)
 
 Generate Polar object for inviscid system at given angle of attack.
 
@@ -17,7 +17,7 @@ Generate Polar object for inviscid system at given angle of attack.
  - `inviscid_solution::InviscidSolution` : Inviscid Solution object
  - `angleofattack::Float` : Angle of attack, in degrees
 """
-function inviscid_post(inviscid_solution, angleofattack; cascade=false)
+function inviscid_polar(inviscid_solution, angleofattack; cascade=false)
     M = length(inviscid_solution.Ns)
 
     # rename fields for convenience.
@@ -190,7 +190,7 @@ function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100
 end
 
 """
-    get_stream_grid_value_inviscid(gammas, nodes, point, vinf, alpha, blunt_te=false, txp=0.0, tdp=0.0)
+    get_stream_grid_value(gammas, nodes, point, vinf, alpha, blunt_te=false, txp=0.0, tdp=0.0)
 
 For a given point, calculate the total stream function value induced by an airfoil.
 
@@ -205,7 +205,7 @@ For a given point, calculate the total stream function value induced by an airfo
  - `txp::Float` : txp field from mesh object where nodes came from
  - `tdp::Float` : tdp field from mesh object where nodes came from
 """
-function get_stream_grid_value_inviscid(;
+function get_stream_grid_value(;
     gammas=nothing,
     sigmas=nothing,
     nodes=nothing,
