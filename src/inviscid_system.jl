@@ -39,7 +39,7 @@ function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
         for j in 1:(M - 1)
 
             # obtain influence coefficient for ith evaluation point and j and j+1 panel
-            aij, aijp1 = FLOWFoil.get_vortex_influence(nodesj[j], nodesj[j + 1], nodesi[i])
+            aij, aijp1 = get_vortex_influence(nodesj[j], nodesj[j + 1], nodesi[i])
 
             # add coefficients to matrix at correct nodes
             if j == 1
