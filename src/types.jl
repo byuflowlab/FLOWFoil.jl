@@ -24,7 +24,7 @@ Problem definition (geometry, operating point(s), and method selection) and outp
 
 """
 struct Problem{TM,TF,TB}
-    meshes::Array{TM}
+    meshes::TM
     angleofattack::TF
     reynolds::TF
     mach::TF
@@ -55,8 +55,8 @@ Mesh for single body.
  - x and y coordinates start at the bottom trailing edge and proceed clockwise.
 
 """
-struct BodyMesh{TF,TB}
-    airfoil_nodes::Array{Matrix{TF}}
+struct BodyMesh{TF,TB,TN<:Vector{Matrix{TF}}}
+    airfoil_nodes::TN
     chord::TF
     blunt_te::TB
     trailing_edge_gap::TF
@@ -76,11 +76,11 @@ System of meshes to solve.
  - `locations::Array{Array{TF}}` : Array of leading edge locations.
 
 """
-struct BodyMeshSystem{TM,TF}
-    meshes::Vector{TM}
-    scales::Vector{TF}
-    angles::Vector{TF}
-    locations::Vector{Vector{TF}}
+struct BodyMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
+    meshes::TM
+    scales::TF
+    angles::TF
+    locations::TL
 end
 
 # """
@@ -104,9 +104,9 @@ end
  - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
 """
 struct InviscidSystem{TF,TI}
-    vcoeffmat::Array{TF}
-    bccoeffvec::Array{TF}
-    Ns::Array{TI}
+    vcoeffmat::TF
+    bccoeffvec::TF
+    Ns::TI
 end
 
 # """
@@ -131,15 +131,15 @@ end
  - `debug::Debug` : Debug object (or nothing) depending on debug flag in Problem object.
 """
 struct InviscidSolution{TM,TF,TI,TD}
-    meshes::Array{TM}
-    panelgammas::Array{TF}
-    psi0::Array{TF}
-    Ns::Array{TI}
+    meshes::TM
+    panelgammas::TF
+    psi0::TF
+    Ns::TI
     debug::TD
 end
 
 # """
-    # ViscousSolution{}
+# ViscousSolution{}
 
 # **Fields:**
 #  - `panelgammas::Array{Float,2}` : \$\\gamma_0\$ and \$\\gamma_{90}\$ values at each airfoil node.
@@ -148,10 +148,10 @@ end
 #  - `psi0::Array{Float}` : \$\\Psi_0\$ (constant stream function) 0 and 90 values.
 # """
 # struct ViscousSolution{TF,TD}
-#     panelgammas::Array{TF}
-#     panelsources::Array{TF}
-#     wakesources::Array{TF}
-#     psi0::Array{TF}
+#     panelgammas::TF
+#     panelsources::TF
+#     wakesources::TF
+#     psi0::TF
 #     debug::TD
 # end
 
@@ -180,14 +180,14 @@ end
  - `surfacevelocity::Vector{Float}` : surface velocity distribution
  - `surfacepressure::Vector{Float}` : surface pressure distribution
 """
-struct Polar{TF}
+struct Polar{TF,TS<:Vector{TF}}
     lift::TF
     drag::TF
     pdrag::TF
     idrag::TF
     moment::TF
-    surfacevelocity::Vector{TF}
-    surfacepressure::Vector{TF}
+    surfacevelocity::TS
+    surfacepressure::TS
 end
 
 #"""
