@@ -45,7 +45,7 @@ problem = FLOWFoil.Problem(meshes, alpha, re; viscous=false)
 inviscid_solution = FLOWFoil.solve(problem)
 
 ## -- POST PROCESS SOLUTION
-polar = FLOWFoil.inviscid_post(inviscid_solution, alpha)
+polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
 
 ## -- PLOT
 figure(1; figsize=(12, 3))
@@ -104,7 +104,7 @@ problem = FLOWFoil.Problem(meshes, alpha, re; viscous=false)
 inviscid_solution = FLOWFoil.solve(problem)
 
 ## -- POST PROCESS SOLUTION
-polar = FLOWFoil.inviscid_post(inviscid_solution, alpha)
+polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
 
 ## -- PLOT
 figure(2; figsize=(9, 3))

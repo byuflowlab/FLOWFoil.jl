@@ -40,7 +40,7 @@ include("inviscid_system.jl")
 include("solve.jl")
 
 # Post Processing
-include("inviscid_post.jl")
+include("post_processes.jl")
 
 # Common Airfoil Parameterizations
 include("../common_parameterizations/convenience_functions.jl")
