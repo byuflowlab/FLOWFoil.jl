@@ -9,7 +9,7 @@ Change Log:
 =#
 
 """
-    generatemesh(x, y; chordlength, wakelength)
+    generate_mesh(x, y; chordlength, wakelength)
 
 Create panels from input geometry coordinates.
 

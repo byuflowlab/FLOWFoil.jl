@@ -11,7 +11,7 @@ Change Log:
 """
     get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
 
-Calculate value of  \$\\overbar{\\Psi}^\\gamma\$
+Calculate value of  \$\\overline{\\Psi}^\\gamma\$
 
 **Arguments:**
  - `theta1::Float` : angle between panel and vector from node1 to evaluation point
@@ -33,7 +33,7 @@ end
 Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
 
 **Arguments:**
- - `psibargamma::Float` : value of \$\\overbar{\\Psi}^\\gamma\$
+ - `psibargamma::Float` : value of \$\\overline{\\Psi}^\\gamma\$
  - `r1mag::Float` : distance from node1 to evaluation point
  - `r2mag::Float` : distance from node2 to evaluation point
  - `theta1::Float` : angle between panel and vector from node1 to evaluation point
@@ -55,7 +55,7 @@ end
 """
     get_psibarsigma(theta1, theta2, ln1, ln2, dmag, h, a)
 
-Calculate value of  \$\\overbar{\\Psi}^\\sigma\$
+Calculate value of  \$\\overline{\\Psi}^\\sigma\$
 
 **Arguments:**
  - `theta1::Float` : Angle between panel and evaluation point, centered at node1.
@@ -75,7 +75,7 @@ end
 Calculate value of  \$\\widetilde{\\Psi}^\\sigma\$
 
 **Arguments:**
- - `psibargamma::Float` : value of \$\\overbar{\\Psi}^\\gamma\$
+ - `psibargamma::Float` : value of \$\\overline{\\Psi}^\\sigma\$
  - `r1mag::Float` : distance from node1 to evaluation point
  - `r2mag::Float` : distance from node2 to evaluation point
  - `theta1::Float` : angle between panel and vector from node1 to evaluation point
