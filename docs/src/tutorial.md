@@ -10,66 +10,92 @@ There are also some included convenience functions for geometry generation and m
 ## Single Airfoil Inviscid Solution
 
 Let's first look at the simplest case, a single inviscid airfoil.
-We'll first set up the geometry, then defin the problem, then solve the problem, then post process it, and finally plot some of the outputs.
+We'll first set up the geometry, then define the problem, then solve the problem, then post process it, and finally plot some of the outputs.
 
-```@example
+```@setup singleaf
 using FLOWFoil
 using PyPlot
+```
 
+#### Geometry Definition
+
+For this example, we'll use one of the airfoil parameterization convenience functions to generate the x,z coordinates of an arbitrary Joukowsky airfoil.
+FLOWFoil includes several such convenience functions, which you can find more information on the [API Reference](@ref) page.
+
+```@example singleaf
 ## -- SET UP GEOMETRY
+
 # arbitrarily pick some joukowsky airfoil parameters
 center = [-0.1; 0.1]
 radius = 1.0
 num_nodes = 160
 
-# set freestream to unity
-vinf = 1.0
-re = 1.0
-
-# arbitrarily pick an angle of attack
-alpha = 4.0
-
 # get airfoil coordinates for joukowsky airfoil
 x, z = FLOWFoil.joukowsky(center, radius; N=num_nodes)
 
-# get analytic joukowsky solution for later
-vj, cpj, clj = FLOWFoil.joukowskyflow(center, radius, alpha, vinf; N=num_nodes)
+# get analytic joukowsky solution for later, using alpha=4 and vinf = 1.0
+vj, cpj, clj = FLOWFoil.joukowskyflow(center, radius, 4.0, 1.0; N=num_nodes)
+```
 
+!!! note
+    For any airfoil coordinate generation method (from FLOWFoil or otherwise), the coordinates must start at the trailing edge, and proceed clockwise around the airfoil.
+
+#### Generate Meshes
+We'll next take that geometry and create a simple mesh object that holds the coordinates as well as pertinent information regarding the trailing edge.
+
+```@docs
+FLOWFoil.generate_mesh
+```
+
+```@example singleaf
 # generate mesh object
 meshes = [FLOWFoil.generate_mesh([x z])]
+```
 
+#### Define Problem
+We'll define a problem using the mesh array we just created, and indicate that we want to solve the inviscid problem by setting the viscous keyword argument to false.
+The problem object is very simple in the inviscid case, but carries more information about the freestream for the viscous problem (not yet implemented)
+
+```@docs
+FLOWFoil.Problem(meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false, debug=false)
+```
+
+```@example singleaf
 ## -- DEFINE PROBLEM
-problem = FLOWFoil.Problem(meshes, alpha, re; viscous=false)
+problem = FLOWFoil.Problem(meshes; viscous=false)
+```
 
+!!! note
+    Even for single mesh objects, the meshes argument provided to the Problem constructor needs to be in an array.
+
+#### Solve Problem
+To solve the problem, we simply call the solve function, which will select the appropriate solver based on the viscous field in the problem.
+The solver returns a solution object, which nominally contains the vortex strengths and constant freestream strength on each node, as well as the mesh objects used in the solution, and some book keeping items from multi-element analyses.
+
+```@docs
+FLOWFoil.solve
+```
+
+```@example singleaf
 ## -- SOLVE PROBLEM
 inviscid_solution = FLOWFoil.solve(problem)
-
-## -- POST PROCESS SOLUTION
-polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
-
-## -- PLOT
-figure(1; figsize=(12, 3))
-
-subplot(131)
-plot(x, z)
-axis("equal")
-axis("off")
-
-subplot(132)
-xlabel("x")
-ylabel(L"\frac{V_T}{V_\infty}")
-plot(x, vj; label="Joukowsky")
-plot(x, polar.surfacevelocity, "--"; linewidth=2, label="FLOWFoil")
-legend()
-
-subplot(133)
-xlabel("x")
-ylabel(L"c_p")
-plot(x, cpj; label="Joukowsky")
-plot(x, polar.surfacepressure, "--"; linewidth=2, label="FLOWFoil")
-ylim(1.0, -1.75)
-legend()
 ```
+
+#### Post Process
+With the solution calculated, we can post process by providing the angle of attack at which we want to know the various airfoil coefficients includeing lift and moment, as well as surface velocity and pressure distributions.
+
+```@docs
+FLOWFoil.inviscid_polar
+```
+
+```@example singleaf
+## -- POST PROCESS SOLUTION
+# arbitrarily pick an angle of attack
+alpha = 4.0
+polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
+```
+
+Comparing our solution to the analytic solution we saved earlier, we see excellent agreement.
 
 ![](joukowsky.jpg)
 
@@ -98,7 +124,7 @@ alpha = 0.0
 meshes = [FLOWFoil.generate_mesh([ximain etamain]); FLOWFoil.generate_mesh([xiflap etaflap])]
 
 ## -- DEFINE PROBLEM
-problem = FLOWFoil.Problem(meshes, alpha, re; viscous=false)
+problem = FLOWFoil.Problem(meshes; viscous=false)
 
 ## -- SOLVE PROBLEM
 inviscid_solution = FLOWFoil.solve(problem)
@@ -106,24 +132,8 @@ inviscid_solution = FLOWFoil.solve(problem)
 ## -- POST PROCESS SOLUTION
 polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
 
-## -- PLOT
-figure(2; figsize=(9, 3))
-clf()
-subplot(121)
-plot(ximain, etamain, label="Main Airfoil")
-plot(xiflap, etaflap, label="Flap Airfoil")
-axis("equal")
-axis("off")
-
-subplot(122)
-xlabel("x")
-ylabel(L"c_p")
-plot(ximain, cpmain; label="Analytic")
-plot(xiflap, cpflap)
-plot(ximain, polar.surfacepressure[1:length(ximain)], ".C0"; linewidth=2, label="FLOWFoil")
-plot(xiflap, polar.surfacepressure[length(ximain)+1:end], ".C1"; linewidth=2)
-ylim(maximum(polar.surfacepressure)*1.1, minimum(polar.surfacepressure)*1.1)
-legend()
 ```
+
+Again, we see excellent agreement with the analytical solution.
 
 ![](two_inviscid_airfoils.jpg)

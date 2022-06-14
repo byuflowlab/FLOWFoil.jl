@@ -1,3 +1,2 @@
-```@autodocs
-Modules = [FLOWFoil]
-```
+# API Reference
+

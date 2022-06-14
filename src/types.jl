@@ -14,7 +14,8 @@ Change Log:
 Problem definition (geometry, operating point(s), and method selection) and output behavior.
 
 **Fields:**
- - `coordinates::Array{Float}` : x,y airfoil coordinates.
+ - `meshes::Array{BodyMesh}` : Array of mesh objects
+ - `meshes::Array{BodyMesh}` : Array of mesh objects
  - `angleofattack::Float` : angle of attack to analyze.
  - `reynolds::Float` : Reynolds number to analyze.
  - `mach::Float` : Mach number to analyze.
@@ -33,8 +34,24 @@ struct Problem{TM,TF,TB}
     debug::TB
 end
 
+"""
+    Problem(meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false, debug=false)
+
+Constructor for Problem Objects.
+
+**Arguments:**
+ - `meshes::Array{BodyMesh}` : Array of mesh objects
+ - `angleofattack::Float` : Angle of Attack (currently unused)
+ - `reynolds::Float` : Reynolds Number (currently unused)
+ - `mach::Float` : Mach Number (currently unused)
+
+**Keyword Arguments:**
+ - `viscous::Bool` : Flag to solve viscous or inviscid only
+ - `verbose::Bool` : Flag to print out verbose statements
+ - `debug::Bool` : Flag to save the system structs, etc.
+"""
 function Problem(
-    meshes, angleofattack, reynolds, mach=0.0; viscous=true, verbose=false, debug=false
+    meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false, debug=false
 )
     return Problem(meshes, angleofattack, reynolds, mach, viscous, verbose, debug)
 end

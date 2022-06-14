@@ -172,7 +172,7 @@ function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100
     # add in contributions for each airfoil
     for i in 1:nmeshes
         streamgrid .+= [
-            get_stream_grid_value_inviscid(;
+            get_stream_grid_value(;
                 gammas=gammas[(1 + offset[i]):(Ns[i] + offset[i])],
                 sigmas=nothing, #TODO: update this when viscous solver is done
                 nodes=meshes[i].airfoil_nodes,
