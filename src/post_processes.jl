@@ -166,8 +166,8 @@ function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100
     # Calculate gamma on each panel
     gammas = get_gamma_magnitudes(panelgammas, alpha)
 
-    # initialize grid
-    streamgrid = [0.0 for z in zgrid, x in xgrid]
+    # initialize grid with freestream
+    streamgrid = [vinf * (cosd(alpha) * z - sind(alpha) * x) for z in zgrid, x in xgrid]
 
     # add in contributions for each airfoil
     for i in 1:nmeshes
@@ -178,7 +178,6 @@ function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100
                 nodes=meshes[i].airfoil_nodes,
                 point=[x z],
                 vinf=vinf,
-                alpha=alpha,
                 blunt_te=meshes[i].blunt_te,
                 txp=meshes[i].txp,
                 tdp=meshes[i].tdp,
@@ -211,14 +210,13 @@ function get_stream_grid_value(;
     nodes=nothing,
     point=nothing,
     vinf=1.0,
-    alpha=0.0,
     blunt_te=false,
     txp=0.0,
     tdp=0.0,
 )
 
-    # Start with freestream
-    psi = vinf * (cosd(alpha) * point[2] - sind(alpha) * point[1])
+    #initialize
+    psi = 0.0
 
     # Add contributions from each of the airfoil nodes
     for i in 1:(length(gammas) - 1)
