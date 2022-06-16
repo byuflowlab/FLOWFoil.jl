@@ -1,9 +1,9 @@
 module FLOWFoil
 
-# DEPENDENCIES
+# - DEPENDENCIES
 using LinearAlgebra
 
-# EXPORTS
+# - EXPORTS
 
 #TYPES
 # geometry types
@@ -19,7 +19,7 @@ export solve, inviscid_post
 # common airfoil parameterizations
 export karman_trefftz, joukowsky, naca4
 
-# INCLUDED FILES
+# - INCLUDED FILES
 
 # Types
 include("types.jl")
