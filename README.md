@@ -1,4 +1,4 @@
-# FLOWFoil
+# FLOWFoil.jl ([Fl]()ight, [O]()ptimization, and [W]()ind Air[Foil]() Analysis)
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://byuflowlab.github.io/FLOWFoil.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://byuflowlab.github.io/FLOWFoil.jl/dev)
