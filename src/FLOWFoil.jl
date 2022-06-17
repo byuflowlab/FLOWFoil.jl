@@ -13,9 +13,9 @@ export Problem, Solution
 
 #FUNCTIONS
 # geometry functions
-export generatemesh, position_meshes!
+export generate_mesh, position_coordinates
 # inviscid solver functions
-export solve, inviscid_post
+export solve, inviscid_post, calculate_stream_grid
 # common airfoil parameterizations
 export karman_trefftz, joukowsky, naca4
 

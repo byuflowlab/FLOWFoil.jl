@@ -34,10 +34,10 @@ function generate_mesh(x, y; gaptolerance=1e-10)
     end
 
     # Get node locations from x,y coordinates
-    airfoil_nodes = [[x[i] y[i]] for i in 1:numnodes]
+    nodes = [[x[i] y[i]] for i in 1:numnodes]
 
     # get trailing edge information
-    tdp, txp, trailing_edge_gap = get_trailing_edge_info(airfoil_nodes)
+    tdp, txp, trailing_edge_gap = get_trailing_edge_info(nodes)
 
     # get chord length
     chordlength = maximum(x) - minimum(x)
@@ -55,9 +55,7 @@ function generate_mesh(x, y; gaptolerance=1e-10)
     end
 
     # generate mesh object
-    mesh = FLOWFoil.BodyMesh(
-        airfoil_nodes, chordlength, blunt_te, trailing_edge_gap, tdp, txp
-    )
+    mesh = FLOWFoil.BodyMesh(nodes, chordlength, blunt_te, trailing_edge_gap, tdp, txp, af)
 
     return mesh
 end
@@ -87,31 +85,23 @@ Take in meshes and adjust scale, leading edge location, and angle of attack of t
 **Arguments:**
  - `meshes::Array{BodyMesh}` : Array of mesh objects.
  - `scales::Array{Float}` : Array of numbers by which to scale respective meshes.
+ - `angles::Array{Float}` : Array of angles, in degrees, by which to rotate respective meshes (positive = pitch up).
  - `locations::Array{Array{Float}}` : Array of [x y] positions of leading edges for respective meshes.
 
 """
-function position_meshes!(meshes, scales, angles, locations)
+function position_coordinates(coordinates, scale, angle, location)
+    # scale
+    coordinates .*= scale
 
-    # Scale, rotate, and translate mesh nodes
-    for i in 1:length(meshes)
+    # get rotation matrix
+    R = [cosd(-angle) -sind(-angle); sind(-angle) cosd(-angle)]
 
-        # rename for convenience
-        nodes = meshes[i].airfoil_nodes
-
-        # scale
-        nodes .*= scales[i]
-
-        # get rotation matrix
-        R = [cosd(-angles[i]) -sind(-angles[i]); sind(-angles[i]) cosd(-angles[i])]
-
-        # rotate and translate
-        for j in 1:length(nodes)
-            nodes[j] = R * nodes[j]'
-            nodes[j] .+= locations[i]
-        end
+    # rotate and translate
+    for j in 1:length(coordinates[:, 1])
+        coordinates[j, :] = R * coordinates[j, :]
+        coordinates[j, :] .+= location
     end
-
-    return nothing
+    return coordinates[:, 1], coordinates[:, 2]
 end
 
 """
@@ -131,7 +121,7 @@ function position_meshes!(meshsystem)
 end
 
 """
-    sizesystem(meshsystem)
+    size_system(meshsystem)
 
 Count size of inviscid system matrix.
 
@@ -457,22 +447,22 @@ end
 #function initialize_wake()
 
 #    # initialize the wake panel start point and direction
-#    # wakestart = airfoil_nodes[1]
+#    # wakestart = nodes[1]
 #    # wakedir = [1.0; 0.0]
 
 #    #TODO LATER (probably in different function)
 #    # update the wake panel starting location to be the midpoint of the gap panel.
-#    #        wakestart = (airfoil_nodes[end] .+ airfoil_nodes[end - 1]) / 2.0
+#    #        wakestart = (nodes[end] .+ nodes[end - 1]) / 2.0
 
 #    # and update the wake panel initial direction to be the normal of that panel
-#    #       wakedir = FLOWFoil.get_normal(airfoil_nodes[end - 1], airfoil_nodes[end])
+#    #       wakedir = FLOWFoil.get_normal(nodes[end - 1], nodes[end])
 #    #TODO: probably put this elsewhere
 #    # update wake panel direction to be bisection of trailing edge panel vectors
 #    # get vector along first panel
-#    #        a1 = airfoil_nodes[1] - airfoil_nodes[2]
+#    #        a1 = nodes[1] - nodes[2]
 
 #    # get vector along second panel
-#    #       an = airfoil_nodes[end] - airfoil_nodes[end - 1]
+#    #       an = nodes[end] - nodes[end - 1]
 
 #    # calculate vector that bisects the first and last panel vectors
 #    #      bisector = a1 * LinearAlgebra.norm(an) + an * LinearAlgebra.norm(a1)

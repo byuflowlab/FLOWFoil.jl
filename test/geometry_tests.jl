@@ -18,7 +18,7 @@
 
     # Nodes:
     @testset "Nodes" begin
-        nodes = mesh.airfoil_nodes
+        nodes = mesh.nodes
 
         @test isapprox(nodes[1], [1 0])
         @test isapprox(nodes[2], [0.5 -0.5])
@@ -33,7 +33,7 @@ end
     x = [1; 0.5; 0; 0.5; 1]
     y = [0; -0.5; 0; 0.5; 0]
     mesh = FLOWFoil.generate_mesh(x, y)
-    nodes = mesh.airfoil_nodes
+    nodes = mesh.nodes
 
     @testset "Node on Panel" begin
         # Test r calculation
@@ -100,7 +100,7 @@ end
     x = [1; 0.5; 0; 0.5; 1]
     y = [0; -0.5; 0; 0.5; 0]
     mesh = FLOWFoil.generate_mesh(x, y)
-    nodes = mesh.airfoil_nodes
+    nodes = mesh.nodes
 
     @testset "Vortex Coefficients on Panel" begin
         dmag = sqrt(2) / 2
@@ -135,7 +135,7 @@ end
         x = [1; 0.5; 0; 0.5; 1]
         y = [0; -0.5; 0; 0.5; 0]
         mesh = FLOWFoil.generate_mesh(x, y)
-        nodes = mesh.airfoil_nodes
+        nodes = mesh.nodes
 
         # test psitilde13 as second part of a13
         s22 = sqrt(2) / 2

@@ -24,8 +24,8 @@ This function only assembles the NxM portion of the system influence coefficient
 function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
 
     # get nodes for convenience
-    nodesi = meshi.airfoil_nodes
-    nodesj = meshj.airfoil_nodes
+    nodesi = meshi.nodes
+    nodesj = meshj.nodes
 
     # get system size
     N = length(nodesi)
