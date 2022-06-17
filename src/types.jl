@@ -15,7 +15,6 @@ Problem definition (geometry, operating point(s), and method selection) and outp
 
 **Fields:**
  - `meshes::Array{BodyMesh}` : Array of mesh objects
- - `meshes::Array{BodyMesh}` : Array of mesh objects
  - `angleofattack::Float` : angle of attack to analyze.
  - `reynolds::Float` : Reynolds number to analyze.
  - `mach::Float` : Mach number to analyze.

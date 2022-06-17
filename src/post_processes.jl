@@ -30,11 +30,11 @@ function inviscid_polar(inviscid_solution, angleofattack; cascade=false)
     #calculate chord
     if cascade
         chord =
-            maximum(getindex.(meshes[1].airfoil_nodes, 1)) -
-            minimum(getindex.(meshes[1].airfoil_nodes, 1))
+            maximum(getindex.(meshes[1].nodes, 1)) -
+            minimum(getindex.(meshes[1].nodes, 1))
     else
         chord =
-            maximum([maximum(getindex.(meshes[i].airfoil_nodes, 1)) for i in 1:M]) - minimum([minimum(getindex.(meshes[i].airfoil_nodes, 1)) for i in 1:M])
+            maximum([maximum(getindex.(meshes[i].nodes, 1)) for i in 1:M]) - minimum([minimum(getindex.(meshes[i].nodes, 1)) for i in 1:M])
     end
 
     # Get Velocity at NODES
@@ -67,13 +67,13 @@ function inviscid_polar(inviscid_solution, angleofattack; cascade=false)
     for m in 1:M
         for i in 1:(Ns[m] - 1)
             dxddmi[i + offset] =
-                dn[i + offset][1] * (meshes[m].airfoil_nodes[i][1] - x0) +
-                dn[i + offset][2] * (meshes[m].airfoil_nodes[i][2] - z0)
+                dn[i + offset][1] * (meshes[m].nodes[i][1] - x0) +
+                dn[i + offset][2] * (meshes[m].nodes[i][2] - z0)
 
             dxddmip1[i + offset] =
-                dn[i + offset][1] * (meshes[m].airfoil_nodes[i + 1][1] - x0) +
-                dn[i + offset][2] * (meshes[m].airfoil_nodes[i + 1][2] - z0)
-            dn[i + offset] = meshes[m].airfoil_nodes[i + 1] .- meshes[m].airfoil_nodes[i]
+                dn[i + offset][1] * (meshes[m].nodes[i + 1][1] - x0) +
+                dn[i + offset][2] * (meshes[m].nodes[i + 1][2] - z0)
+            dn[i + offset] = meshes[m].nodes[i + 1] .- meshes[m].nodes[i]
         end
         offset += Ns[m]
     end
@@ -175,7 +175,7 @@ function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100
             get_stream_grid_value(;
                 gammas=gammas[(1 + offset[i]):(Ns[i] + offset[i])],
                 sigmas=nothing, #TODO: update this when viscous solver is done
-                nodes=meshes[i].airfoil_nodes,
+                nodes=meshes[i].nodes,
                 point=[x z],
                 vinf=vinf,
                 blunt_te=meshes[i].blunt_te,
