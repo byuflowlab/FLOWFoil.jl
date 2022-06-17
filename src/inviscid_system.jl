@@ -157,7 +157,7 @@ function assemble_boundary_conditions(meshes)
     for m in 1:length(Ns)
 
         # get node locations for convenience
-        nodes = meshes[m].airfoil_nodes
+        nodes = meshes[m].nodes
         N = length(nodes)
 
         # generate boundary condition array

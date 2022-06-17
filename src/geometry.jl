@@ -55,7 +55,7 @@ function generate_mesh(x, y; gaptolerance=1e-10)
     end
 
     # generate mesh object
-    mesh = FLOWFoil.BodyMesh(nodes, chordlength, blunt_te, trailing_edge_gap, tdp, txp, af)
+    mesh = FLOWFoil.BodyMesh(nodes, chordlength, blunt_te, trailing_edge_gap, tdp, txp)
 
     return mesh
 end
@@ -142,7 +142,7 @@ function size_system(meshes)
 
     # Count number of airfoil nodes in each mesh.
     for i in 1:numbodies
-        Ns[i] = length(meshes[i].airfoil_nodes)
+        Ns[i] = length(meshes[i].nodes)
         N += Ns[i]
     end
 

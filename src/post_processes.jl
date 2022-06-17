@@ -157,7 +157,7 @@ function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100
     offset = get_offset(Ns)
     alpha = problem.angleofattack
     panelgammas = solution.panelgammas
-    nodes = solution.meshes[1].airfoil_nodes
+    nodes = solution.meshes[1].nodes
 
     # get grid points
     xgrid = range(xrange[1]; stop=xrange[2], length=Nx)
