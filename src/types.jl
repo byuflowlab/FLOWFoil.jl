@@ -61,7 +61,7 @@ end
 Mesh for single body.
 
 **Fields:**
- - `airfoil_nodes::Array{Array{Float,2}}` : [x y] node (panel edge) locations for airfoil
+ - `nodes::Array{Array{Float,2}}` : [x y] node (panel edge) locations for airfoil
  - `chord::Float` : airfoil chord length
  - `blunt_te::Bool` : boolean for whether or not the trailing edge is blunt or not.
  - `trailing_edge_gap::Float` : trailing edge gap distance
@@ -72,7 +72,7 @@ Mesh for single body.
 
 """
 struct BodyMesh{TF,TB,TN<:Vector{Matrix{TF}}}
-    airfoil_nodes::TN
+    nodes::TN
     chord::TF
     blunt_te::TB
     trailing_edge_gap::TF
