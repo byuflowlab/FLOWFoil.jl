@@ -20,7 +20,7 @@ x, z, stream = FLOWFoil.calculate_stream_grid(
     inviscid_problem, inviscid_solution, [-1.0; 1.9], [-1.15; 0.65]
 )
 
-contour(x, z, stream, 100; linewidths=2, linestyles="-", colors=[(0.251, 0.388, 0.847)])
+contour(x, z, stream, 35; linewidths=1.5, linestyles="-", colors=[(0.251, 0.388, 0.847)])
 
 xu, xl, yu, yl = naca4(12.0, 5.0, 44.0; split=true)
 fill_between(xu, yu, reverse(yl); color=(0.22, 0.596, 0.149), zorder=2)
@@ -49,4 +49,4 @@ axis("equal")
 axis("off")
 
 savefig("src/assets/logo.png"; bbox_inches="tight")
-# savefig("../test.pdf"; bbox_inches="tight")
+savefig("../test.pdf"; bbox_inches="tight")

@@ -66,7 +66,7 @@ Compute x, y airfoil coordinates for N nodes, based on NACA 4-Series Parameteriz
  - `blunt_TE::Bool` : Flag whether trailing edge is blunt or not
  - `split::Bool` : Flag wheter to split into upper and lower halves.
 """
-function naca4(c=2.0, p=4.0, t=12.0, N=161; x=nothing, blunt_TE=false, split=false)
+function naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_TE=false, split=false)
 
     # get x coordinates
     N = Int(ceil(N / 2))
