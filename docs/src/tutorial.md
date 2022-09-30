@@ -137,3 +137,55 @@ polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
 Again, we see excellent agreement with the analytical solution.
 
 ![](two_inviscid_airfoils.jpg)
+
+
+## Axisymmetric Body of Revolution
+
+FLOWFoil can also handle axisymmetric cases, including bodies of revolution which we domonstrate here.
+
+```@example bor
+using FLOWFoil
+using PyPlot
+
+include("../../test/data/bodyofrevolutioncoords.jl")
+nothing #hide
+```
+
+To let the problem and solver know that you are modeling an axisymmetric system, generate your meshes using the `generate_axisym_mesh` function.
+In addition, if you are modeling a body of revolution, that is, you have an open geometry at the axis of rotation, use the `bodyofrevolution` keyword argument.
+
+```@docs
+FLOWFoil.generate_axisym_mesh
+FLOWFoil.AxiSymMesh
+```
+
+```@example bor
+mesh = [FLOWFoil.generate_axisym_mesh(x, r; bodyofrevolution=true)]
+```
+
+You will also need to set the `axisymmetric` keyword argument to true in your problem definition.
+```@example bor
+problem = FLOWFoil.Problem(mesh; axisymmetric=true, viscous=false)
+```
+
+The solver function will know from the problem object which solver to use, and in this case will output a solution of type `AxiSymSolution`.
+
+```@docs
+FLOWFoil.AxiSymSolution
+```
+
+```@example bor
+solution = FLOWFoil.solve(problem)
+```
+
+Finally, we can get the solution and plot the results
+
+```@example bor
+
+# get surface velocity at control points
+cpx = [mesh[1].panels[i].controlpoint[1] for i in 1:length(solution.gammas)]
+surface_velocity = solution.gammas
+nothing #hide
+```
+
+![](bodyofrevolution.jpg)

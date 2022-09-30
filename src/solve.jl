@@ -56,10 +56,16 @@ function solve_inviscid(problem)
     end
 
     # get inviscid system
-    inviscidsystem = get_inviscid_system(problem.meshes)
+    inviscidsystem = get_inviscid_system(problem.meshes; axisymmetric=problem.axisymmetric)
 
-    # solve inviscid system
-    solution = solve_inviscid_system(inviscidsystem, problem.meshes; debug=problem.debug)
+    if problem.axisymmetric
+        solution = solve_axisymmetric_system(inviscidsystem, problem.meshes)
+    else
+        # solve inviscid system
+        solution = solve_inviscid_system(
+            inviscidsystem, problem.meshes; debug=problem.debug
+        )
+    end
 
     return solution
 end
@@ -89,16 +95,26 @@ function solve_inviscid_system(inviscidsystem, meshes; debug=false)
 
     # Separate Outputs
     panelgammas = gammas[1:(end - length(inviscidsystem.Ns)), :]
-    psi0 = gammas[end-(length(inviscidsystem.Ns)-1):end, :]
+    psi0 = gammas[(end - (length(inviscidsystem.Ns) - 1)):end, :]
 
     # Generate Solution Object
     if debug
-        solution = InviscidSolution(meshes, panelgammas, psi0, inviscidsystem.Ns, inviscidsystem)
+        solution = InviscidSolution(
+            meshes, panelgammas, psi0, inviscidsystem.Ns, inviscidsystem
+        )
     else
         solution = InviscidSolution(meshes, panelgammas, psi0, inviscidsystem.Ns, nothing)
     end
 
     return solution
+end
+
+"""
+"""
+function solve_axisymmetric_system(system, meshes)
+    gammas = system.vcoeffmat \ system.bccoeffvec
+
+    return AxiSymSolution(meshes, gammas, system)
 end
 
 ############################################

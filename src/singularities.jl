@@ -150,3 +150,95 @@ function get_source_influence(node1, node2, point)
     return psibarsigma
 end
 
+####################################
+##### ----- AXISYMMETRIC ----- #####
+####################################
+
+"""
+"""
+function get_ring_vortex_influence(paneli, panelj)
+
+    #get geometry of panels and influence
+    x, r, rj, dmagj, m, nhati = get_ring_geometry(paneli, panelj)
+
+    #calculate unit velocities
+    u = get_u_ring(x, r, rj, m)
+    v = get_v_ring(x, r, rj, m)
+
+    #return appropriate unit constant strength
+    if asin(sqrt(m)) != pi / 2
+        return (u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
+        # return (u * nhati[1] + v * nhati[2]) * dmagj
+
+    else
+        #flat panels will have a radius = Inf.  Julia correctly treast x/Inf = 0.0
+        # return -0.5 +
+        #        dmagj / (4 * pi * panelj.radiusofcurvature) *
+        #        (1.0 - log(8.0 * pi * rj / dmagj) - 0.25) *
+        #        cos(panelj.beta)
+
+        cons = 4.0 * pi * rj / dmagj
+        return -0.5 - (log(2.0 * cons) - 0.25) / cons * cos(panelj.beta) -
+               panelj.radiusofcurvature
+    end
+end
+
+"""
+"""
+function get_u_ring(x, r, rj, m)
+
+    #get the first denominator
+    den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
+
+    #get numerator and denominator of second fraction
+    num2 = 2 * (r - 1)
+    den2 = x^2 + (r - 1)^2
+
+    #get values for elliptic integrals
+    K, E = get_elliptics(m)
+
+    #return velocity
+    if x == 0.0
+        return 0.0 #(r - 1.0) / (2.0 * pi * sqrt(x^2 + (r + 1.0)^2))
+    else
+        return -1 / den1 * (K - (1.0 + num2 / den2) * E)
+    end
+end
+
+"""
+"""
+function get_v_ring(x, r, rj, m)
+
+    #get numerator and denominator of first fraction
+    num1 = x / r
+    den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
+
+    num2 = 2 * r
+    den2 = x^2 + (r - 1)^2
+
+    #get values for elliptic integrals
+    K, E = get_elliptics(m)
+
+    #return velocity
+    if x == 0.0
+        return 0.0 #-x / (2.0 * pi * sqrt(x^2 + (r + 1.0)^2))
+    else
+        return num1 / den1 * (K - (1.0 + num2 / den2) * E)
+    end
+end
+
+"""
+"""
+function get_elliptics(m)
+    phi = asin(sqrt(m))
+
+    if phi > 89.5 * pi / 180.0
+        #if singular, use asymptotic expressions
+        K = log(4.0 / cos(phi))
+        E = 1.0 + 0.5 * (K - 1.0 / 1.2) * cos(phi)^2
+        return K, E
+    else
+        #looks like special functions uses some sort of asymptotic or equivalent expressions already.
+        return SpecialFunctions.ellipk(m), SpecialFunctions.ellipe(m)
+    end
+end

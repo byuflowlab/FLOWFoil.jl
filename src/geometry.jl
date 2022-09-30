@@ -128,7 +128,7 @@ Count size of inviscid system matrix.
 **Arguments:**
  - `meshsystem::Array{BodyMesh}` : The system for which to calculate the linear system size.
 """
-function size_system(meshes)
+function size_system(meshes; axisymmetric=false)
 
     # initialize
     # number of bodies for convenience
@@ -142,7 +142,11 @@ function size_system(meshes)
 
     # Count number of airfoil nodes in each mesh.
     for i in 1:numbodies
-        Ns[i] = length(meshes[i].nodes)
+        if axisymmetric
+            Ns[i] = length(meshes[i].panels)
+        else
+            Ns[i] = length(meshes[i].nodes)
+        end
         N += Ns[i]
     end
 
@@ -485,3 +489,138 @@ end
 #    #]
 
 #end
+
+####################################
+##### ----- AXISYMMETRIC ----- #####
+####################################
+
+"""
+"""
+function generate_axisym_mesh(x, r; bodyofrevolution=true)
+
+    #check of any r coordinates are negative
+    @assert all(x -> x >= 0.0, r)
+
+    #initialize panels
+    panels = Array{AxiSymPanel}(undef, length(x) - 1)
+
+    cpx = [0.0 for i in 1:(length(x) - 1)]
+    cpr = [0.0 for i in 1:(length(x) - 1)]
+    nhat = [[0.0; 0.0] for i in 1:(length(x) - 1)]
+    dmag = [0.0 for i in 1:(length(x) - 1)]
+    beta = [0.0 for i in 1:(length(x) - 1)]
+    drdx = [0.0 for i in 1:(length(x) - 1)]
+    d2rdx2 = [0.0 for i in 1:(length(x) - 1)]
+    R = [0.0 for i in 1:(length(x) - 1)]
+
+    for i in 1:(length(x) - 1)
+
+        #calculate control point
+        cpx[i] = 0.5 * (x[i] + x[i + 1])
+        cpr[i] = 0.5 * (r[i] + r[i + 1])
+
+        #calculate length
+        d, dmag[i] = get_d([x[i]; r[i]], [x[i + 1]; r[i + 1]])
+
+        #calculate normal
+        nhat[i] = get_normal(d, dmag[i])
+
+        beta[i] = atan(d[2], d[1])
+        if abs(cos(beta[i])) < 1e-5
+            beta[i] = sign(sin(beta[i])) * pi / 2.0
+        end
+
+        #calculate first derivatives
+        drdx[i] = first_derivative(r[i + 1], r[i], x[i + 1], x[i])
+    end
+
+    #calculate radius of curvature
+    for i in 2:(length(x) - 2)
+        R[i] = (abs(beta[i + 1]) - abs(beta[i - 1])) / (8.0 * pi)
+        # R[i] = (beta[i + 1] -beta[i - 1]) / (8.0 * pi)
+    end
+    if bodyofrevolution
+        #if not a body of revolution, then keep the first and last elements as zeros
+        R[1] = R[2]
+        R[end] = R[end - 1]
+    end
+
+    for i in 1:(length(x) - 1)
+
+        ## calculate second derivatives
+        #if i == 1
+        #    #second order forward diff, use first panel edges and second panel center
+        #    d2rdx2 = second_derivative(
+        #        cpr[i], cpr[i + 1], cpr[i + 2], cpx[i], cpx[i + 1], cpx[i + 2]
+        #    )
+        #elseif i == length(x) - 1
+        #    #second order backward diff, use last panel edges and second to last panel center
+        #    d2rdx2 = second_derivative(
+        #        cpr[i - 2], cpr[i - 1], cpr[i], cpx[i - 2], cpx[i - 1], cpx[i]
+        #    )
+        #else
+        #    #second order central diff, use panel centers
+        #    d2rdx2 = second_derivative(
+        #        cpr[i - 1], cpr[i], cpr[i + 1], cpx[i - 1], cpx[i], cpx[i + 1]
+        #    )
+        #end
+
+        #calculate curvature
+        # R[i] = get_curvature(drdx[i], d2rdx2)
+
+        #generate panel objects
+        panels[i] = AxiSymPanel([cpx[i]; cpr[i]], dmag[i], nhat[i], beta[i], R[i])
+    end
+
+    println("beta:")
+    display(beta .* 180 / pi)
+    println("R")
+    display(R)
+
+    return AxiSymMesh(panels, bodyofrevolution)
+end
+
+"""
+"""
+function first_derivative(r1, r2, x1, x2)
+    return (r2 - r1) / (x2 - x1)
+end
+
+"""
+"""
+function second_derivative(r1, r2, r3, x1, x2, x3)
+    num = r1 - 2 * r2 + r3
+    den = 0.5 * ((x3 - x2) + (x2 - x1))
+
+    return num / den^2
+end
+"""
+"""
+function get_ring_geometry(paneli, panelj)
+
+    #rename for convenience
+    dmagj = panelj.length
+
+    nhati = paneli.normal
+
+    xi = paneli.controlpoint[1]
+    ri = paneli.controlpoint[2]
+
+    xj = panelj.controlpoint[1]
+    rj = panelj.controlpoint[2]
+
+    #get x and r for these panels
+    x = (xi - xj) / rj
+    r = ri / rj
+
+    #get phi for these panels
+    m = 4.0 * r / (x^2 + (r + 1.0)^2)
+
+    return x, r, rj, dmagj, m, nhati
+end
+
+"""
+"""
+function get_curvature(drdx, d2rdx2)
+    return (1.0 + drdx^2)^(3 / 2) / abs(d2rdx2)
+end

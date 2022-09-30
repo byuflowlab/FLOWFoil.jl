@@ -29,6 +29,7 @@ struct Problem{TM,TF,TB}
     reynolds::TF
     mach::TF
     viscous::TB
+    axisymmetric::TB
     verbose::TB
     debug::TB
 end
@@ -46,13 +47,23 @@ Constructor for Problem Objects.
 
 **Keyword Arguments:**
  - `viscous::Bool` : Flag to solve viscous or inviscid only
+ - `axisymmetric::Bool` : Flag for axisymmetric solver.
  - `verbose::Bool` : Flag to print out verbose statements
  - `debug::Bool` : Flag to save the system structs, etc.
 """
 function Problem(
-    meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false, debug=false
+    meshes,
+    angleofattack=0.0,
+    reynolds=0.0,
+    mach=0.0;
+    viscous=true,
+    axisymmetric=false,
+    verbose=false,
+    debug=false,
 )
-    return Problem(meshes, angleofattack, reynolds, mach, viscous, verbose, debug)
+    return Problem(
+        meshes, angleofattack, reynolds, mach, viscous, axisymmetric, verbose, debug
+    )
 end
 
 """
@@ -119,9 +130,9 @@ end
  - `bccoeffvec::Array{Float,2}` : Boundary Coefficient Vector used in solution.
  - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
 """
-struct InviscidSystem{TF,TI}
-    vcoeffmat::TF
-    bccoeffvec::TF
+struct InviscidSystem{TA,TB,TI}
+    vcoeffmat::TA
+    bccoeffvec::TB
     Ns::TI
 end
 
@@ -329,3 +340,28 @@ end
 #        gamma_air, eta_crit, eta_D, GA, GB, GC, Klag, Ctau, Etau, rSu, fw, dw, epsilonw
 #    )
 #end
+
+"""
+"""
+struct AxiSymMesh{TP,TB}
+    panels::TP
+    bodyofrevolution::TB
+end
+
+"""
+"""
+struct AxiSymPanel{TCP,TL,TNH,TB,TR}
+    controlpoint::TCP
+    length::TL
+    normal::TNH
+    beta::TB
+    radiusofcurvature::TR
+end
+
+"""
+"""
+struct AxiSymSolution{TM,TG,TS}
+    meshes::TM
+    gammas::TG
+    system::TS
+end

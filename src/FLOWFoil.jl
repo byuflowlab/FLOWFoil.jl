@@ -2,6 +2,8 @@ module FLOWFoil
 
 # - DEPENDENCIES
 using LinearAlgebra
+using FLOWMath
+using SpecialFunctions
 
 # - EXPORTS
 
