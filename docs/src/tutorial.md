@@ -7,6 +7,8 @@ FLOWFoil is structured as follows:
 
 There are also some included convenience functions for geometry generation and manipulation.
 
+---
+
 ## Single Airfoil Inviscid Solution
 
 Let's first look at the simplest case, a single inviscid airfoil.
@@ -100,6 +102,8 @@ Comparing our solution to the analytic solution we saved earlier, we see excelle
 ![](assets/joukowsky.jpg)
 
 
+---
+
 
 ## Multiple Airfoil Inviscid Solution
 
@@ -138,6 +142,7 @@ Again, we see excellent agreement with the analytical solution.
 
 ![](assets/two_inviscid_airfoils.jpg)
 
+---
 
 ## Axisymmetric Body of Revolution
 
@@ -186,6 +191,8 @@ nothing #hide
 
 ![](assets/bodyofrevolution.jpg)
 
+---
+
 ## Axisymmetric Annular Airfoil (Duct)
 
 If we define an airfoil shape in an axisymmetric scheme, we model an annular airfoil, or in other words, a duct.  To do so, we follow a similar procedure to bodies of revolution with the exception that we set `bodyofrevolution=false`.
@@ -213,6 +220,9 @@ cp = 1.0 .- solution.panelgammas .^ 2
 As above, we plot experimental results along with our calculated values.
 
 ![](assets/annular_airfoil.jpg)
+
+---
+
 
 ## Axisymmetric Mutli-element Systems
 
