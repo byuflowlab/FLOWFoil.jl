@@ -180,17 +180,8 @@ function get_ring_vortex_influence(paneli, panelj)
     if asin(sqrt(m)) != pi / 2
         #panels are different
         return (u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
-        # return (u * nhati[1] + v * nhati[2]) * dmagj
-
     else
-        #same panel: self return self-induction value
-
-        #flat panels will have a radius = Inf.  Julia correctly treast x/Inf = 0.0
-        # return -0.5 +
-        #        dmagj / (4 * pi * panelj.radiusofcurvature) *
-        #        (1.0 - log(8.0 * pi * rj / dmagj) - 0.25) *
-        #        cos(panelj.beta)
-
+        #same panel -> self induction equation
         cons = 4.0 * pi * rj / dmagj
         return -0.5 - (log(2.0 * cons) - 0.25) / cons * cos(panelj.beta) -
                panelj.radiusofcurvature

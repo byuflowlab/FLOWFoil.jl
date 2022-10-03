@@ -57,7 +57,9 @@ function solve_inviscid(problem)
     # get inviscid system
     inviscidsystem = get_inviscid_system(problem.meshes; axisymmetric=problem.axisymmetric)
 
-    solution = solve_inviscid_system(inviscidsystem, problem.meshes)
+    solution = solve_inviscid_system(
+        inviscidsystem, problem.meshes; axisymmetric=problem.axisymmetric
+    )
 
     return solution
 end
@@ -77,14 +79,20 @@ Outputs the InviscidSolution object which contains the inviscidsystem.
  - `solution::InviscidSolution`
 
 """
-function solve_inviscid_system(inviscidsystem, meshes)
+function solve_inviscid_system(inviscidsystem, meshes; axisymmetric=false)
 
     # Solve System
     gammas = inviscidsystem.vcoeffmat \ inviscidsystem.bccoeffvec
 
     # Separate Outputs
-    panelgammas = gammas[1:(end - length(inviscidsystem.Ns)), :]
-    bodystrength = gammas[(end - (length(inviscidsystem.Ns) - 1)):end, :]
+    if axisymmetric
+        nk = countkutta(meshes)
+        panelgammas = gammas[1:(end - nk), :]
+        bodystrength = gammas[(end - nk):end, :]
+    else
+        panelgammas = gammas[1:(end - length(inviscidsystem.Ns)), :]
+        bodystrength = gammas[(end - (length(inviscidsystem.Ns) - 1)):end, :]
+    end
 
     # Generate Solution Object
 

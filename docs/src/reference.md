@@ -20,7 +20,7 @@ FLOWFoil.PlanarMeshSystem
 
 #### Axisymmetric Systems
 ```@docs
-FLOWFoil.AxiSymMesh
+FLOWFoil.AxiSymPanel
 ```
 
 ### Problems and Solutions
@@ -106,7 +106,6 @@ FLOWFoil.assemble_boundary_conditions
 
 ##### Axisymmetric
 ```@docs
-FLOWFoil.AxiSymPanel
 FLOWFoil.assemble_ring_vortex_coefficients
 FLOWFoil.get_u_ring
 FLOWFoil.get_v_ring

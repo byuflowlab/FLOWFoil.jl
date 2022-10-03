@@ -510,7 +510,7 @@ Generate mesh for axisymmetric body.
 **Returns:**
 - `mesh::FLOWFoil.AxiSymMesh` : axisymmetric mesh object
 """
-function generate_axisym_mesh(x, r; bodyofrevolution=true)
+function generate_axisym_mesh(x, r; bodyofrevolution=true, ex=1e-5)
 
     #check of any r coordinates are negative
     @assert all(x -> x >= 0.0, r)
@@ -522,10 +522,10 @@ function generate_axisym_mesh(x, r; bodyofrevolution=true)
     cpr = [0.0 for i in 1:(length(x) - 1)]
     nhat = [[0.0; 0.0] for i in 1:(length(x) - 1)]
     dmag = [0.0 for i in 1:(length(x) - 1)]
-    beta = [0.0 for i in 1:(length(x) - 1)]
-    drdx = [0.0 for i in 1:(length(x) - 1)]
-    d2rdx2 = [0.0 for i in 1:(length(x) - 1)]
-    R = [0.0 for i in 1:(length(x) - 1)]
+    sine = [0.0 for i in 1:(length(x) - 1)]
+    cosine = [0.0 for i in 1:(length(x) - 1)]
+    slope = [0.0 for i in 1:(length(x) - 1)]
+    curve = [0.0 for i in 1:(length(x) - 1)]
 
     for i in 1:(length(x) - 1)
 
@@ -539,58 +539,35 @@ function generate_axisym_mesh(x, r; bodyofrevolution=true)
         #calculate normal
         nhat[i] = get_normal(d, dmag[i])
 
-        beta[i] = atan(d[2], d[1])
-        if abs(cos(beta[i])) < 1e-5
-            beta[i] = sign(sin(beta[i])) * pi / 2.0
+        sine[i] = (r[i + 1] - r[i]) / dmag[i]
+        cosine[i] = (x[i + 1] - x[i]) / dmag[i]
+        abscos = abs(cosine[i])
+        if abscos > ex
+            t = atan(sine[i] / cosine[i])
+        end
+        if abscos < ex
+            slope[i] = sign(sine[i]) * pi / 2.0
+        end
+        if cosine[i] > ex
+            slope[i] = t
         end
 
-        #calculate first derivatives
-        drdx[i] = first_derivative(r[i + 1], r[i], x[i + 1], x[i])
+        if (cosine[i] < -ex) && (i > length(x) / 2)
+            slope[i] = t - pi
+        end
+        if (cosine[i] < -ex) && (i < length(x) / 2)
+            slope[i] = t + pi
+        end
     end
 
-    #TODO: Clean all this up after remaining bugs are fixed.
-    #calculate radius of curvature
     for i in 2:(length(x) - 2)
-        R[i] = (abs(beta[i + 1]) - abs(beta[i - 1])) / (8.0 * pi)
-        # R[i] = (beta[i + 1] -beta[i - 1]) / (8.0 * pi)
-    end
-    if bodyofrevolution
-        #if not a body of revolution, then keep the first and last elements as zeros
-        R[1] = R[2]
-        R[end] = R[end - 1]
+        curve[i] = (slope[i + 1] - slope[i - 1]) / 8.0 / pi
     end
 
     for i in 1:(length(x) - 1)
-
-        ## calculate second derivatives
-        #if i == 1
-        #    #second order forward diff, use first panel edges and second panel center
-        #    d2rdx2 = second_derivative(
-        #        cpr[i], cpr[i + 1], cpr[i + 2], cpx[i], cpx[i + 1], cpx[i + 2]
-        #    )
-        #elseif i == length(x) - 1
-        #    #second order backward diff, use last panel edges and second to last panel center
-        #    d2rdx2 = second_derivative(
-        #        cpr[i - 2], cpr[i - 1], cpr[i], cpx[i - 2], cpx[i - 1], cpx[i]
-        #    )
-        #else
-        #    #second order central diff, use panel centers
-        #    d2rdx2 = second_derivative(
-        #        cpr[i - 1], cpr[i], cpr[i + 1], cpx[i - 1], cpx[i], cpx[i + 1]
-        #    )
-        #end
-
-        #calculate curvature
-        # R[i] = get_curvature(drdx[i], d2rdx2)
-
         #generate panel objects
-        panels[i] = AxiSymPanel([cpx[i]; cpr[i]], dmag[i], nhat[i], beta[i], R[i])
+        panels[i] = AxiSymPanel([cpx[i]; cpr[i]], dmag[i], nhat[i], slope[i], curve[i])
     end
-
-    println("beta:")
-    display(beta .* 180 / pi)
-    println("R")
-    display(R)
 
     return AxiSymMesh(panels, bodyofrevolution)
 end
@@ -635,24 +612,24 @@ function get_ring_geometry(paneli, panelj)
     return x, r, rj, dmagj, m, nhati
 end
 
-#TODO: are these necessary? or should they be deleted?
-"""
-"""
-function first_derivative(r1, r2, x1, x2)
-    return (r2 - r1) / (x2 - x1)
-end
+##TODO: are these necessary? or should they be deleted?
+#"""
+#"""
+#function first_derivative(r1, r2, x1, x2)
+#    return (r2 - r1) / (x2 - x1)
+#end
 
-"""
-"""
-function second_derivative(r1, r2, r3, x1, x2, x3)
-    num = r1 - 2 * r2 + r3
-    den = 0.5 * ((x3 - x2) + (x2 - x1))
+#"""
+#"""
+#function second_derivative(r1, r2, r3, x1, x2, x3)
+#    num = r1 - 2 * r2 + r3
+#    den = 0.5 * ((x3 - x2) + (x2 - x1))
 
-    return num / den^2
-end
+#    return num / den^2
+#end
 
-"""
-"""
-function get_curvature(drdx, d2rdx2)
-    return (1.0 + drdx^2)^(3 / 2) / abs(d2rdx2)
-end
+#"""
+#"""
+#function get_curvature(drdx, d2rdx2)
+#    return (1.0 + drdx^2)^(3 / 2) / abs(d2rdx2)
+#end

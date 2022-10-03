@@ -240,6 +240,7 @@ function assemble_ring_vortex_matrix(meshes)
         for y in 1:n
             if x == y && !meshes[x].bodyofrevolution
                 #call the kutta version of coefiicient matrix to do back substitution step
+
                 amat[(1 + offset[x]):(Ns[x] + offset[x]), (1 + offset[y]):(Ns[y] + offset[y])] .= FLOWFoil.assemble_ring_vortex_coefficients(
                     meshes[x], meshes[y]; backsub=true
                 )
@@ -250,6 +251,7 @@ function assemble_ring_vortex_matrix(meshes)
 
                 #put unit bound vortex value in each row
                 amat[(1 + offset[x]):(Ns[x] + offset[x]), N + y] .= 1.0
+
             else
 
                 # get influence coefficients for each portion of the sysetm (mesh y acts on mesh x)
@@ -260,7 +262,7 @@ function assemble_ring_vortex_matrix(meshes)
             end
         end
     end
-    display(amat)
+
     return amat, Ns
 end
 
@@ -318,7 +320,7 @@ function assemble_ring_vortex_coefficients(meshi, meshj; backsub=false)
             amat[jidx, i] = -sum / dmagj
         end
 
-        # TODO: doesn't seem to affect anything...
+        # TODO: doesn't seem to change anything...
         # # Bound Vortex Correction
         # for i in 1:N
         #     for j in 1:M
@@ -326,8 +328,10 @@ function assemble_ring_vortex_coefficients(meshi, meshj; backsub=false)
         #     end
         # end
 
+        return amat
+    else
+        return amat
     end
-    return amat
 end
 
 """
@@ -367,6 +371,7 @@ function assemble_ring_boundary_conditions(meshes)
             ]
         end
     end
+
     return bc
 end
 
