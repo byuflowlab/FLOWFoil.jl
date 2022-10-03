@@ -6,6 +6,7 @@ Authors: Judd Mehr,
 Date Started: 27 April 2022
 
 Change Log:
+10/22 - Add axisymmetric ring vortex and related functions
 =#
 
 """
@@ -155,6 +156,16 @@ end
 ####################################
 
 """
+    get_ring_vortex_influence(paneli, panelj)
+
+Cacluate the influence of a ring vortex at panel j onto panel i.
+
+**Arguments:**
+- `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
+- `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
+
+**Returns:**
+- `aij::Float` : Influence of vortex ring strength at panel j onto panel i.
 """
 function get_ring_vortex_influence(paneli, panelj)
 
@@ -165,12 +176,15 @@ function get_ring_vortex_influence(paneli, panelj)
     u = get_u_ring(x, r, rj, m)
     v = get_v_ring(x, r, rj, m)
 
-    #return appropriate unit constant strength
+    #return appropriate strength
     if asin(sqrt(m)) != pi / 2
+        #panels are different
         return (u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
         # return (u * nhati[1] + v * nhati[2]) * dmagj
 
     else
+        #same panel: self return self-induction value
+
         #flat panels will have a radius = Inf.  Julia correctly treast x/Inf = 0.0
         # return -0.5 +
         #        dmagj / (4 * pi * panelj.radiusofcurvature) *
@@ -184,6 +198,18 @@ function get_ring_vortex_influence(paneli, panelj)
 end
 
 """
+    get_u_ring(x, r, rj, m)
+
+Calculate x-component of velocity influence of vortex ring.
+
+**Arguments:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `uij::Float` : x-component of velocity induced by panel j onto panel i
 """
 function get_u_ring(x, r, rj, m)
 
@@ -206,6 +232,18 @@ function get_u_ring(x, r, rj, m)
 end
 
 """
+    get_v_ring(x, r, rj, m)
+
+Calculate r-component of velocity influence of vortex ring.
+
+**Arguments:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `vij::Float` : r-component of velocity induced by panel j onto panel i
 """
 function get_v_ring(x, r, rj, m)
 
@@ -228,6 +266,16 @@ function get_v_ring(x, r, rj, m)
 end
 
 """
+    get_elliptics(m)
+
+Calculate value of elliptic functions for the given geometry parameter.
+
+**Arguments:**
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `K::Float` : K(m), value of elliptic function of the first kind at m.
+- `E::Float` : E(m), value of eeliptic function of the second kind at m.
 """
 function get_elliptics(m)
     phi = asin(sqrt(m))

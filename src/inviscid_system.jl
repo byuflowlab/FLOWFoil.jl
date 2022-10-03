@@ -6,6 +6,7 @@ Authors: Judd Mehr,
 Date Started: 27 April 2022
 
 Change Log:
+10/22 - Add axisymmetric solution capabilities
 =#
 
 """
@@ -14,7 +15,7 @@ Change Log:
 Calculate, then gather the vortex and boundary condition matricies into an InviscidSystem object.
 
 **Arguments:**
-- `meshes::Array{BodyMesh}` : BodyMesh for airfoil to analyze.
+- `meshes::Array{PlanarMesh}` : PlanarMesh for airfoil to analyze.
 """
 function get_inviscid_system(meshes; axisymmetric=false)
     if !axisymmetric
@@ -46,10 +47,9 @@ Assemble matrix of vortex strength coefficients.
 This function only assembles the NxM portion of the system influence coefficient matrix associated with the M-1 panels of meshj acting on the N nodes of meshi. It does not include the kutta condition or the influence of the constant stream function on the airfoil nodes.
 
 **Arguments:**
- - `meshi::BodyMesh` : mesh being influenced.
- - `meshj::BodyMesh` : mesh doing the influencing.
+ - `meshi::PlanarMesh` : mesh being influenced.
+ - `meshj::PlanarMesh` : mesh doing the influencing.
  - `trailing_edge_treatment::Bool` : flag for whether to treat trailing edge or not (is meshi==meshj?)
-
 """
 function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
 
@@ -118,8 +118,7 @@ end
 Assemble vortex coefficient matrix with full N+n x N+n system, including Kutta condition, where n is the number of meshes (airfoils) in the system, and N is the total number of nodes between all the meshes.
 
 **Arguments:**
- - `meshes::Array{BodyMesh}` : Mesh System for which to solve.
-
+ - `meshes::Array{PlanarMesh}` : Mesh System for which to solve.
 """
 function assemble_vortex_matrix(meshes)
 
@@ -169,7 +168,7 @@ end
 Assemble boundary condition vector.
 
 **Arguments:**
- - `meshes::Array{BodyMesh}` : mesh system for which to solve
+ - `meshes::Array{PlanarMesh}` : mesh system for which to solve
 
 **Returns**
  - `psi_inf::Array{Float,2}` : Boundary condition array.
@@ -215,6 +214,15 @@ end
 ####################################
 
 """
+    assemble_ring_vortex_matrix(meshes)
+
+Assemble vortex coefficient matrix with full N+nk x N+nk system, including Kutta condition(s), where nk is the number of required kutta conditions in the system, and N is the total number of nodes between all the meshes.
+
+**Arguments:**
+ - `meshes::Array{AxiSymMesh}` : Mesh System for which to solve.
+
+**Returns:**
+ - `amat::Matrix{Float,2}` : aij (LHS) coefficient matrix including kutta condition augmentation if required.
 """
 function assemble_ring_vortex_matrix(meshes)
 
@@ -233,7 +241,7 @@ function assemble_ring_vortex_matrix(meshes)
             if x == y && !meshes[x].bodyofrevolution
                 #call the kutta version of coefiicient matrix to do back substitution step
                 amat[(1 + offset[x]):(Ns[x] + offset[x]), (1 + offset[y]):(Ns[y] + offset[y])] .= FLOWFoil.assemble_ring_vortex_coefficients(
-                    meshes[x], meshes[y]; kutta=true
+                    meshes[x], meshes[y]; backsub=true
                 )
 
                 # put in the kutta condition for each airfoil (end rows of the system matrix)
@@ -257,8 +265,23 @@ function assemble_ring_vortex_matrix(meshes)
 end
 
 """
+    assemble_ring_vortex_coefficients(meshi, meshj; kutta)
+
+Assemble matrix of vortex strength coefficients.
+
+This function only assembles the NxM portion of the system influence coefficient matrix associated with the M-1 panels of meshj acting on the N nodes of meshi. It does not include the kutta condition or the influence of the constant stream function on the airfoil nodes.
+
+**Arguments:**
+ - `meshi::AxiSymMesh` : mesh being influenced.
+ - `meshj::AxiSymMesh` : mesh doing the influencing.
+
+**Keyword Arguments:**
+- `backsub:Bool` : flag as to whether a backsubstitution is to be applied (happens for annular airfoils when meshi==meshj)
+
+**Returns:**
+- `amat::Matrix{Float,2}` : NxN matrix of aij coefficients (does not include kutta condition augmentation).
 """
-function assemble_ring_vortex_coefficients(meshi, meshj; kutta=false)
+function assemble_ring_vortex_coefficients(meshi, meshj; backsub=false)
 
     # get nodes for convenience
     panelsi = meshi.panels
@@ -280,21 +303,22 @@ function assemble_ring_vortex_coefficients(meshi, meshj; kutta=false)
         end
     end
 
-    if kutta
+    if backsub
 
-           #apply back substitution to matrix
-           for i in 1:N
-               sum = 0.0
-               jidx = N+1-i
-               for j in 1:M
-                   if j != jidx
-                       sum += amat[j,i] * meshj.panels[j].length
-                   end
-               end
-               dmagj = meshj.panels[jidx].length
-               amat[jidx,i] = -sum / dmagj
-           end
+        #apply back substitution to matrix
+        for i in 1:N
+            sum = 0.0
+            jidx = N + 1 - i
+            for j in 1:M
+                if j != jidx
+                    sum += amat[j, i] * meshj.panels[j].length
+                end
+            end
+            dmagj = meshj.panels[jidx].length
+            amat[jidx, i] = -sum / dmagj
+        end
 
+        # TODO: doesn't seem to affect anything...
         # # Bound Vortex Correction
         # for i in 1:N
         #     for j in 1:M
@@ -307,6 +331,15 @@ function assemble_ring_vortex_coefficients(meshi, meshj; kutta=false)
 end
 
 """
+    assemble_ring_boundary_conditions(meshes)
+
+Assemble boundary condition (RHS) vector.
+
+**Arguments:**
+ - `meshes::Array{AxiSymMesh}` : mesh system for which to solve
+
+**Returns**
+ - `bc::Array{Float}` : Boundary condition array.
 """
 function assemble_ring_boundary_conditions(meshes)
 
@@ -334,11 +367,19 @@ function assemble_ring_boundary_conditions(meshes)
             ]
         end
     end
-    display(bc)
     return bc
 end
 
 """
+    countkutta(meshes)
+
+Count the number of meshes for which to apply the kutta condition.
+
+**Arguments:**
+- `meshes::Array{AxiSymMesh}` : mesh system over which to count.
+
+**Returns:**
+- `nk::Int` : number of meshes requiring kutta condition treatment.
 """
 function countkutta(meshes)
 
@@ -349,10 +390,4 @@ function countkutta(meshes)
     end
 
     return nk
-end
-
-"""
-"""
-function backsubstitution()
-    return nothing
 end

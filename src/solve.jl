@@ -6,6 +6,7 @@ Authors: Judd Mehr,
 Date Started: 27 April 2022
 
 Change Log:
+10/22 - axisymmetric solver options available.
 =#
 
 """
@@ -50,71 +51,48 @@ function solve_inviscid(problem)
 
     # Check to make sure you want the invsicid solution:
     if problem.viscous
-        @warn(
-            "Viscous mismatch, please set problem.viscous=false if you would like to solve the inviscid system alone."
-        )
+        @warn "Viscous mismatch, please set problem.viscous=false if you would like to solve the inviscid system alone."
     end
 
     # get inviscid system
     inviscidsystem = get_inviscid_system(problem.meshes; axisymmetric=problem.axisymmetric)
 
-    if problem.axisymmetric
-        solution = solve_axisymmetric_system(inviscidsystem, problem.meshes)
-    else
-        # solve inviscid system
-        solution = solve_inviscid_system(
-            inviscidsystem, problem.meshes; debug=problem.debug
-        )
-    end
+    solution = solve_inviscid_system(inviscidsystem, problem.meshes)
 
     return solution
 end
 
 """
-    solve_inviscid_system(inviscidsystem, mesh; debug=false)
+    solve_inviscid_system(inviscidsystem, mesh)
 
 Solve the InviscidSystem for the vortex and streamfunction strengths.
 
-Outputs the InviscidSolution object which contains the inviscidsystem in the debug object if debug is set to true.
+Outputs the InviscidSolution object which contains the inviscidsystem.
 
 **Arguments:**
 - `inviscidsystem::InviscidSystem` : InviscidSystem to solve.
-- `mesh::BodyMesh` : BodyMesh defining geometry (to put into solution object)
-
-**Keyword Arguments:**
-- `debug::Bool = false` : flag to indicate whether or not to output all the system details.
+- `mesh::PlanarMesh` : PlanarMesh defining geometry (to put into solution object)
 
 **Returns:**
  - `solution::InviscidSolution`
 
 """
-function solve_inviscid_system(inviscidsystem, meshes; debug=false)
+function solve_inviscid_system(inviscidsystem, meshes)
 
     # Solve System
     gammas = inviscidsystem.vcoeffmat \ inviscidsystem.bccoeffvec
 
     # Separate Outputs
     panelgammas = gammas[1:(end - length(inviscidsystem.Ns)), :]
-    psi0 = gammas[(end - (length(inviscidsystem.Ns) - 1)):end, :]
+    bodystrength = gammas[(end - (length(inviscidsystem.Ns) - 1)):end, :]
 
     # Generate Solution Object
-    if debug
-        solution = InviscidSolution(
-            meshes, panelgammas, psi0, inviscidsystem.Ns, inviscidsystem
-        )
-    else
-        solution = InviscidSolution(meshes, panelgammas, psi0, inviscidsystem.Ns, nothing)
-    end
+
+    solution = InviscidSolution(
+        meshes, panelgammas, bodystrength, inviscidsystem.Ns, inviscidsystem
+    )
 
     return solution
-end
-
-"""
-"""
-function solve_axisymmetric_system(system, meshes)
-    gammas = system.vcoeffmat \ system.bccoeffvec
-
-    return AxiSymSolution(meshes, gammas, system)
 end
 
 ############################################

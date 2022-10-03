@@ -168,11 +168,7 @@ You will also need to set the `axisymmetric` keyword argument to true in your pr
 problem = FLOWFoil.Problem(mesh; axisymmetric=true, viscous=false)
 ```
 
-The solver function will know from the problem object which solver to use, and in this case will output a solution of type `AxiSymSolution`.
-
-```@docs
-FLOWFoil.AxiSymSolution
-```
+The solver function will know from the problem object which solver to use, and in this case will output a solution of type `InviscidSolution` as with the 2D cases.
 
 ```@example bor
 solution = FLOWFoil.solve(problem)
@@ -183,8 +179,8 @@ Finally, we can get the solution and plot the results
 ```@example bor
 
 # get surface velocity at control points
-cpx = [mesh[1].panels[i].controlpoint[1] for i in 1:length(solution.gammas)]
-surface_velocity = solution.gammas
+cpx = [mesh[1].panels[i].controlpoint[1] for i in 1:length(solution.panelgammas)]
+surface_velocity = solution.panelgammas
 nothing #hide
 ```
 
