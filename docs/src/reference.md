@@ -5,10 +5,22 @@ Additional Types and Functions not already shown in other parts of the documenta
 ## Public
 
 ### Geometry and Meshing
+
+#### General
 ```@docs
-FLOWFoil.BodyMesh
-FLOWFoil.BodyMeshSystem
-FLOWFoil.position_meshes!
+FLOWFoil.position_coordinates
+FLOWFoil.position_coordinates!
+```
+
+#### 2D (Planar) systems
+```@docs
+FLOWFoil.PlanarMesh
+FLOWFoil.PlanarMeshSystem
+```
+
+#### Axisymmetric Systems
+```@docs
+FLOWFoil.AxiSymPanel
 ```
 
 ### Problems and Solutions
@@ -37,6 +49,9 @@ FLOWFoil.karman_trefftz
 FLOWFoil.naca4
 ```
 
+--------------------------------------------
+
+
 ## Private
 
 ### Inviscid System Construction
@@ -46,6 +61,7 @@ FLOWFoil.naca4
 FLOWFoil.size_system
 FLOWFoil.get_offset
 FLOWFoil.get_trailing_edge_info
+FLOWFoil.countkutta
 ```
 
 #### Panel Geometry
@@ -59,6 +75,7 @@ FLOWFoil.get_tangent
 FLOWFoil.get_normal
 FLOWFoil.get_distances
 FLOWFoil.get_orientation
+FLOWFoil.get_ring_geometry
 ```
 
 #### Singularity Influences
@@ -69,15 +86,32 @@ FLOWFoil.get_vortex_influence
 FLOWFoil.get_psibarsigma
 FLOWFoil.get_psitildesigma
 FLOWFoil.get_source_influence
+FLOWFoil.get_ring_vortex_influence
 ```
 
 #### Matrix Assembly
+
+##### General
 ```@docs
 FLOWFoil.InviscidSystem
+FLOWFoil.get_inviscid_system
+```
+
+##### 2D (Planar)
+```@docs
 FLOWFoil.assemble_vortex_coefficients
 FLOWFoil.assemble_vortex_matrix
 FLOWFoil.assemble_boundary_conditions
-FLOWFoil.get_inviscid_system
+```
+
+##### Axisymmetric
+```@docs
+FLOWFoil.assemble_ring_vortex_coefficients
+FLOWFoil.get_u_ring
+FLOWFoil.get_v_ring
+FLOWFoil.get_elliptics
+FLOWFoil.assemble_ring_vortex_matrix
+FLOWFoil.assemble_ring_boundary_conditions
 ```
 
 ### Inviscid System Solving

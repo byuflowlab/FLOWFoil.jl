@@ -2,18 +2,22 @@ module FLOWFoil
 
 # - DEPENDENCIES
 using LinearAlgebra
+using FLOWMath
+using SpecialFunctions
 
 # - EXPORTS
 
 #TYPES
 # geometry types
-export Mesh, MeshSystem
+export PlanarMesh, PlanarMeshSystem, AxiSymMesh
 # problem types
-export Problem, Solution
+export Problem, InviscidSolution
+# output types
+export Polar
 
 #FUNCTIONS
 # geometry functions
-export generate_mesh, position_coordinates
+export generate_mesh, generate_axisym_mesh, position_coordinates, position_coordinates!
 # inviscid solver functions
 export solve, inviscid_post, calculate_stream_grid
 # common airfoil parameterizations

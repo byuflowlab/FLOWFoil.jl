@@ -6,6 +6,7 @@ Authors: Judd Mehr,
 Date Started: 27 April 2022
 
 Change Log:
+10/22 - Add axisymmetric geometry functions
 =#
 
 """
@@ -21,7 +22,7 @@ Create panels from input geometry coordinates.
  - `gaptolerance::Float` : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
 
 **Returns**
- - `mesh::BodyMesh` : Geometry mesh, including panel nodes and trailing edge condition.
+ - `mesh::PlanarMesh` : Geometry mesh, including panel nodes and trailing edge condition.
 """
 function generate_mesh(x, y; gaptolerance=1e-10)
 
@@ -55,7 +56,7 @@ function generate_mesh(x, y; gaptolerance=1e-10)
     end
 
     # generate mesh object
-    mesh = FLOWFoil.BodyMesh(nodes, chordlength, blunt_te, trailing_edge_gap, tdp, txp)
+    mesh = FLOWFoil.PlanarMesh(nodes, chordlength, blunt_te, trailing_edge_gap, tdp, txp)
 
     return mesh
 end
@@ -78,12 +79,12 @@ function generate_mesh(coordinates; gaptolerance=1e-10)
 end
 
 """
-    position_meshes!(meshes, scales, angles, locations)
+    position_coordinates!(meshes, scales, angles, locations)
 
 Take in meshes and adjust scale, leading edge location, and angle of attack of the individual meshes in the system.  Updates mesh objects in place.
 
 **Arguments:**
- - `meshes::Array{BodyMesh}` : Array of mesh objects.
+ - `meshes::Array{PlanarMesh}` : Array of mesh objects.
  - `scales::Array{Float}` : Array of numbers by which to scale respective meshes.
  - `angles::Array{Float}` : Array of angles, in degrees, by which to rotate respective meshes (positive = pitch up).
  - `locations::Array{Array{Float}}` : Array of [x y] positions of leading edges for respective meshes.
@@ -105,15 +106,15 @@ function position_coordinates(coordinates, scale, angle, location)
 end
 
 """
-    position_meshes!(meshsystem)
+    position_coordinates!(meshsystem)
 
-Identical to position_meshes!, but taking the inputs in as a BodyMeshSystem object.
+Identical to position_coordinates!, but taking the inputs in as a PlanarMeshSystem object.
 
 **Arguments:**
- - `meshsystem::BodyMeshSystem` : Mesh system object to position.
+ - `meshsystem::PlanarMeshSystem` : Mesh system object to position.
 """
-function position_meshes!(meshsystem)
-    position_meshes!(
+function position_coordinates!(meshsystem)
+    position_coordinates!(
         meshsystem.meshes, meshsystem.scales, meshsystem.angles, meshsystem.locations
     )
 
@@ -126,9 +127,9 @@ end
 Count size of inviscid system matrix.
 
 **Arguments:**
- - `meshsystem::Array{BodyMesh}` : The system for which to calculate the linear system size.
+ - `meshsystem::Array{PlanarMesh}` : The system for which to calculate the linear system size.
 """
-function size_system(meshes)
+function size_system(meshes; axisymmetric=false)
 
     # initialize
     # number of bodies for convenience
@@ -142,7 +143,11 @@ function size_system(meshes)
 
     # Count number of airfoil nodes in each mesh.
     for i in 1:numbodies
-        Ns[i] = length(meshes[i].nodes)
+        if axisymmetric
+            Ns[i] = length(meshes[i].panels)
+        else
+            Ns[i] = length(meshes[i].nodes)
+        end
         N += Ns[i]
     end
 
@@ -484,4 +489,147 @@ end
 #    #    ) / 2.0] for i in 1:(numwake - 1)
 #    #]
 
+#end
+
+####################################
+##### ----- AXISYMMETRIC ----- #####
+####################################
+
+"""
+    generate_axisym_mesh(x, r; bodyofrevolution)
+
+Generate mesh for axisymmetric body.
+
+**Arguments:**
+- `x::Array{Float}` : x-coordinates of geometry
+- `r::Array{Float}` : r-coordinates of geometry
+
+**Keyword Arguments:**
+- `bodyofrevolution::Bool` : flag whether body is a body of revolution (default=true)
+
+**Returns:**
+- `mesh::FLOWFoil.AxiSymMesh` : axisymmetric mesh object
+"""
+function generate_axisym_mesh(x, r; bodyofrevolution=true, ex=1e-5)
+
+    #check of any r coordinates are negative
+    @assert all(x -> x >= 0.0, r)
+
+    #initialize panels
+    panels = Array{AxiSymPanel}(undef, length(x) - 1)
+
+    cpx = [0.0 for i in 1:(length(x) - 1)]
+    cpr = [0.0 for i in 1:(length(x) - 1)]
+    nhat = [[0.0; 0.0] for i in 1:(length(x) - 1)]
+    dmag = [0.0 for i in 1:(length(x) - 1)]
+    sine = [0.0 for i in 1:(length(x) - 1)]
+    cosine = [0.0 for i in 1:(length(x) - 1)]
+    slope = [0.0 for i in 1:(length(x) - 1)]
+    curve = [0.0 for i in 1:(length(x) - 1)]
+
+    for i in 1:(length(x) - 1)
+
+        #calculate control point
+        cpx[i] = 0.5 * (x[i] + x[i + 1])
+        cpr[i] = 0.5 * (r[i] + r[i + 1])
+
+        #calculate length
+        d, dmag[i] = get_d([x[i]; r[i]], [x[i + 1]; r[i + 1]])
+
+        #calculate normal
+        nhat[i] = get_normal(d, dmag[i])
+
+        sine[i] = (r[i + 1] - r[i]) / dmag[i]
+        cosine[i] = (x[i + 1] - x[i]) / dmag[i]
+        abscos = abs(cosine[i])
+        if abscos > ex
+            t = atan(sine[i] / cosine[i])
+        end
+        if abscos < ex
+            slope[i] = sign(sine[i]) * pi / 2.0
+        end
+        if cosine[i] > ex
+            slope[i] = t
+        end
+
+        if (cosine[i] < -ex) && (i > length(x) / 2)
+            slope[i] = t - pi
+        end
+        if (cosine[i] < -ex) && (i < length(x) / 2)
+            slope[i] = t + pi
+        end
+    end
+
+    for i in 2:(length(x) - 2)
+        curve[i] = (slope[i + 1] - slope[i - 1]) / 8.0 / pi
+    end
+
+    for i in 1:(length(x) - 1)
+        #generate panel objects
+        panels[i] = AxiSymPanel([cpx[i]; cpr[i]], dmag[i], nhat[i], slope[i], curve[i])
+    end
+
+    return AxiSymMesh(panels, bodyofrevolution)
+end
+
+"""
+    get_ring_geometry(paneli, panelj)
+
+Obtain relevant geometry associated with ring singularity influence calculations.
+
+**Arguments:**
+- `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
+- `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
+
+**Returns:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `dmagj::Float` : length of the jth panel
+- `m::Float` : Elliptic Function parameter
+- `nhati::Array{Float}` : unit normal vector of ith panel
+"""
+function get_ring_geometry(paneli, panelj)
+
+    #rename for convenience
+    dmagj = panelj.length
+
+    nhati = paneli.normal
+
+    xi = paneli.controlpoint[1]
+    ri = paneli.controlpoint[2]
+
+    xj = panelj.controlpoint[1]
+    rj = panelj.controlpoint[2]
+
+    #get x and r for these panels
+    x = (xi - xj) / rj
+    r = ri / rj
+
+    #get phi for these panels
+    m = 4.0 * r / (x^2 + (r + 1.0)^2)
+
+    return x, r, rj, dmagj, m, nhati
+end
+
+##TODO: are these necessary? or should they be deleted?
+#"""
+#"""
+#function first_derivative(r1, r2, x1, x2)
+#    return (r2 - r1) / (x2 - x1)
+#end
+
+#"""
+#"""
+#function second_derivative(r1, r2, r3, x1, x2, x3)
+#    num = r1 - 2 * r2 + r3
+#    den = 0.5 * ((x3 - x2) + (x2 - x1))
+
+#    return num / den^2
+#end
+
+#"""
+#"""
+#function get_curvature(drdx, d2rdx2)
+#    return (1.0 + drdx^2)^(3 / 2) / abs(d2rdx2)
 #end

@@ -97,7 +97,7 @@ polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
 
 Comparing our solution to the analytic solution we saved earlier, we see excellent agreement.
 
-![](joukowsky.jpg)
+![](assets/joukowsky.jpg)
 
 
 
@@ -136,4 +136,121 @@ polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
 
 Again, we see excellent agreement with the analytical solution.
 
-![](two_inviscid_airfoils.jpg)
+![](assets/two_inviscid_airfoils.jpg)
+
+
+## Axisymmetric Body of Revolution
+
+FLOWFoil can also handle axisymmetric cases, including bodies of revolution which we domonstrate here.
+
+```@example bor
+using FLOWFoil
+using PyPlot
+
+include("../../test/data/bodyofrevolutioncoords.jl")
+nothing #hide
+```
+
+To let the problem and solver know that you are modeling an axisymmetric system, generate your meshes using the `generate_axisym_mesh` function.
+In addition, if you are modeling a body of revolution, that is, you have an open geometry at the axis of rotation, use the `bodyofrevolution` keyword argument.
+
+```@docs
+FLOWFoil.generate_axisym_mesh
+FLOWFoil.AxiSymMesh
+```
+
+```@example bor
+mesh = [FLOWFoil.generate_axisym_mesh(x, r; bodyofrevolution=true)]
+```
+
+You will also need to set the `axisymmetric` keyword argument to true in your problem definition.
+```@example bor
+problem = FLOWFoil.Problem(mesh; axisymmetric=true, viscous=false)
+```
+
+The solver function will know from the problem object which solver to use, and in this case will output a solution of type `InviscidSolution` as with the 2D cases.
+
+```@example bor
+solution = FLOWFoil.solve(problem)
+```
+
+Finally, we can get the solution and plot the results
+
+```@example bor
+
+# get surface velocity at control points
+cpx = [mesh[1].panels[i].controlpoint[1] for i in 1:length(solution.panelgammas)]
+surface_velocity = solution.panelgammas
+nothing #hide
+```
+
+![](assets/bodyofrevolution.jpg)
+
+## Axisymmetric Annular Airfoil (Duct)
+
+If we define an airfoil shape in an axisymmetric scheme, we model an annular airfoil, or in other words, a duct.  To do so, we follow a similar procedure to bodies of revolution with the exception that we set `bodyofrevolution=false`.
+
+```@example aa
+using FLOWFoil
+using PyPlot
+
+include("../../test/data/naca_662-015.jl")
+
+#Set bodyofrevolution to false
+mesh = [FLOWFoil.generate_axisym_mesh(x, r, bodyofrevolution=false)]
+
+problem = FLOWFoil.Problem(mesh; axisymmetric=true, viscous=false)
+
+solution = FLOWFoil.solve(problem)
+
+# get surface velocity at control points
+cpx = [mesh[1].panels[i].controlpoint[1] for i in 1:length(solution.panelgammas)]
+
+#note that the gamma values on the panels are equivalent to the surface velocity
+cp = 1.0 .- solution.panelgammas .^ 2
+```
+
+As above, we plot experimental results along with our calculated values.
+
+![](assets/annular_airfoil.jpg)
+
+## Axisymmetric Mutli-element Systems
+
+As an example of an multi-element axisymmetric system (such as that used for a ducted rotor), we will simply combine the two previous cases.
+We proceed in the same manner for 2D, planar multi-element systems in that we simply put the various mesh objects in an array when defining the problem object.
+
+```@example dr
+using FLOWFoil
+
+# create annular airfoil mesh object
+include("../../test/data/naca_662-015.jl")
+duct = FLOWFoil.generate_axisym_mesh(x, r; bodyofrevolution=false)
+
+# create body of revolution mesh object
+include("../../test/data/bodyofrevolutioncoords.jl")
+hub = FLOWFoil.generate_axisym_mesh(x, r; bodyofrevolution=true)
+
+# define problem with both mesh objects
+problem = FLOWFoil.Problem([duct; hub]; axisymmetric=true, viscous=false)
+
+solution = FLOWFoil.solve(problem)
+
+# Post Processing
+
+# get surface velocity at control points
+cpx = [(p -> p.controlpoint[1]).(duct.panels); (p -> p.controlpoint[1]).(hub.panels)]
+
+#surface velocities
+gammas = solution.panelgammas
+
+# surface_velocity = FLOWFoil.axisymmetric_surface_pressure(solution)
+cp = 1.0 .- gammas .^ 2
+```
+
+Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.
+
+![](assets/ducthubgeom.jpg)
+
+![](assets/multi_body_vs.jpg)
+
+![](assets/multi_body_cp.jpg)

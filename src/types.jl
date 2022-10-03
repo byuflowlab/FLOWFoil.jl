@@ -6,22 +6,21 @@ Authors: Judd Mehr,
 Date Started: 27 April 2022
 
 Change Log:
+10/22 - Axisymmetric types added
 =#
 
 """
-    Problem{TF,TB}
+    Problem{TM,TF,TB}
 
 Problem definition (geometry, operating point(s), and method selection) and output behavior.
 
 **Fields:**
- - `meshes::Array{BodyMesh}` : Array of mesh objects
+ - `meshes::Array{PlanarMesh}` : Array of mesh objects
  - `angleofattack::Float` : angle of attack to analyze.
  - `reynolds::Float` : Reynolds number to analyze.
  - `mach::Float` : Mach number to analyze.
  - `viscous::Bool` : Flag to solve viscous or inviscid only
  - `verbose::Bool` : Flag to print out verbose statements
- - `debug::Bool` : Flag to save the system structs, etc.
-
 """
 struct Problem{TM,TF,TB}
     meshes::TM
@@ -29,34 +28,40 @@ struct Problem{TM,TF,TB}
     reynolds::TF
     mach::TF
     viscous::TB
+    axisymmetric::TB
     verbose::TB
-    debug::TB
 end
 
 """
-    Problem(meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false, debug=false)
+    Problem(meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false)
 
 Constructor for Problem Objects.
 
 **Arguments:**
- - `meshes::Array{BodyMesh}` : Array of mesh objects
+ - `meshes::Array{PlanarMesh or AxiSymMesh}` : Array of mesh objects
  - `angleofattack::Float` : Angle of Attack (currently unused)
  - `reynolds::Float` : Reynolds Number (currently unused)
  - `mach::Float` : Mach Number (currently unused)
 
 **Keyword Arguments:**
  - `viscous::Bool` : Flag to solve viscous or inviscid only
+ - `axisymmetric::Bool` : Flag for axisymmetric solver.
  - `verbose::Bool` : Flag to print out verbose statements
- - `debug::Bool` : Flag to save the system structs, etc.
 """
 function Problem(
-    meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false, debug=false
+    meshes,
+    angleofattack=0.0,
+    reynolds=0.0,
+    mach=0.0;
+    viscous=true,
+    axisymmetric=false,
+    verbose=false,
 )
-    return Problem(meshes, angleofattack, reynolds, mach, viscous, verbose, debug)
+    return Problem(meshes, angleofattack, reynolds, mach, viscous, axisymmetric, verbose)
 end
 
 """
-    BodyMesh{TF,TB}
+    PlanarMesh{TF,TB,TN}
 
 Mesh for single body.
 
@@ -71,7 +76,7 @@ Mesh for single body.
  - x and y coordinates start at the bottom trailing edge and proceed clockwise.
 
 """
-struct BodyMesh{TF,TB,TN<:Vector{Matrix{TF}}}
+struct PlanarMesh{TF,TB,TN<:Vector{Matrix{TF}}}
     nodes::TN
     chord::TF
     blunt_te::TB
@@ -81,7 +86,7 @@ struct BodyMesh{TF,TB,TN<:Vector{Matrix{TF}}}
 end
 
 """
-    BodyMeshSystem{TF}
+    PlanarMeshSystem{TM,TF,TL}
 
 System of meshes to solve.
 
@@ -92,7 +97,7 @@ System of meshes to solve.
  - `locations::Array{Array{TF}}` : Array of leading edge locations.
 
 """
-struct BodyMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
+struct PlanarMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
     meshes::TM
     scales::TF
     angles::TF
@@ -119,9 +124,9 @@ end
  - `bccoeffvec::Array{Float,2}` : Boundary Coefficient Vector used in solution.
  - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
 """
-struct InviscidSystem{TF,TI}
-    vcoeffmat::TF
-    bccoeffvec::TF
+struct InviscidSystem{TA,TB,TI}
+    vcoeffmat::TA
+    bccoeffvec::TB
     Ns::TI
 end
 
@@ -140,49 +145,19 @@ end
     InviscidSolution{TM,TF,TD}
 
 **Fields:**
- - `mesh::BodyMesh` : BodyMesh object describing airfoil nodes etc.
+ - `mesh::PlanarMesh` : PlanarMesh object describing airfoil nodes etc.
  - `panelgammas::Array{Float,2}` : \$\\gamma_0\$ and \$\\gamma_{90}\$ values at each airfoil node.
- - `psi0::Array{Float}` : \$\\Psi_0\$ (constant stream function) 0 and 90 values.
+ - `bodystrength::Array{Float}` : if 2D system, bodystrength = \$\\Psi_0\$ (constant stream function) 0 and 90 values.  If axisymmetric system, bodystrength = bound vortex strength of body.
  - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
- - `debug::Debug` : Debug object (or nothing) depending on debug flag in Problem object.
+ - `system::InviscidSystem` : system object.
 """
 struct InviscidSolution{TM,TF,TI,TD}
     meshes::TM
     panelgammas::TF
-    psi0::TF
+    bodystrength::TF
     Ns::TI
-    debug::TD
+    system::TD
 end
-
-# """
-# ViscousSolution{}
-
-# **Fields:**
-#  - `panelgammas::Array{Float,2}` : \$\\gamma_0\$ and \$\\gamma_{90}\$ values at each airfoil node.
-#  - `panelsources::Array{Float,2}` : source values at each airfoil node.
-#  - `wakesources::Array{Float,2}` : source values at each wake node.
-#  - `psi0::Array{Float}` : \$\\Psi_0\$ (constant stream function) 0 and 90 values.
-# """
-# struct ViscousSolution{TF,TD}
-#     panelgammas::TF
-#     panelsources::TF
-#     wakesources::TF
-#     psi0::TF
-#     debug::TD
-# end
-
-# # TODO: Need to figure out how to define/use debug object.
-# """
-#     Debug{TIS,TVS}
-
-# **Fields:**
-#  - `isystem::InviscidSystem` : Inviscid System Object.
-#  - `vsystem::ViscousSystem` : Viscous System Object.
-# """
-# struct Debug{TIS,TVS}
-#     isystem::TIS
-#     vsystem::TVS
-# end
 
 """
     Polar{TF}
@@ -205,6 +180,22 @@ struct Polar{TF,TS<:Vector{TF}}
     surfacevelocity::TS
     surfacepressure::TS
 end
+
+# """
+# ViscousSolution{}
+
+# **Fields:**
+#  - `panelgammas::Array{Float,2}` : \$\\gamma_0\$ and \$\\gamma_{90}\$ values at each airfoil node.
+#  - `panelsources::Array{Float,2}` : source values at each airfoil node.
+#  - `wakesources::Array{Float,2}` : source values at each wake node.
+#  - `bodystrength::Array{Float}` : \$\\Psi_0\$ (constant stream function) 0 and 90 values.
+# """
+# struct ViscousSolution{TF,TD}
+#     panelgammas::TF
+#     panelsources::TF
+#     wakesources::TF
+#     bodystrength::TF
+# end
 
 #"""
 #    Properties{TF}
@@ -329,3 +320,37 @@ end
 #        gamma_air, eta_crit, eta_D, GA, GB, GC, Klag, Ctau, Etau, rSu, fw, dw, epsilonw
 #    )
 #end
+
+"""
+    AxiSymMesh{TP,TB}
+
+Axisymmetric Mesh Object
+
+**Fields:**
+- `panels::FLOWFoil.AxiSymPanel` : panel objects describing surface geometry.
+- `bodyofrevolution::Bool` : Flag as to whether or not the mesh represents a body of revolution.
+"""
+struct AxiSymMesh{TP,TB}
+    panels::TP
+    bodyofrevolution::TB
+end
+
+"""
+    AxiSymPanel{TCP,TL,TNH,TB,TR}
+
+Panel object for axisymmetric meshes.
+
+**Fields:**
+- `controlpoint::Array{Float}` : [x;r] coordinates of panel midpoint.
+- `length::Float` : length of panel
+- `normal::Array{Float}` : unit normal vector of panel (TODO: remove if unused)
+- `beta::Float` : angle panel makes with positive x-axis (radians)
+- `radiusofcurvature::Float` : the radius of curvature of the geometry at the panel control point. TODO: make sure this is actually correct with current implementation.
+"""
+struct AxiSymPanel{TCP,TL,TNH,TB,TR}
+    controlpoint::TCP
+    length::TL
+    normal::TNH
+    beta::TB
+    radiusofcurvature::TR
+end

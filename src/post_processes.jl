@@ -30,8 +30,7 @@ function inviscid_polar(inviscid_solution, angleofattack; cascade=false)
     #calculate chord
     if cascade
         chord =
-            maximum(getindex.(meshes[1].nodes, 1)) -
-            minimum(getindex.(meshes[1].nodes, 1))
+            maximum(getindex.(meshes[1].nodes, 1)) - minimum(getindex.(meshes[1].nodes, 1))
     else
         chord =
             maximum([maximum(getindex.(meshes[i].nodes, 1)) for i in 1:M]) - minimum([minimum(getindex.(meshes[i].nodes, 1)) for i in 1:M])
@@ -257,4 +256,51 @@ function get_gamma_magnitudes(panelgammas, angleofattack)
         panelgammas[i, 1] * cosd(angleofattack) + panelgammas[i, 2] * sind(angleofattack)
         for i in 1:length(panelgammas[:, 1])
     ]
+end
+
+####################################
+##### ----- AXISYMMETRIC ----- #####
+####################################
+"""
+"""
+function axisymmetric_surface_velocity(gammas, meshes)
+    surface_velocity = [0.0 for i in 1:length(gammas)]
+
+    for m in 1:length(meshes)
+        for n in 1:length(meshes)
+            for i in 1:length(gammas)
+                # surface_velocity[i] = probe_velocity_axisym(gammas, meshes[m], meshes[n], i)
+                surface_velocity[i] = gammas[i]
+            end
+        end
+    end
+
+    return surface_velocity
+end
+
+"""
+"""
+function probe_velocity_axisym(gammas, meshi, meshj, i)
+    vs = [0.0; 0.0]
+
+    for j in 1:length(gammas)
+        #get geomerty
+        # x, r, rj, dmagj, m, nhati = FLOWFoil.get_ring_geometry(
+        #     meshi.panels[i], meshj.panels[j]
+        # )
+
+        #calculate velocity vector
+        # vs .+=
+        #     gammas[j] .* dmagj .*
+        #     [FLOWFoil.get_u_ring(x, r, rj, m); FLOWFoil.get_v_ring(x, r, rj, m)]
+
+        #get velocity tangent to surface
+        # vs -= nhati[1] * v[1] + nhati[2] * v[2]
+        # vs -= v[1]*cos(meshi.panels[i].beta) + v[2]*sin(meshi.panels[i].beta)
+
+        vs .-= get_ring_vortex_influence(meshi.panels[i], meshj.panels[j]) * gammas[j]
+
+    end
+
+    return vs[1] * cos(meshi.panels[i].beta) + vs[2] * sin(meshi.panels[i].beta)
 end

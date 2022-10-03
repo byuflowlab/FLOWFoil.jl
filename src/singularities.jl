@@ -6,6 +6,7 @@ Authors: Judd Mehr,
 Date Started: 27 April 2022
 
 Change Log:
+10/22 - Add axisymmetric ring vortex and related functions
 =#
 
 """
@@ -150,3 +151,133 @@ function get_source_influence(node1, node2, point)
     return psibarsigma
 end
 
+####################################
+##### ----- AXISYMMETRIC ----- #####
+####################################
+
+"""
+    get_ring_vortex_influence(paneli, panelj)
+
+Cacluate the influence of a ring vortex at panel j onto panel i.
+
+**Arguments:**
+- `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
+- `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
+
+**Returns:**
+- `aij::Float` : Influence of vortex ring strength at panel j onto panel i.
+"""
+function get_ring_vortex_influence(paneli, panelj)
+
+    #get geometry of panels and influence
+    x, r, rj, dmagj, m, nhati = get_ring_geometry(paneli, panelj)
+
+    #calculate unit velocities
+    u = get_u_ring(x, r, rj, m)
+    v = get_v_ring(x, r, rj, m)
+
+    #return appropriate strength
+    if asin(sqrt(m)) != pi / 2
+        #panels are different
+        return (u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
+    else
+        #same panel -> self induction equation
+        cons = 4.0 * pi * rj / dmagj
+        return -0.5 - (log(2.0 * cons) - 0.25) / cons * cos(panelj.beta) -
+               panelj.radiusofcurvature
+    end
+end
+
+"""
+    get_u_ring(x, r, rj, m)
+
+Calculate x-component of velocity influence of vortex ring.
+
+**Arguments:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `uij::Float` : x-component of velocity induced by panel j onto panel i
+"""
+function get_u_ring(x, r, rj, m)
+
+    #get the first denominator
+    den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
+
+    #get numerator and denominator of second fraction
+    num2 = 2 * (r - 1)
+    den2 = x^2 + (r - 1)^2
+
+    #get values for elliptic integrals
+    K, E = get_elliptics(m)
+
+    #return velocity
+    if x == 0.0
+        return 0.0 #(r - 1.0) / (2.0 * pi * sqrt(x^2 + (r + 1.0)^2))
+    else
+        return -1 / den1 * (K - (1.0 + num2 / den2) * E)
+    end
+end
+
+"""
+    get_v_ring(x, r, rj, m)
+
+Calculate r-component of velocity influence of vortex ring.
+
+**Arguments:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `vij::Float` : r-component of velocity induced by panel j onto panel i
+"""
+function get_v_ring(x, r, rj, m)
+
+    #get numerator and denominator of first fraction
+    num1 = x / r
+    den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
+
+    num2 = 2 * r
+    den2 = x^2 + (r - 1)^2
+
+    #get values for elliptic integrals
+    K, E = get_elliptics(m)
+
+    #return velocity
+    if x == 0.0
+        return 0.0 #-x / (2.0 * pi * sqrt(x^2 + (r + 1.0)^2))
+    else
+        return num1 / den1 * (K - (1.0 + num2 / den2) * E)
+    end
+end
+
+"""
+    get_elliptics(m)
+
+Calculate value of elliptic functions for the given geometry parameter.
+
+**Arguments:**
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `K::Float` : K(m), value of elliptic function of the first kind at m.
+- `E::Float` : E(m), value of eeliptic function of the second kind at m.
+"""
+function get_elliptics(m)
+    phi = asin(sqrt(m))
+
+    if phi > 89.5 * pi / 180.0
+        #if singular, use asymptotic expressions
+        K = log(4.0 / cos(phi))
+        E = 1.0 + 0.5 * (K - 1.0 / 1.2) * cos(phi)^2
+        return K, E
+    else
+        #looks like special functions uses some sort of asymptotic or equivalent expressions already.
+        return SpecialFunctions.ellipk(m), SpecialFunctions.ellipe(m)
+    end
+end
