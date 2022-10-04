@@ -539,25 +539,59 @@ function generate_axisym_mesh(x, r; bodyofrevolution=true, ex=1e-5)
         #calculate normal
         nhat[i] = get_normal(d, dmag[i])
 
-        sine[i] = (r[i + 1] - r[i]) / dmag[i]
-        cosine[i] = (x[i + 1] - x[i]) / dmag[i]
-        abscos = abs(cosine[i])
-        if abscos > ex
-            t = atan(sine[i] / cosine[i])
-        end
-        if abscos < ex
-            slope[i] = sign(sine[i]) * pi / 2.0
-        end
-        if cosine[i] > ex
-            slope[i] = t
+        #find minimum x point (i.e. the leading edge point
+        _, minx = findmin(x)
+
+        #use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
+        beta = atan(d[2] / d[1])
+
+        #apply corrections as needed based on orientation of panel in coordinate frame.
+        if (d[1] < 0.0) && (i > minx)
+            #if panel is on the top half of the airfoil and has a negative x direction, need to correct the angle from atan
+            slope[i] = beta - pi
+
+        elseif (d[1] < 0.0) && (i < minx)
+            #if panel is on the bottom half of the airfoil and has a negative x direction, need to correct the angle from atan
+            slope[i] = beta + pi
+        else
+            slope[i] = beta
         end
 
-        if (cosine[i] < -ex) && (i > length(x) / 2)
-            slope[i] = t - pi
-        end
-        if (cosine[i] < -ex) && (i < length(x) / 2)
-            slope[i] = t + pi
-        end
+        #TODO: This is the version from the book code.  Maybe it's more robust?
+        ## sine[i] = (r[i + 1] - r[i]) / dmag[i]
+        #sine[i] = (d[2]) / dmag[i]
+        #cosine[i] = (d[1]) / dmag[i]
+        ## cosine[i] = (x[i + 1] - x[i]) / dmag[i]
+        #abscos = abs(cosine[i])
+        #if abscos > ex
+        #    #use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
+        #    beta = atan(sine[i] / cosine[i])
+        #end
+
+        ##if the panel is nearly vertical, set the panel slope to vertical in the correct direction.
+        #if abscos < ex
+        #    slope[i] = sign(sine[i]) * pi / 2.0
+        #end
+
+        ##otherwise (in most cases)
+        #if cosine[i] > ex
+        #    slope[i] = beta
+        #end
+
+        ## For special cases
+        ##find minimum x point (i.e. the leading edge point
+        #_, minx = findmin(x)
+
+        ##if panel is on the top half of the airfoil and has a negative x direction, need to correct the angle from atan
+        #if (cosine[i] < -ex) && (i > minx)
+        #    slope[i] = beta - pi
+        #end
+
+        ##if panel is on the bottom half of the airfoil and has a negative x direction, need to correct the angle from atan
+        #if (cosine[i] < -ex) && (i < minx)
+        #    slope[i] = beta + pi
+        #end
+
     end
 
     for i in 2:(length(x) - 2)
@@ -611,25 +645,3 @@ function get_ring_geometry(paneli, panelj)
 
     return x, r, rj, dmagj, m, nhati
 end
-
-##TODO: are these necessary? or should they be deleted?
-#"""
-#"""
-#function first_derivative(r1, r2, x1, x2)
-#    return (r2 - r1) / (x2 - x1)
-#end
-
-#"""
-#"""
-#function second_derivative(r1, r2, r3, x1, x2, x3)
-#    num = r1 - 2 * r2 + r3
-#    den = 0.5 * ((x3 - x2) + (x2 - x1))
-
-#    return num / den^2
-#end
-
-#"""
-#"""
-#function get_curvature(drdx, d2rdx2)
-#    return (1.0 + drdx^2)^(3 / 2) / abs(d2rdx2)
-#end
