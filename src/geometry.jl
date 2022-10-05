@@ -645,3 +645,29 @@ function get_ring_geometry(paneli, panelj)
 
     return x, r, rj, dmagj, m, nhati
 end
+
+
+"""
+"""
+function get_realtive_geometry_axisym(panel, field_point)
+
+    #rename for convenience
+    dmag = panel.length
+
+    #panel control point
+    cpx = paneli.controlpoint[1]
+    cpr = paneli.controlpoint[2]
+
+    #field point
+    fpx = panelj.controlpoint[1]
+    fpr = panelj.controlpoint[2]
+
+    # x and r for panel->field point
+    x = (cpx - fpx) / fpr
+    r = cpr / fpr
+
+    # elliptic function parameter
+    m = 4.0 * r / (x^2 + (r + 1.0)^2)
+
+    return x, r, cpr, dmag, m
+end

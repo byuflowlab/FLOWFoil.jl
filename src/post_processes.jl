@@ -258,49 +258,61 @@ function get_gamma_magnitudes(panelgammas, angleofattack)
     ]
 end
 
-####################################
-##### ----- AXISYMMETRIC ----- #####
-####################################
 """
 """
-function axisymmetric_surface_velocity(gammas, meshes)
-    surface_velocity = [0.0 for i in 1:length(gammas)]
+function probe_velocity_axisym(solution, field_points)
 
-    for m in 1:length(meshes)
-        for n in 1:length(meshes)
-            for i in 1:length(gammas)
-                # surface_velocity[i] = probe_velocity_axisym(gammas, meshes[m], meshes[n], i)
-                surface_velocity[i] = gammas[i]
+    #initialize output velocities
+    velocities = [[0.0; 0.0] for i in 1:length(field_points)]
+
+    #loop through each mesh
+    for i in 1:length(meshes)
+
+        #get gammas specific to this mesh
+        gammasi = get_mesh_gammas(solution.panelgammas, solution.meshes, i)
+
+        # loop through panels for this mesh
+        for j in 1:length(meshes[i].panels)
+
+            #get current panel
+            panel = meshes[i].panels[j]
+
+            #loop through field points
+            for k in 1:length(field_points)
+
+                #get relative geometries needed for velocity calculation
+                x, r, cpr, dmagj, m = get_realtive_geometry_axisym(panel, field_points[k])
+
+                #get velocity influences on current field point from current panel
+                ujk = get_u_ring(x, r, cpr, m)
+                vjk = get_v_ring(x, r, cpr, m)
+
+                #add to overall velocity at field point
+                velocities[k][1] += ujk * gammasi[j] * dmagj
+                velocities[k][2] += vjk * gammasi[j] * dmagj
             end
         end
     end
 
-    return surface_velocity
+    return velocities
 end
 
 """
 """
-function probe_velocity_axisym(gammas, meshi, meshj, i)
-    vs = [0.0; 0.0]
+function get_mesh_gammas(gammas, meshes, meshidx)
 
-    for j in 1:length(gammas)
-        #get geomerty
-        # x, r, rj, dmagj, m, nhati = FLOWFoil.get_ring_geometry(
-        #     meshi.panels[i], meshj.panels[j]
-        # )
+    #initialize offset
+    offset = 0
 
-        #calculate velocity vector
-        # vs .+=
-        #     gammas[j] .* dmagj .*
-        #     [FLOWFoil.get_u_ring(x, r, rj, m); FLOWFoil.get_v_ring(x, r, rj, m)]
-
-        #get velocity tangent to surface
-        # vs -= nhati[1] * v[1] + nhati[2] * v[2]
-        # vs -= v[1]*cos(meshi.panels[i].beta) + v[2]*sin(meshi.panels[i].beta)
-
-        vs .-= get_ring_vortex_influence(meshi.panels[i], meshj.panels[j]) * gammas[j]
-
+    #if we're interested in values on mesh greater than 1, add to offset
+    if meshidx > 1
+        for i in 1:(meshidx - 1)
+            offset += length(meshes[i].panels)
+        end
     end
 
-    return vs[1] * cos(meshi.panels[i].beta) + vs[2] * sin(meshi.panels[i].beta)
+    #grab the gammas for just the body we want.
+    mesh_gammas = gammas[(1 + offset):(offset + length(meshes[meshidx].panels))]
+
+    return mesh_gammas
 end
