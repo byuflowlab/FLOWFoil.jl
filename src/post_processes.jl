@@ -266,30 +266,35 @@ function probe_velocity_axisym(solution, field_points)
     velocities = [[0.0; 0.0] for i in 1:length(field_points)]
 
     #loop through each mesh
-    for i in 1:length(meshes)
+    for i in 1:length(solution.meshes)
 
         #get gammas specific to this mesh
-        gammasi = get_mesh_gammas(solution.panelgammas, solution.meshes, i)
+        gammas = get_mesh_gammas(solution.panelgammas, solution.meshes, i)
 
         # loop through panels for this mesh
-        for j in 1:length(meshes[i].panels)
+        for j in 1:length(solution.meshes[i].panels)
 
             #get current panel
-            panel = meshes[i].panels[j]
+            panel = solution.meshes[i].panels[j]
 
             #loop through field points
             for k in 1:length(field_points)
 
                 #get relative geometries needed for velocity calculation
-                x, r, cpr, dmagj, m = get_realtive_geometry_axisym(panel, field_points[k])
+                x, r, cpr, dmagj, m = FLOWFoil.get_relative_geometry_axisym(
+                    panel, field_points[k]
+                )
 
                 #get velocity influences on current field point from current panel
-                ujk = get_u_ring(x, r, cpr, m)
-                vjk = get_v_ring(x, r, cpr, m)
+                if sqrt(x^2 + (r - 1)^2) < 0.01
+                    println(sqrt(x^2 + (r - 1)^2))
+                end
+                ujk = FLOWFoil.get_u_ring(x, r, cpr, m; probe=true)
+                vjk = FLOWFoil.get_v_ring(x, r, cpr, m; probe=true)
 
                 #add to overall velocity at field point
-                velocities[k][1] += ujk * gammasi[j] * dmagj
-                velocities[k][2] += vjk * gammasi[j] * dmagj
+                velocities[k][1] -= ujk * gammas[j] * dmagj
+                velocities[k][2] += vjk * gammas[j] * dmagj
             end
         end
     end
@@ -315,4 +320,49 @@ function get_mesh_gammas(gammas, meshes, meshidx)
     mesh_gammas = gammas[(1 + offset):(offset + length(meshes[meshidx].panels))]
 
     return mesh_gammas
+end
+
+"""
+TODO: need to test.
+"""
+function calculate_thrust(solution, Vinf; rho=1.225)
+
+    #unpack for convenience
+    surface_velocities = solution.panelgammas
+    meshes = solution.meshes
+
+    #calculate dynamic pressure
+    q = 0.5 * rho * Vinf^2
+
+    #initialize output
+    ca = 0.0
+
+    for i in 1:length(meshes)
+
+        #get gammas specific to this mesh
+        gammas = get_mesh_gammas(gammas, meshes, i)
+
+        # loop through panels for this mesh
+        for j in 1:length(meshes[i].panels)
+
+            #get current panel
+            panel = meshes[i].panels[j]
+
+            #calculate pressure
+            cp_panel = 1.0 - (gammas[j] / Vinf)^2
+
+            #ca is force in x-direction (see eqn. 2.119 and 2.127 in 515 book)
+            #cp*length = pressure contribution from panel (adding these ≈ integration)
+            if panel.nhat[2] > 0.0
+                #if panel is on top half of airfoil, add
+                ca += cp_panel * panel.length * cos(panel.beta)
+            else
+                #if panel is on bottom half of airfoil, substract (see eqn. 2.127 in 515 book)
+                ca -= cp_panel * panel.length * cos(panel.beta)
+            end
+        end
+    end
+
+    #return dimensional thrust = -ca*q
+    return -ca * q
 end

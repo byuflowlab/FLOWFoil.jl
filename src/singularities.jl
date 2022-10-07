@@ -202,7 +202,7 @@ Calculate x-component of velocity influence of vortex ring.
 **Returns:**
 - `uij::Float` : x-component of velocity induced by panel j onto panel i
 """
-function get_u_ring(x, r, rj, m)
+function get_u_ring(x, r, rj, m; probe=false)
 
     #get the first denominator
     den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
@@ -215,8 +215,8 @@ function get_u_ring(x, r, rj, m)
     K, E = get_elliptics(m)
 
     #return velocity
-    if x == 0.0
-        return 0.0 #(r - 1.0) / (2.0 * pi * sqrt(x^2 + (r + 1.0)^2))
+    if sqrt(x^2 + (r - 1.0)^2) < 0.01 && probe
+        return (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
     else
         return -1 / den1 * (K - (1.0 + num2 / den2) * E)
     end
@@ -236,7 +236,7 @@ Calculate r-component of velocity influence of vortex ring.
 **Returns:**
 - `vij::Float` : r-component of velocity induced by panel j onto panel i
 """
-function get_v_ring(x, r, rj, m)
+function get_v_ring(x, r, rj, m; probe=false)
 
     #get numerator and denominator of first fraction
     num1 = x / r
@@ -249,8 +249,8 @@ function get_v_ring(x, r, rj, m)
     K, E = get_elliptics(m)
 
     #return velocity
-    if x == 0.0
-        return 0.0 #-x / (2.0 * pi * sqrt(x^2 + (r + 1.0)^2))
+    if sqrt(x^2 + (r - 1.0)^2) < 0.01 && probe
+        return -x / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
     else
         return num1 / den1 * (K - (1.0 + num2 / den2) * E)
     end

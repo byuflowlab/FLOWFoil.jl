@@ -90,7 +90,14 @@ Take in meshes and adjust scale, leading edge location, and angle of attack of t
  - `locations::Array{Array{Float}}` : Array of [x y] positions of leading edges for respective meshes.
 
 """
-function position_coordinates(coordinates, scale, angle, location)
+function position_coordinates(coordinates, scale, angle, location; flipped=false)
+
+    #flip if needed
+    if flipped
+        coordinates[:, 2] .*= -1.0
+        reverse!(coordinates; dims=1)
+    end
+
     # scale
     coordinates .*= scale
 
@@ -102,6 +109,7 @@ function position_coordinates(coordinates, scale, angle, location)
         coordinates[j, :] = R * coordinates[j, :]
         coordinates[j, :] .+= location
     end
+
     return coordinates[:, 1], coordinates[:, 2]
 end
 
@@ -513,7 +521,7 @@ Generate mesh for axisymmetric body.
 function generate_axisym_mesh(x, r; bodyofrevolution=true, ex=1e-5)
 
     #check of any r coordinates are negative
-    @assert all(x -> x >= 0.0, r)
+    @assert all(x -> x >= -eps(), r)
 
     #initialize panels
     panels = Array{AxiSymPanel}(undef, length(x) - 1)
@@ -642,32 +650,37 @@ function get_ring_geometry(paneli, panelj)
 
     #get phi for these panels
     m = 4.0 * r / (x^2 + (r + 1.0)^2)
+    if isnan(m)
+        println("m: ", m)
+        display(paneli.controlpoint)
+        display(panelj.controlpoint)
+
+    end
 
     return x, r, rj, dmagj, m, nhati
 end
 
-
 """
 """
-function get_realtive_geometry_axisym(panel, field_point)
+function get_relative_geometry_axisym(panel, field_point)
 
     #rename for convenience
-    dmag = panel.length
+    dmagj = panel.length
 
     #panel control point
-    cpx = paneli.controlpoint[1]
-    cpr = paneli.controlpoint[2]
+    xj = panel.controlpoint[1]
+    rj = panel.controlpoint[2]
 
     #field point
-    fpx = panelj.controlpoint[1]
-    fpr = panelj.controlpoint[2]
+    xi = field_point[1]
+    ri = field_point[2]
 
-    # x and r for panel->field point
-    x = (cpx - fpx) / fpr
-    r = cpr / fpr
+    #get x and r for these panels
+    x = (xi - xj) / rj
+    r = ri / rj
 
-    # elliptic function parameter
+    #get phi for these panels
     m = 4.0 * r / (x^2 + (r + 1.0)^2)
 
-    return x, r, cpr, dmag, m
+    return x, r, rj, dmagj, m
 end
