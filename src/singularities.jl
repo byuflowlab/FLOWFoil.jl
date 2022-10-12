@@ -173,18 +173,26 @@ function get_ring_vortex_influence(paneli, panelj)
     x, r, rj, dmagj, m, nhati = get_ring_geometry(paneli, panelj)
 
     #calculate unit velocities
-    u = get_u_ring(x, r, rj, m)
+    u = get_u_ring(x, r, rj, dmagj, m)
     v = get_v_ring(x, r, rj, m)
 
     #return appropriate strength
-    if asin(sqrt(m)) != pi / 2
+    # if asin(sqrt(m)) != pi / 2
+    if m != 1.0
+
         #panels are different
         return (u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
     else
         #same panel -> self induction equation
+
+        #NOTE: this is not eqn 4.22 in Lewis.  Their code uses this expression which seems to avoid singularities better.  Not sure how they changed the second term (from dj/4piR to -R) though; perhaps the R in the text != the curvature in the code (radiusofcurvature vs curvature).
+
+        # constant used in multiple places to clean things up
         cons = 4.0 * pi * rj / dmagj
-        return -0.5 - (log(2.0 * cons) - 0.25) / cons * cos(panelj.beta) -
-               panelj.radiusofcurvature
+
+        # return self inducement coefficient
+        return -0.5 - panelj.radiusofcurvature -
+               (log(2.0 * cons) - 0.25) / cons * cos(panelj.beta)
     end
 end
 
@@ -202,7 +210,7 @@ Calculate x-component of velocity influence of vortex ring.
 **Returns:**
 - `uij::Float` : x-component of velocity induced by panel j onto panel i
 """
-function get_u_ring(x, r, rj, m; probe=false)
+function get_u_ring(x, r, rj, dj, m; probe=false)
 
     #get the first denominator
     den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
@@ -214,12 +222,17 @@ function get_u_ring(x, r, rj, m; probe=false)
     #get values for elliptic integrals
     K, E = get_elliptics(m)
 
-    #return velocity
-    if sqrt(x^2 + (r - 1.0)^2) < 0.01 && probe
-        return (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
-    else
-        return -1 / den1 * (K - (1.0 + num2 / den2) * E)
-    end
+    #phi = asin(sqrt(m))
+    #if probe && phi > 89.5 * pi / 180.0
+    #    println("K, E: ", K, ", ", E)
+    #end
+    ##return velocity
+    #if sqrt((x^2 + (r - 1.0)^2)) < 0.01 && probe
+    #    println("u sing: ", (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2)))
+    #    return (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
+    #else
+    return -1.0 / den1 * (K - (1.0 + num2 / den2) * E)
+    # end
 end
 
 """
@@ -249,11 +262,11 @@ function get_v_ring(x, r, rj, m; probe=false)
     K, E = get_elliptics(m)
 
     #return velocity
-    if sqrt(x^2 + (r - 1.0)^2) < 0.01 && probe
-        return -x / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
-    else
-        return num1 / den1 * (K - (1.0 + num2 / den2) * E)
-    end
+    # if sqrt((x^2 + (r - 1.0)^2)) < 0.01 && probe
+    #     return -x / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
+    # else
+    return num1 / den1 * (K - (1.0 + num2 / den2) * E)
+    # end
 end
 
 """
@@ -269,15 +282,21 @@ Calculate value of elliptic functions for the given geometry parameter.
 - `E::Float` : E(m), value of eeliptic function of the second kind at m.
 """
 function get_elliptics(m)
-    phi = asin(sqrt(m))
 
-    if phi > 89.5 * pi / 180.0
-        #if singular, use asymptotic expressions
-        K = log(4.0 / cos(phi))
-        E = 1.0 + 0.5 * (K - 1.0 / 1.2) * cos(phi)^2
-        return K, E
-    else
-        #looks like special functions uses some sort of asymptotic or equivalent expressions already.
-        return SpecialFunctions.ellipk(m), SpecialFunctions.ellipe(m)
+    #calculate phi
+    # phi = asin(sqrt(m))
+
+    #if phi > 89.5 * pi / 180.0
+    #    #if singular, use asymptotic expressions
+    #    K = log(4.0 / cos(phi))
+    #    E = 1.0 + 0.5 * (K - 1.0 / 1.2) * cos(phi)^2
+    #    return K, E
+    #else
+    #looks like special functions uses some sort of asymptotic or equivalent expressions already.
+    if m > 1 || isnan(m)
+        #m cannot be greater than 1 for elliptic functions, and cannot mathematically be either, but numerically might be infinitesimally larger.
+        m = 1.0
     end
+    return SpecialFunctions.ellipk(m), SpecialFunctions.ellipe(m)
+    # end
 end

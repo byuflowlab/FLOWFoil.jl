@@ -285,11 +285,7 @@ function probe_velocity_axisym(solution, field_points)
                     panel, field_points[k]
                 )
 
-                #get velocity influences on current field point from current panel
-                if sqrt(x^2 + (r - 1)^2) < 0.01
-                    println(sqrt(x^2 + (r - 1)^2))
-                end
-                ujk = FLOWFoil.get_u_ring(x, r, cpr, m; probe=true)
+                ujk = FLOWFoil.get_u_ring(x, r, cpr, dmagj, m; probe=true)
                 vjk = FLOWFoil.get_v_ring(x, r, cpr, m; probe=true)
 
                 #add to overall velocity at field point
