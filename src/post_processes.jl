@@ -1,4 +1,4 @@
-#=
+
 Panel Method Post Processing
 
 Authors: Judd Mehr,
@@ -259,6 +259,16 @@ function get_gamma_magnitudes(panelgammas, angleofattack)
 end
 
 """
+    probe_velocity_axisym(solution, field_points)
+
+Probe the velocity field for the axisymmetric solution at the given field points.
+
+**Arguements:**
+- `solution::FLOWFoil.InviscidSolution` : Inviscid Solution for the axisymmetric problem
+- `field_points::Array{Array{Float}}` : Array of field point location arrays.
+
+**Returns:**
+- `velocities::Array{Array{Float}}` : Array of velocities, [u;v], at each field point.
 """
 function probe_velocity_axisym(solution, field_points)
 
@@ -299,6 +309,14 @@ function probe_velocity_axisym(solution, field_points)
 end
 
 """
+    get_mesh_gammas(gammas, meshes, meshidx)
+
+Get the gamma values only for the mesh at index meshidx in meshes.
+
+**Arguements:**
+- `gammas::FLOWFoil.InviscidSolution.panelgammas` : vortex strengths at each panel in the system.
+- `meshes::Array{FLOWFoil.AxiSymMesh}` : Array of meshes in system
+- `meshidx::Int` : index of which mesh in the meshes array for which to obtain the associated gammas.
 """
 function get_mesh_gammas(gammas, meshes, meshidx)
 
@@ -316,49 +334,4 @@ function get_mesh_gammas(gammas, meshes, meshidx)
     mesh_gammas = gammas[(1 + offset):(offset + length(meshes[meshidx].panels))]
 
     return mesh_gammas
-end
-
-"""
-TODO: need to test.
-"""
-function calculate_thrust(solution, Vinf; rho=1.225)
-
-    #unpack for convenience
-    surface_velocities = solution.panelgammas
-    meshes = solution.meshes
-
-    #calculate dynamic pressure
-    q = 0.5 * rho * Vinf^2
-
-    #initialize output
-    ca = 0.0
-
-    for i in 1:length(meshes)
-
-        #get gammas specific to this mesh
-        gammas = get_mesh_gammas(gammas, meshes, i)
-
-        # loop through panels for this mesh
-        for j in 1:length(meshes[i].panels)
-
-            #get current panel
-            panel = meshes[i].panels[j]
-
-            #calculate pressure
-            cp_panel = 1.0 - (gammas[j] / Vinf)^2
-
-            #ca is force in x-direction (see eqn. 2.119 and 2.127 in 515 book)
-            #cp*length = pressure contribution from panel (adding these ≈ integration)
-            if panel.nhat[2] > 0.0
-                #if panel is on top half of airfoil, add
-                ca += cp_panel * panel.length * cos(panel.beta)
-            else
-                #if panel is on bottom half of airfoil, substract (see eqn. 2.127 in 515 book)
-                ca -= cp_panel * panel.length * cos(panel.beta)
-            end
-        end
-    end
-
-    #return dimensional thrust = -ca*q
-    return -ca * q
 end
