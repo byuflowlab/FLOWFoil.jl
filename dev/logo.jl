@@ -48,5 +48,5 @@ plot(xl, yl; color=(0.796, 0.235, 0.2), linewidth=2, zorder=3)
 axis("equal")
 axis("off")
 
-savefig("src/assets/logo.png"; bbox_inches="tight")
-savefig("../test.pdf"; bbox_inches="tight")
+savefig("assets/logo.png"; bbox_inches="tight", transparent="true")
+# savefig("logo.pdf"; bbox_inches="tight")
