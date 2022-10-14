@@ -140,15 +140,15 @@ function definespline(degree, xpos, leradius, tecamberangle, wedgeangle, tedz, w
     Pl = [
         0.0 0.0
         0.0 -sqrt(2.0 * leradius)/3.0
-        xpos (tedz+(2.0 * tan(tecamberangle - boattailangle) / 3.0))
-        1.0 tedz/2.0
+        xpos (-tedz+(2.0 * tan(tecamberangle - boattailangle) / 3.0))
+        1.0 -tedz
     ]
 
     Pu = [
         0.0 0.0
         0.0 sqrt(2.0 * leradius)/3.0
         xpos (tedz+(2.0 * tan(tecamberangle + boattailangle) / 3.0))
-        1.0 tedz/2.0
+        1.0 tedz
     ]
 
     #if weights aren't given, go with ones as a default
