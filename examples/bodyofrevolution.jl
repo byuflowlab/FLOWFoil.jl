@@ -28,7 +28,7 @@ solution = FLOWFoil.solve(problem)
 
 # get surface velocity at control points
 cpx = [mesh[1].panels[i].controlpoint[1] for i in 1:length(solution.panelgammas)]
-surface_velocity = FLOWFoil.axisymmetric_surface_velocity(solution.panelgammas, solution.meshes)
+surface_velocity = solution.panelgammas
 
 # experimental data
 # plot!(
