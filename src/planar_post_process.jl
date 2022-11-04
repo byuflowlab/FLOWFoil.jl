@@ -1,5 +1,5 @@
 #=
-Panel Method Post Processing
+Planar Panel Method Post Processing
 
 Authors: Judd Mehr,
 
@@ -9,15 +9,15 @@ Change Log:
 =#
 
 """
-    inviscid_polar(inviscid_solution, angleofattack; cascade=false)
+    inviscid_post(inviscid_solution, angleofattack; cascade=false)
 
-Generate Polar object for inviscid system at given angle of attack.
+Generate PlanarPost object for inviscid system at given angle of attack.
 
 **Arguements:**
  - `inviscid_solution::InviscidSolution` : Inviscid Solution object
  - `angleofattack::Float` : Angle of attack, in degrees
 """
-function inviscid_polar(inviscid_solution, angleofattack; cascade=false)
+function inviscid_post(inviscid_solution, angleofattack; cascade=false)
     M = length(inviscid_solution.Ns)
 
     # rename fields for convenience.
@@ -97,31 +97,12 @@ function inviscid_polar(inviscid_solution, angleofattack; cascade=false)
     cmi =
         sum([[cpi[i] cpi[i + 1]] * cmmat * [dxddmi[i]; dxddmip1[i]] for i in 1:(N - 1)]) / chord^2
 
-    # Create Polar Object
-    polar = Polar(cl, cd, cdp, cdi, cmi[1], vti, cpi)
+    # Create PlanarPost Object
+    planar_post = PlanarPost(cl, cd, cdp, cdi, cmi[1], vti, cpi)
 
-    return polar
+    return planar_post
 end
 
-"""
-    get_vortex_magnitudes(inviscid_solution,angleofattack)
-
-Calculate the vortex strength magnitudes at the airfoil nodes for a given angle of attack.
-
-**Arguments:**
- - `inviscid_solution::InviscidSolution` : the inviscid solution from which to find the vortex magnitudes.
- - `angleofattack::Float` : the angle of attack in degrees.
-"""
-function get_vortex_magnitudes(inviscid_solution, angleofattack)
-
-    #rename for convenience
-    gammas = inviscid_solution.panelgammas
-
-    return [
-        gammas[i, 1] * cosd(angleofattack) + gammas[i, 2] * sind(angleofattack) for
-        i in 1:length(gammas)
-    ]
-end
 
 """
     function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100)

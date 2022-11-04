@@ -59,7 +59,7 @@ We'll define a problem using the mesh array we just created, and indicate that w
 The problem object is very simple in the inviscid case, but carries more information about the freestream for the viscous problem (not yet implemented)
 
 ```@docs
-FLOWFoil.Problem(meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false, debug=false)
+FLOWFoil.Problem
 ```
 
 ```@example singleaf
@@ -78,6 +78,12 @@ The solver returns a solution object, which nominally contains the vortex streng
 FLOWFoil.solve
 ```
 
+In the example here, we will have a solution of type `InviscidSolution`.
+
+```@docs
+FLOWFoil.InviscidSolution
+```
+
 ```@example singleaf
 ## -- SOLVE PROBLEM
 inviscid_solution = FLOWFoil.solve(problem)
@@ -87,14 +93,14 @@ inviscid_solution = FLOWFoil.solve(problem)
 With the solution calculated, we can post process by providing the angle of attack at which we want to know the various airfoil coefficients includeing lift and moment, as well as surface velocity and pressure distributions.
 
 ```@docs
-FLOWFoil.inviscid_polar
+FLOWFoil.inviscid_post
 ```
 
 ```@example singleaf
 ## -- POST PROCESS SOLUTION
 # arbitrarily pick an angle of attack
 alpha = 4.0
-polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
+polar = FLOWFoil.inviscid_post(inviscid_solution, alpha)
 ```
 
 Comparing our solution to the analytic solution we saved earlier, we see excellent agreement.
@@ -134,7 +140,7 @@ problem = FLOWFoil.Problem(meshes; viscous=false)
 inviscid_solution = FLOWFoil.solve(problem)
 
 ## -- POST PROCESS SOLUTION
-polar = FLOWFoil.inviscid_polar(inviscid_solution, alpha)
+polar = FLOWFoil.inviscid_post(inviscid_solution, alpha)
 
 ```
 
@@ -247,14 +253,16 @@ solution = FLOWFoil.solve(problem)
 
 # Post Processing
 
+axisym_post = axisymmetric_post(solution)
+
 # get surface velocity at control points
 cpx = [(p -> p.controlpoint[1]).(duct.panels); (p -> p.controlpoint[1]).(hub.panels)]
 
 #surface velocities
-gammas = solution.panelgammas
+surface_velocity = axisym_post.surface_velocity
 
-# surface_velocity = FLOWFoil.axisymmetric_surface_pressure(solution)
-cp = 1.0 .- gammas .^ 2
+#surface pressure coefficients
+surface_pressure = axisym_post.surface_pressure
 ```
 
 Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.
