@@ -18,13 +18,6 @@ FLOWFoil.joukowsky
 FLOWFoil.naca4
 ```
 
-## Post Processing
-```@docs
-FLOWFoil.PlanarPost
-FLOWFoil.AxiSymPost
-FLOWFoil.axisymmetric_post
-```
-
 --------------------------------------------
 
 
