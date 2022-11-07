@@ -311,7 +311,7 @@ struct PlanarMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
 end
 
 """
-    PlanarPost{TF}
+    PlanarPolar{TF}
 
 **Fields:**
  - `lift::Float` : Lift Coefficient.
@@ -322,7 +322,7 @@ end
  - `surfacevelocity::Vector{Float}` : surface velocity distribution
  - `surfacepressure::Vector{Float}` : surface pressure distribution
 """
-struct PlanarPost{TF,TS<:Vector{TF}}
+struct PlanarPolar{TF,TS<:Vector{TF}}
     lift::TF
     drag::TF
     pdrag::TF
@@ -373,14 +373,14 @@ struct AxiSymPanel{TF,TA}
 end
 
 """
-    AxiSymPost{TF,TA}
+    AxiSymPolar{TF,TA}
 
 **Fields:**
 - `thrust::Float` : Thrust (or drag) of body
-- `surfacevelocity::Array{Float}` : surface velocity on each panel
-- `surfacepressure::Array{Float}` : surface pressure coefficient on each panel
+- `surface_velocity::Array{Float}` : surface velocity on each panel
+- `surface_pressure::Array{Float}` : surface pressure coefficient on each panel
 """
-struct AxiSymPost{TF,TA}
+struct AxiSymPolar{TF,TA}
     thrust::TF
     surface_velocity::TA
     surface_pressure::TA

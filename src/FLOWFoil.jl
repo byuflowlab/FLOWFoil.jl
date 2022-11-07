@@ -13,7 +13,7 @@ export PlanarMesh, PlanarMeshSystem, AxiSymMesh, AxiSymPanel
 # problem types
 export Problem, InviscidSolution
 # output types
-export PlanarPost, AxiSymPost
+export PlanarPolar, AxiSymPolar
 
 #FUNCTIONS
 # geometry functions
@@ -21,7 +21,7 @@ export generate_mesh, generate_axisym_mesh, position_coordinates, position_coord
 # inviscid solver functions
 export solve
 # post processing functions
-export inviscid_post, axisymmetric_post
+export get_planar_polar, get_axisymmetric_polar
 # common airfoil parameterizations
 export karman_trefftz, joukowsky, naca4#, gbs
 

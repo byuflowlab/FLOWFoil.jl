@@ -9,15 +9,15 @@ Change Log:
 =#
 
 """
-    inviscid_post(inviscid_solution, angleofattack; cascade=false)
+    get_planar_polar(inviscid_solution, angleofattack; cascade=false)
 
-Generate PlanarPost object for inviscid system at given angle of attack.
+Generate PlanarPolar object for inviscid system at given angle of attack.
 
 **Arguements:**
  - `inviscid_solution::InviscidSolution` : Inviscid Solution object
  - `angleofattack::Float` : Angle of attack, in degrees
 """
-function inviscid_post(inviscid_solution, angleofattack; cascade=false)
+function get_planar_polar(inviscid_solution, angleofattack; cascade=false)
     M = length(inviscid_solution.Ns)
 
     # rename fields for convenience.
@@ -97,12 +97,11 @@ function inviscid_post(inviscid_solution, angleofattack; cascade=false)
     cmi =
         sum([[cpi[i] cpi[i + 1]] * cmmat * [dxddmi[i]; dxddmip1[i]] for i in 1:(N - 1)]) / chord^2
 
-    # Create PlanarPost Object
-    planar_post = PlanarPost(cl, cd, cdp, cdi, cmi[1], vti, cpi)
+    # Create PlanarPolar Object
+    planar_polar = PlanarPolar(cl, cd, cdp, cdi, cmi[1], vti, cpi)
 
-    return planar_post
+    return planar_polar
 end
-
 
 """
     function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100)

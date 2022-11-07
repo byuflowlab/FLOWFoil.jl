@@ -9,7 +9,7 @@ Change Log:
 =#
 
 """
-    axisymmetric_post(inviscid_solution, Vinf; rho=1.225)
+    get_axisymmetric_polar(inviscid_solution, Vinf; rho=1.225)
 
 Assemble post processing values for axisymmetric case.
 
@@ -23,16 +23,21 @@ Assemble post processing values for axisymmetric case.
 **Returns:**
 - `axisym_post::AxiSymPost` : Post processed object for Axisymmetric cases.
 """
-function axisymmetric_post(inviscid_solution; Vinf=1.0, rho=1.225)
+function get_axisymmetric_polar(inviscid_solution; Vinf=1.0, rho=1.225)
     surface_velocity = inviscid_solution.panelgammas
     surface_pressure = 1.0 .- (surface_velocity) .^ 2
-    thrust = calculate_duct_thrust(inviscid_solution, Vinf; rho=1.225)
+    if inviscid_solution.meshes[1].bodyofrevolution
+        thrust = calculate_duct_thrust(inviscid_solution; Vinf=Vinf, rho=1.225)
+    else
+        TF = eltype(surface_velocity)
+        thrust = TF(0.0)
+    end
 
-    return AxiSymPost(thrust, surface_velocity, surface_pressure)
+    return AxiSymPolar(thrust, surface_velocity, surface_pressure)
 end
 
 """
-    calculate_duct_thrust(inviscid_solution, Vinf; rho=1.225)
+    calculate_duct_thrust(inviscid_solution; Vinf=1.0, rho=1.225)
 
 Calculate the thrust of the duct.
 TODO: need to test!
@@ -47,7 +52,7 @@ TODO: need to test!
 **Returns:**
 - `thrust::Float` : duct thrust (negative indicates drag)
 """
-function calculate_duct_thrust(inviscid_solution, Vinf; rho=1.225)
+function calculate_duct_thrust(inviscid_solution; Vinf=1.0, rho=1.225)
 
     #unpack for convenience
     gammas = inviscid_solution.panelgammas
