@@ -17,8 +17,8 @@ Generate Polar object for inviscid system at given angle of attack.
  - `inviscid_solution::InviscidSolution` : Inviscid Solution object
  - `angleofattack::Float` : Angle of attack, in degrees
 """
-function inviscid_polar(inviscid_solution, angleofattack;
-                            chord=nothing, onlymeshes=nothing)
+function inviscid_polar(inviscid_solution, angleofattack::T;
+                            chord=nothing, onlymeshes=nothing) where {T}
 
     M = length(inviscid_solution.Ns)            # Number of meshes
 
@@ -31,6 +31,8 @@ function inviscid_polar(inviscid_solution, angleofattack;
 
     meshes = onlymeshes==nothing ?  inviscid_solution.meshes :
                                     inviscid_solution.meshes[onlymeshes]
+
+    rtype = promote_type(T, eltype.(mesh.nodes[1] for mesh in meshes)...)
 
     # determine indices of panels in the meshes to be analyzed
     rngall = vcat(0, cumsum(inviscid_solution.Ns))
@@ -71,11 +73,11 @@ function inviscid_polar(inviscid_solution, angleofattack;
 
     # initialize pieces of moment calculation
     cmmat = [2 1; 1 2] ./ 6.0
-    dxddmi = zeros(N)
-    dxddmip1 = zeros(N)
+    dxddmi = zeros(rtype, N)
+    dxddmip1 = zeros(rtype, N)
 
     # initialize panel lengths
-    dn = zeros(2, N-1)
+    dn = zeros(rtype, 2, N-1)
 
     p = 1                           # Panel count
     for mesh in meshes
@@ -101,7 +103,7 @@ function inviscid_polar(inviscid_solution, angleofattack;
     cl = sum( cp*(-sina*d[2] - cosa*d[1]) for (cp, d) in zip(cpibar, eachcol(dn)) ) / c
 
     # get drag coefficient
-    cdp = 0.0
+    cdp = zero(rtype)
     cdi = sum( cp*(cosa*d[2] - sina*d[1]) for (cp, d) in zip(cpibar, eachcol(dn)) ) / c
     cd = cdi
 
