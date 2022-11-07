@@ -17,85 +17,100 @@ Generate Polar object for inviscid system at given angle of attack.
  - `inviscid_solution::InviscidSolution` : Inviscid Solution object
  - `angleofattack::Float` : Angle of attack, in degrees
 """
-function inviscid_polar(inviscid_solution, angleofattack; cascade=false)
-    M = length(inviscid_solution.Ns)
+function inviscid_polar(inviscid_solution, angleofattack;
+                            chord=nothing, onlymeshes=nothing)
 
-    # rename fields for convenience.
-    gamma0 = inviscid_solution.panelgammas[:, 1]
-    gamma90 = inviscid_solution.panelgammas[:, 2]
-    Ns = inviscid_solution.Ns
-    N = sum(Ns)
-    meshes = inviscid_solution.meshes
+    M = length(inviscid_solution.Ns)            # Number of meshes
+
+    # error case
+    if onlymeshes != nothing
+        for mi in onlymeshes
+            @assert mi<=M "Requested mesh $mi, but max is $M"
+        end
+    end
+
+    meshes = onlymeshes==nothing ?  inviscid_solution.meshes :
+                                    inviscid_solution.meshes[onlymeshes]
+
+    # determine indices of panels in the meshes to be analyzed
+    rngall = vcat(0, cumsum(inviscid_solution.Ns))
+    rng = Iterators.flatten(( rngall[mi]+1:rngall[mi+1] for mi in (onlymeshes==nothing ? (1:M) : onlymeshes) ))
+
+    # rename fields for convenience
+    gamma0 = [inviscid_solution.panelgammas[i, 1] for i in rng]
+    gamma90 = [inviscid_solution.panelgammas[i, 2] for i in rng]
+    N = sum(1 for i in rng)
+
+    # Minimum x position
+    xmin = minimum(minimum(node[1] for node in mesh.nodes) for mesh in meshes)
 
     #calculate chord
-    if cascade
-        chord =
-            maximum(getindex.(meshes[1].nodes, 1)) - minimum(getindex.(meshes[1].nodes, 1))
+    if chord != nothing
+        c = chord
     else
-        chord =
-            maximum([maximum(getindex.(meshes[i].nodes, 1)) for i in 1:M]) - minimum([minimum(getindex.(meshes[i].nodes, 1)) for i in 1:M])
+        c = maximum(maximum(node[1] for node in mesh.nodes) for mesh in meshes) - xmin
     end
 
     # Get Velocity at NODES
-    vti = [gamma0[i] * cosd(angleofattack) + gamma90[i] * sind(angleofattack) for i in 1:N]
+    vti = gamma0*cosd(angleofattack) .+ gamma90*sind(angleofattack)
 
     # Get Pressure at NODES
-    cpi = 1.0 .- vti .^ 2
+    cpi = 1.0 .- vti.^2
 
     # Get Mean Pressure at PANEL MIDPOINTS
-    cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
+    cpibar = (cpi[1:(end-1)] .+ cpi[2:end]) ./ 2.0
 
     # Get Lift, Drag, and Moment Coefficients
     # leading edge location for moment reference)
     # _, leadingedgeidx = findmin(getindex.(nodes, 1))
     # x0 = nodes[leadingedgeidx][1]
     # z0 = nodes[leadingedgeidx][2]
-    #quarter chord location (moment reference location for inviscid case)
-    x0 = chord / 4.0
+    #quarter c location (moment reference location for inviscid case)
+    x0 = xmin + c/4
     z0 = 0.0
 
     # initialize pieces of moment calculation
     cmmat = [2 1; 1 2] ./ 6.0
-    dxddmi = [0.0 for i in 1:N]
-    dxddmip1 = [0.0 for i in 1:N]
+    dxddmi = zeros(N)
+    dxddmip1 = zeros(N)
 
     # initialize panel lengths
-    dn = [[0.0 0.0] for i in 1:(N - 1)]
+    dn = zeros(2, N-1)
 
-    offset = 0
-    for m in 1:M
-        for i in 1:(Ns[m] - 1)
-            dxddmi[i + offset] =
-                dn[i + offset][1] * (meshes[m].nodes[i][1] - x0) +
-                dn[i + offset][2] * (meshes[m].nodes[i][2] - z0)
+    p = 1                           # Panel count
+    for mesh in meshes
 
-            dxddmip1[i + offset] =
-                dn[i + offset][1] * (meshes[m].nodes[i + 1][1] - x0) +
-                dn[i + offset][2] * (meshes[m].nodes[i + 1][2] - z0)
-            dn[i + offset] = meshes[m].nodes[i + 1] .- meshes[m].nodes[i]
+        nn = length(mesh.nodes)
+        for (node, nodep1) in zip(view(mesh.nodes, 1:nn-1), view(mesh.nodes, 2:nn))
+
+            for i in 1:2
+                dn[i, p] = nodep1[i]
+                dn[i, p] -= node[i]
+            end
+
+            dxddmi[p] = dn[1, p]*(node[1] - x0) + dn[2, p]*(node[2] - z0)
+            dxddmip1[p] = dn[1, p]*(nodep1[1] - x0) + dn[2, p]*(nodep1[2] - z0)
+
+            p += 1
         end
-        offset += Ns[m]
+
     end
 
-    # Get Lift Coefficient
-    cl =
-        sum([
-            cpibar[i] * (-sind(angleofattack) * dn[i][2] - cosd(angleofattack) * dn[i][1])
-            for i in 1:(N - 1)
-        ]) / chord
+    # get lift coefficient
+    sina, cosa = sind(angleofattack), cosd(angleofattack)
+    cl = sum( cp*(-sina*d[2] - cosa*d[1]) for (cp, d) in zip(cpibar, eachcol(dn)) ) / c
 
-    # Get Drag Coefficient
+    # get drag coefficient
     cdp = 0.0
-    cdi =
-        sum([
-            cpibar[i] * (cosd(angleofattack) * dn[i][2] - sind(angleofattack) * dn[i][1])
-            for i in 1:(N - 1)
-        ]) / chord
+    cdi = sum( cp*(cosa*d[2] - sina*d[1]) for (cp, d) in zip(cpibar, eachcol(dn)) ) / c
     cd = cdi
 
-    #calculate moment coefficient about leading edge
-    cmi =
-        sum([[cpi[i] cpi[i + 1]] * cmmat * [dxddmi[i]; dxddmip1[i]] for i in 1:(N - 1)]) / chord^2
+    # calculate moment coefficient about leading edge
+    ncp = length(cpi)
+    cmi = sum( [cp cpp1] * cmmat * [dxddm; dxddmp1]
+                        for (cp, cpp1, dxddm, dxddmp1)
+                        in zip(view(cpi, 1:ncp-1), view(cpi, 2:ncp), dxddmi, dxddmip1)
+            ) / c^2
 
     # Create Polar Object
     polar = Polar(cl, cd, cdp, cdi, cmi[1], vti, cpi)
