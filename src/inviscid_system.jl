@@ -84,15 +84,12 @@ function assemble_vortex_coefficients!(amat, meshi, meshj, trailing_edge_treatme
     for i in 1:N
         for j in 1:(M - 1)
 
-            # if (abs((nodesj[j][1]-nodesi[i][1])^2 + (nodesj[j][2]-nodesi[i][2])^2 ) > eps()
-            #     &&
-            #     abs((nodesj[j+1][1]-nodesi[i][1])^2 + (nodesj[j+1][2]-nodesi[i][2])^2 ) > eps())
-                            # This if statement avoids ForwardDiff from returning NaN
-                            # trying to differentiate the case sqrt(0) when
-                            # evaluating self-influence
-
                 # obtain influence coefficient for ith evaluation point and j and j+1 panel
                 # aij, aijp1 = get_vortex_influence(nodesj[j], nodesj[j + 1], nodesi[i])
+
+                # NOTE: Here we add a little offset to keep ForwardDiff from
+                #   returning NaN on the self-influence (case sqrt(0) when
+                #   the target is one of the nodes)
                 aij, aijp1 = get_vortex_influence(nodesj[j], nodesj[j + 1], nodesi[i] .+ 1e-9)
 
                 # add coefficients to matrix at correct nodes
@@ -103,7 +100,6 @@ function assemble_vortex_coefficients!(amat, meshi, meshj, trailing_edge_treatme
                 end
 
                 amat[i, j + 1] = aijp1
-            # end
 
         end
     end
@@ -117,19 +113,12 @@ function assemble_vortex_coefficients!(amat, meshi, meshj, trailing_edge_treatme
                 # Get panel influence coefficients
                 sigmate = get_source_influence(nodesj[M], nodesj[1], nodesi[i])
 
-                # if (abs((nodesj[1][1]-nodesi[i][1])^2 + (nodesj[1][2]-nodesi[i][2])^2 ) > eps()
-                #     &&
-                #     abs((nodesj[M][1]-nodesi[i][1])^2 + (nodesj[M][2]-nodesi[i][2])^2 ) > eps())
-                                # This if statement avoids ForwardDiff from returning NaN
-                                # trying to differentiate the case sqrt(0) when
-                                # evaluating self-influence
+                # gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i]))
 
-                    # gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i]))
-                    gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i] .+ 1e-9))
-
-                # else
-                #     gammate = 0
-                # end
+                # NOTE: Here we add a little offset to keep ForwardDiff from
+                #   returning NaN on the self-influence (case sqrt(0) when
+                #   the target is one of the nodes)
+                gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i] .+ 1e-9))
 
                 # Add/subtract from relevant matrix entries
                 amat[i, 1] += 0.5 * (gammate * meshj.tdp - sigmate * meshj.txp)
