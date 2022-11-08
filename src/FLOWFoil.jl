@@ -9,19 +9,21 @@ using SpecialFunctions
 
 #TYPES
 # geometry types
-export PlanarMesh, PlanarMeshSystem, AxiSymMesh
+export PlanarMesh, PlanarMeshSystem, AxiSymMesh, AxiSymPanel
 # problem types
 export Problem, InviscidSolution
 # output types
-export Polar
+export PlanarPolar, AxiSymPolar
 
 #FUNCTIONS
 # geometry functions
 export generate_mesh, generate_axisym_mesh, position_coordinates, position_coordinates!
 # inviscid solver functions
-export solve, inviscid_post, calculate_stream_grid
+export solve
+# post processing functions
+export get_planar_polar, get_axisymmetric_polar
 # common airfoil parameterizations
-export karman_trefftz, joukowsky, naca4
+export karman_trefftz, joukowsky, naca4#, gbs
 
 # - INCLUDED FILES
 
@@ -44,7 +46,8 @@ include("inviscid_system.jl")
 include("solve.jl")
 
 # Post Processing
-include("post_processes.jl")
+include("planar_post_process.jl")
+include("axisymmetric_post_process.jl")
 
 # Common Airfoil Parameterizations
 include("../common_parameterizations/convenience_functions.jl")

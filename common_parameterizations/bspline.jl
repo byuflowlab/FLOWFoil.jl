@@ -47,6 +47,7 @@ function gbs(
     leradius,
     tecamberangle,
     wedgeangle;
+    N=160,
     perturbations=nothing,
     tedz=0,
     degree=3,
@@ -62,11 +63,12 @@ function gbs(
     end
 
     # get spline knots and control points
-    knots, ucontrolpoints, lcontrolpoints = definespline(
+    unurbs, lnurbs = definespline(
         degree, xpos, leradius, tecamberangle, wedgeangle, tedz, weights
     )
 
     #if using perturbations
+    ##TODO: needs to be redone
     if perturbations != nothing
 
         #check that perturbations have even length
@@ -86,20 +88,19 @@ function gbs(
     else
 
         #otherwise, knots don't change.
-        uknots = knots
-        lknots = knots
+        uknots = unurbs.knots
+        lknots = unurbs.knots
     end
 
     #get coordinates from spline definition
-    xu, zu = getcoordinates(uknots, ucontrolpoints, degree)
-    xl, zl = getcoordinates(lknots, lcontrolpoints, degree)
+    xu, zu = getcoordinates(unurbs; N=N)
+    xl, zl = getcoordinates(lnurbs; N=N)
 
     #return what is asked for
     if debug && split
-        return xu, zu, xl, zl, uknots, ucontrolpoints, lknots, lcontrolpoints
+        return xu, zu, xl, zl, unurbs, lnurbs
     elseif debug && !split
-        [reverse(xl); xu[2:end]],
-        [reverse(zl); zu[2:end]], uknots, ucontrolpoints, lknots,
+        [reverse(xl); xu[2:end]], [reverse(zl); zu[2:end]], unurbs, lnurbs
         lcontrolpoints
     elseif !debug && split
         return xu, zu, xl, zl
@@ -134,21 +135,21 @@ function definespline(degree, xpos, leradius, tecamberangle, wedgeangle, tedz, w
     @assert degree >= 3
 
     #--Initialize knot vector
-    knots = [0, 0, 0, 0, 1, 1, 1, 1]
+    knots = [0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0]
 
     #calculate unweighted controlpoints
     Pl = [
-        0.0 0.0
-        0.0 -sqrt(2.0 * leradius)/3.0
-        xpos (-tedz+(2.0 * tan(tecamberangle - boattailangle) / 3.0))
-        1.0 -tedz
+        [0.0, 0.0],
+        [0.0, -sqrt(2.0 * leradius) / 3.0],
+        [xpos, (-tedz + (2.0 * tan(tecamberangle - boattailangle) / 3.0))],
+        [1.0, -tedz],
     ]
 
     Pu = [
-        0.0 0.0
-        0.0 sqrt(2.0 * leradius)/3.0
-        xpos (tedz+(2.0 * tan(tecamberangle + boattailangle) / 3.0))
-        1.0 tedz
+        [0.0, 0.0],
+        [0.0, sqrt(2.0 * leradius) / 3.0],
+        [xpos, (tedz + (2.0 * tan(tecamberangle + boattailangle) / 3.0))],
+        [1.0, tedz],
     ]
 
     #if weights aren't given, go with ones as a default
@@ -160,23 +161,30 @@ function definespline(degree, xpos, leradius, tecamberangle, wedgeangle, tedz, w
         wl = getindex(weights, 2)
     end
 
-    #Weight Control Points
-    uppercontrolpoints = [0.0 for i in 1:4, j in 1:3]
-    lowercontrolpoints = [0.0 for i in 1:4, j in 1:3]
-
-    for i in 1:4
-        uppercontrolpoints[i, 1] = wu[i] * Pu[i, 1]
-        uppercontrolpoints[i, 2] = wu[i] * Pu[i, 2]
-        uppercontrolpoints[i, 3] = wu[i]
-    end
-    for i in 1:4
-        lowercontrolpoints[i, 1] = wl[i] * Pl[i, 1]
-        lowercontrolpoints[i, 2] = wl[i] * Pl[i, 2]
-        lowercontrolpoints[i, 3] = wl[i]
-    end
-
     #if degree is greater than 3, use degree elevation to update knots and control points.
-    if degree > 3
+    if degree == 3
+        #return splines
+        return Splines.NURBS(degree, knots, wu, Pu), Splines.NURBS(degree, knots, wl, Pl)
+
+    elseif degree > 3
+        #raise degree
+        #TODO: this whole thing needs to be rewritten probably.
+
+        #Weight Control Points
+        uppercontrolpoints = [[0.0 for i in 1:3] for j in 1:4]
+        lowercontrolpoints = [[0.0 for i in 1:3] for j in 1:4]
+
+        for i in 1:4
+            uppercontrolpoints[i][1] = wu[i] * Pu[i, 1]
+            uppercontrolpoints[i][2] = wu[i] * Pu[i, 2]
+            uppercontrolpoints[i][3] = wu[i]
+        end
+        for i in 1:4
+            lowercontrolpoints[i][1] = wl[i] * Pl[i, 1]
+            lowercontrolpoints[i][2] = wl[i] * Pl[i, 2]
+            lowercontrolpoints[i][3] = wl[i]
+        end
+
         _, raise_knots, raised_uppercontrolpoints = Splines.degreeelevatecurve(
             length(uppercontrolpoints[:, 1]) - 1,
             3,
@@ -192,9 +200,28 @@ function definespline(degree, xpos, leradius, tecamberangle, wedgeangle, tedz, w
             degree - 3,
         )
 
-        return raised_knots, raised_uppercontrolpoints, raised_lowercontrolpoints
+        return Splines.NURBS(
+            degree,
+            raised_knots,
+            [raised_uppercontrolpoints[i][end] for i in length(raised_uppercontrolpoints)],
+            [
+                raised_uppercontrolpoints[i][1:(end - 1)] /
+                raised_uppercontrolpoints[i][end] for
+                i in 1:length(raised_uppercontrolpoints)
+            ],
+        )
+        return Splines.NURBS(
+            degree,
+            raised_knots,
+            [raised_lowercontrolpoints[i][end] for i in length(raised_lowercontrolpoints)],
+            [
+                raised_lowercontrolpoints[i][1:(end - 1)] /
+                raised_lowercontrolpoints[i][end] for
+                i in 1:length(raised_lowercontrolpoints)
+            ],
+        )
     else
-        return knots, uppercontrolpoints, lowercontrolpoints
+        @error "No functionality for degree <3"
     end
 end
 
@@ -257,27 +284,27 @@ Get plotable coordinates from the weighted control points.
 - `degree::Int` : degree of the NURBS curve
 
 **Keyword Arguments:**
-- `numpanels::Int` : number of coordinates, or panels that will be generated
+- `N::Int` : number of coordinates, or panels that will be generated
 
 **Returns:**
 - `x::Array{Float}` : x Airfoil coordinates
 - `z::Array{Float}` : z Airfoil coordinates
 """
-function getcoordinates(knots, controlpoints, degree; numpanels=160)
+function getcoordinates(nurbs; N=160)
 
     #create parametric point array
-    u = range(0.0, 1.0; length=numpanels + 1)
+    u = range(0.0, 1.0; length=N + 1)
 
     #n = number of control points - 1
-    n = length(controlpoints[:, 1]) - 1
+    n = length(nurbs.ctrlpts) - 1
 
     #initialize curve point array
-    Cw = [0.0 for i in numpanels + 1, j in n + 1]
+    Cw = [[0.0; 0.0] for i in 1:length(u)]
 
     #loop through parametric points to get curve points
     for i in 1:length(u)
-        Cw[i, :] = Splines.curvepoint(n, degree, knots, controlpoints, u[i])
+        Cw[i] = Splines.curvepoint(nurbs, u[i])
     end
 
-    return Cw[:, 1], Cw[:, 2]
+    return getindex.(Cw, 1), getindex.(Cw, 2)
 end

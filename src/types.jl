@@ -9,6 +9,11 @@ Change Log:
 10/22 - Axisymmetric types added
 =#
 
+######################################################################
+#                                                                    #
+#                          GENERAL TYPES                             #
+#                                                                    #
+######################################################################
 """
     Problem{TM,TF,TB}
 
@@ -64,62 +69,6 @@ function Problem(
 end
 
 """
-    PlanarMesh{TF,TB,TN}
-
-Mesh for single body.
-
-**Fields:**
- - `nodes::Array{Array{Float,2}}` : [x y] node (panel edge) locations for airfoil
- - `chord::Float` : airfoil chord length
- - `blunt_te::Bool` : boolean for whether or not the trailing edge is blunt or not.
- - `trailing_edge_gap::Float` : trailing edge gap distance
- - `tdp::Float` : dot product of unit vectors of trailing edge bisection and gap vectors
- - `txp::Float` : pseudo-cross product of unit vectors of trailing edge bisection and gap vectors
-**Assuptions:**
- - x and y coordinates start at the bottom trailing edge and proceed clockwise.
-
-"""
-struct PlanarMesh{TF,TB,TN<:Vector{Matrix{TF}}}
-    nodes::TN
-    chord::TF
-    blunt_te::TB
-    trailing_edge_gap::TF
-    tdp::TF
-    txp::TF
-end
-
-"""
-    PlanarMeshSystem{TM,TF,TL}
-
-System of meshes to solve.
-
-**Fields:**
- - `meshes::Array{Mesh}` : Array of mesh objects.
- - `scales::Vector{Float}` : Airfoil scaling factors.
- - `angles::Vector{Float}` : Airfoil angles of attack.
- - `locations::Array{Array{TF}}` : Array of leading edge locations.
-
-"""
-struct PlanarMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
-    meshes::TM
-    scales::TF
-    angles::TF
-    locations::TL
-end
-
-# """
-#     WakeMesh{TF}
-
-# **Fields:**
-#  - `wake_nodes::Array{Float,2}` : x,y wake panel node locations.
-#  - `wake_midpoints::Array{Float,2}` : x,y wake panel center point locations.
-# """
-# struct WakeMesh{TF}
-#     wake_nodes::Array{TF}
-#     wake_midpoints::Array{TF}
-# end
-
-"""
     InviscidSystem{TF}
 
 **Fields:**
@@ -162,27 +111,17 @@ struct InviscidSolution{TM,TF,TI,TD}
     system::TD
 end
 
-"""
-    Polar{TF}
+# """
+#     WakeMesh{TF}
 
-**Fields:**
- - `lift::Float` : Lift Coefficient.
- - `drag::Float` : Total Drag Coefficient.
- - `pdrag::Float` : Pressure Drag Coefficient.
- - `idrag::Float` : Induced Drag Coefficient.
- - `moment::Float` : Moment Coefficient.
- - `surfacevelocity::Vector{Float}` : surface velocity distribution
- - `surfacepressure::Vector{Float}` : surface pressure distribution
-"""
-struct Polar{TF,TS<:Vector{TF}}
-    lift::TF
-    drag::TF
-    pdrag::TF
-    idrag::TF
-    moment::TF
-    surfacevelocity::TS
-    surfacepressure::TS
-end
+# **Fields:**
+#  - `wake_nodes::Array{Float,2}` : x,y wake panel node locations.
+#  - `wake_midpoints::Array{Float,2}` : x,y wake panel center point locations.
+# """
+# struct WakeMesh{TF}
+#     wake_nodes::Array{TF}
+#     wake_midpoints::Array{TF}
+# end
 
 # """
 # ViscousSolution{}
@@ -324,6 +263,84 @@ end
 #    )
 #end
 
+######################################################################
+#                                                                    #
+#                         PLANAR (2D) TYPES                          #
+#                                                                    #
+######################################################################
+
+"""
+    PlanarMesh{TF,TB,TN}
+
+Mesh for single body.
+
+**Fields:**
+ - `nodes::Array{Array{Float,2}}` : [x y] node (panel edge) locations for airfoil
+ - `chord::Float` : airfoil chord length
+ - `blunt_te::Bool` : boolean for whether or not the trailing edge is blunt or not.
+ - `trailing_edge_gap::Float` : trailing edge gap distance
+ - `tdp::Float` : dot product of unit vectors of trailing edge bisection and gap vectors
+ - `txp::Float` : pseudo-cross product of unit vectors of trailing edge bisection and gap vectors
+**Assuptions:**
+ - x and y coordinates start at the bottom trailing edge and proceed clockwise.
+
+"""
+struct PlanarMesh{TF,TB,TN<:Vector{Matrix{TF}}}
+    nodes::TN
+    chord::TF
+    blunt_te::TB
+    trailing_edge_gap::TF
+    tdp::TF
+    txp::TF
+end
+
+"""
+    PlanarMeshSystem{TM,TF,TL}
+
+System of meshes to solve.
+
+**Fields:**
+ - `meshes::Array{Mesh}` : Array of mesh objects.
+ - `scales::Vector{Float}` : Airfoil scaling factors.
+ - `angles::Vector{Float}` : Airfoil angles of attack.
+ - `locations::Array{Array{TF}}` : Array of leading edge locations.
+
+"""
+struct PlanarMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
+    meshes::TM
+    scales::TF
+    angles::TF
+    locations::TL
+end
+
+"""
+    PlanarPolar{TF}
+
+**Fields:**
+ - `lift::Float` : Lift Coefficient.
+ - `drag::Float` : Total Drag Coefficient.
+ - `pdrag::Float` : Pressure Drag Coefficient.
+ - `idrag::Float` : Induced Drag Coefficient.
+ - `moment::Float` : Moment Coefficient.
+ - `surfacevelocity::Vector{Float}` : surface velocity distribution
+ - `surfacepressure::Vector{Float}` : surface pressure distribution
+"""
+struct PlanarPolar{TF,TS<:Vector{TF}}
+    lift::TF
+    drag::TF
+    pdrag::TF
+    idrag::TF
+    moment::TF
+    surface_velocity::TS
+    surface_pressure::TS
+end
+
+######################################################################
+#                                                                    #
+#                        AXISYMMETRIC TYPES                          #
+#                                                                    #
+######################################################################
+
 """
     AxiSymMesh{TP,TB}
 
@@ -339,7 +356,7 @@ struct AxiSymMesh{TP,TB}
 end
 
 """
-    AxiSymPanel{TCP,TL,TNH,TB,TR}
+    AxiSymPanel{TF,TA}
 
 Panel object for axisymmetric meshes.
 
@@ -350,10 +367,24 @@ Panel object for axisymmetric meshes.
 - `beta::Float` : angle panel makes with positive x-axis (radians)
 - `radiusofcurvature::Float` : the radius of curvature of the geometry at the panel control point. TODO: make sure this is actually correct with current implementation.
 """
-struct AxiSymPanel{TCP,TL,TNH,TB,TR}
-    controlpoint::TCP
-    length::TL
-    normal::TNH
-    beta::TB
-    radiusofcurvature::TR
+struct AxiSymPanel{TF,TA}
+    controlpoint::TA
+    length::TF
+    normal::TA
+    beta::TF
+    radiusofcurvature::TF
+end
+
+"""
+    AxiSymPolar{TF,TA}
+
+**Fields:**
+- `thrust::Float` : Thrust (or drag) of body
+- `surface_velocity::Array{Float}` : surface velocity on each panel
+- `surface_pressure::Array{Float}` : surface pressure coefficient on each panel
+"""
+struct AxiSymPolar{TF,TA}
+    thrust::TF
+    surface_velocity::TA
+    surface_pressure::TA
 end

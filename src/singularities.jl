@@ -182,7 +182,7 @@ function get_ring_vortex_influence(paneli, panelj)
     if m != 1.0
 
         #panels are different
-        return (u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
+        return (-u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
     else
         #same panel -> self induction equation
 
@@ -232,7 +232,7 @@ function get_u_ring(x, r, rj, dj, m; probe=false)
     #    println("u sing: ", (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2)))
     #    return (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
     #else
-    return -1.0 / den1 * (K - (1.0 + num2 / den2) * E)
+    return 1.0 / den1 * (K - (1.0 + num2 / den2) * E)
     # end
 end
 

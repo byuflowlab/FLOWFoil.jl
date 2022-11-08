@@ -89,8 +89,17 @@ Take in meshes and adjust scale, leading edge location, and angle of attack of t
  - `angles::Array{Float}` : Array of angles, in degrees, by which to rotate respective meshes (positive = pitch up).
  - `locations::Array{Array{Float}}` : Array of [x y] positions of leading edges for respective meshes.
 
+**Keyword Arguments:**
+- `flipped::Bool` : flag whether to flip airfoil upside down
+
+**Returns:**
+- `xcoordinates::Array{Float}` : array of x-coordinates
+- `zcoordinates::Array{Float}` : array of z-coordinates
+
 """
-function position_coordinates(coordinates, scale, angle, location; flipped=false)
+function position_coordinates(
+    coordinates, scale, angle, location; flipped=false, constant_point=[0.0 0.0]
+)
 
     #flip if needed
     if flipped
@@ -101,6 +110,8 @@ function position_coordinates(coordinates, scale, angle, location; flipped=false
     # scale
     coordinates .*= scale
 
+    coordinates .-= constant_point
+
     # get rotation matrix
     R = [cosd(-angle) -sind(-angle); sind(-angle) cosd(-angle)]
 
@@ -109,6 +120,7 @@ function position_coordinates(coordinates, scale, angle, location; flipped=false
         coordinates[j, :] = R * coordinates[j, :]
         coordinates[j, :] .+= location
     end
+    coordinates .+= constant_point
 
     return coordinates[:, 1], coordinates[:, 2]
 end
@@ -654,7 +666,6 @@ function get_ring_geometry(paneli, panelj)
         println("m: ", m)
         display(paneli.controlpoint)
         display(panelj.controlpoint)
-
     end
 
     return x, r, rj, dmagj, m, nhati

@@ -1,5 +1,5 @@
 #=
-Panel Method Post Processing
+Planar Panel Method Post Processing
 
 Authors: Judd Mehr,
 
@@ -9,17 +9,16 @@ Change Log:
 =#
 
 """
-    inviscid_polar(inviscid_solution, angleofattack; cascade=false)
+    get_planar_polar(inviscid_solution, angleofattack; cascade=false)
 
-Generate Polar object for inviscid system at given angle of attack.
+Generate PlanarPolar object for inviscid system at given angle of attack.
 
 **Arguements:**
  - `inviscid_solution::InviscidSolution` : Inviscid Solution object
  - `angleofattack::Float` : Angle of attack, in degrees
 """
-function inviscid_polar(inviscid_solution, angleofattack::T;
+function get_planar_polar(inviscid_solution, angleofattack::T;
                             chord=nothing, onlymeshes=nothing) where {T}
-
     M = length(inviscid_solution.Ns)            # Number of meshes
 
     # error case
@@ -67,9 +66,10 @@ function inviscid_polar(inviscid_solution, angleofattack::T;
     # _, leadingedgeidx = findmin(getindex.(nodes, 1))
     # x0 = nodes[leadingedgeidx][1]
     # z0 = nodes[leadingedgeidx][2]
+    
     #quarter c location (moment reference location for inviscid case)
     x0 = xmin + c/4
-    z0 = 0.0
+    z0 = 0.0 #chord*sind(angleofattack) #TODO should this be zero, or rotated with the airfoil?
 
     # initialize pieces of moment calculation
     cmmat = [2 1; 1 2] ./ 6.0
@@ -114,30 +114,10 @@ function inviscid_polar(inviscid_solution, angleofattack::T;
                         in zip(view(cpi, 1:ncp-1), view(cpi, 2:ncp), dxddmi, dxddmip1)
             ) / c^2
 
-    # Create Polar Object
-    polar = Polar(cl, cd, cdp, cdi, cmi[1], vti, cpi)
+    # Create PlanarPolar Object
+    planar_polar = PlanarPolar(cl, cd, cdp, cdi, cmi[1], vti, cpi)
 
-    return polar
-end
-
-"""
-    get_vortex_magnitudes(inviscid_solution,angleofattack)
-
-Calculate the vortex strength magnitudes at the airfoil nodes for a given angle of attack.
-
-**Arguments:**
- - `inviscid_solution::InviscidSolution` : the inviscid solution from which to find the vortex magnitudes.
- - `angleofattack::Float` : the angle of attack in degrees.
-"""
-function get_vortex_magnitudes(inviscid_solution, angleofattack)
-
-    #rename for convenience
-    gammas = inviscid_solution.panelgammas
-
-    return [
-        gammas[i, 1] * cosd(angleofattack) + gammas[i, 2] * sind(angleofattack) for
-        i in 1:length(gammas)
-    ]
+    return planar_polar
 end
 
 """
@@ -273,82 +253,4 @@ function get_gamma_magnitudes(panelgammas, angleofattack)
         panelgammas[i, 1] * cosd(angleofattack) + panelgammas[i, 2] * sind(angleofattack)
         for i in 1:length(panelgammas[:, 1])
     ]
-end
-
-"""
-    probe_velocity_axisym(solution, field_points)
-
-Probe the velocity field for the axisymmetric solution at the given field points.
-
-**Arguements:**
-- `solution::FLOWFoil.InviscidSolution` : Inviscid Solution for the axisymmetric problem
-- `field_points::Array{Array{Float}}` : Array of field point location arrays.
-
-**Returns:**
-- `velocities::Array{Array{Float}}` : Array of velocities, [u;v], at each field point.
-"""
-function probe_velocity_axisym(solution, field_points)
-
-    #initialize output velocities
-    velocities = [[0.0; 0.0] for i in 1:length(field_points)]
-
-    #loop through each mesh
-    for i in 1:length(solution.meshes)
-
-        #get gammas specific to this mesh
-        gammas = get_mesh_gammas(solution.panelgammas, solution.meshes, i)
-
-        # loop through panels for this mesh
-        for j in 1:length(solution.meshes[i].panels)
-
-            #get current panel
-            panel = solution.meshes[i].panels[j]
-
-            #loop through field points
-            for k in 1:length(field_points)
-
-                #get relative geometries needed for velocity calculation
-                x, r, cpr, dmagj, m = FLOWFoil.get_relative_geometry_axisym(
-                    panel, field_points[k]
-                )
-
-                ujk = FLOWFoil.get_u_ring(x, r, cpr, dmagj, m; probe=true)
-                vjk = FLOWFoil.get_v_ring(x, r, cpr, m; probe=true)
-
-                #add to overall velocity at field point
-                velocities[k][1] -= ujk * gammas[j] * dmagj
-                velocities[k][2] += vjk * gammas[j] * dmagj
-            end
-        end
-    end
-
-    return velocities
-end
-
-"""
-    get_mesh_gammas(gammas, meshes, meshidx)
-
-Get the gamma values only for the mesh at index meshidx in meshes.
-
-**Arguements:**
-- `gammas::FLOWFoil.InviscidSolution.panelgammas` : vortex strengths at each panel in the system.
-- `meshes::Array{FLOWFoil.AxiSymMesh}` : Array of meshes in system
-- `meshidx::Int` : index of which mesh in the meshes array for which to obtain the associated gammas.
-"""
-function get_mesh_gammas(gammas, meshes, meshidx)
-
-    #initialize offset
-    offset = 0
-
-    #if we're interested in values on mesh greater than 1, add to offset
-    if meshidx > 1
-        for i in 1:(meshidx - 1)
-            offset += length(meshes[i].panels)
-        end
-    end
-
-    #grab the gammas for just the body we want.
-    mesh_gammas = gammas[(1 + offset):(offset + length(meshes[meshidx].panels))]
-
-    return mesh_gammas
 end
