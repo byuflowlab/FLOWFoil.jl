@@ -66,7 +66,7 @@ function get_planar_polar(inviscid_solution, angleofattack::T;
     # _, leadingedgeidx = findmin(getindex.(nodes, 1))
     # x0 = nodes[leadingedgeidx][1]
     # z0 = nodes[leadingedgeidx][2]
-    
+
     #quarter c location (moment reference location for inviscid case)
     x0 = xmin + c/4
     z0 = 0.0 #chord*sind(angleofattack) #TODO should this be zero, or rotated with the airfoil?
@@ -119,6 +119,9 @@ function get_planar_polar(inviscid_solution, angleofattack::T;
 
     return planar_polar
 end
+
+"Deprecated name of `get_planar_polar`"
+const inviscid_polar = get_planar_polar
 
 """
     function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100)
