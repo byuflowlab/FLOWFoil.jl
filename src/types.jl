@@ -49,15 +49,18 @@ Constructor for Problem Objects.
  - `verbose::Bool` : Flag to print out verbose statements
 """
 function Problem(
-    meshes,
-    angleofattack=0.0,
-    reynolds=0.0,
-    mach=0.0;
-    viscous=true,
-    axisymmetric=false,
-    verbose=false,
-)
-    return Problem(meshes, angleofattack, reynolds, mach, viscous, axisymmetric, verbose)
+    meshes::TM,
+    angleofattack::TF1=0.0,
+    reynolds::TF2=0.0,
+    mach::TF3=0.0;
+    viscous::TB=true,
+    axisymmetric::TB=false,
+    verbose::TB=false,
+) where {TM, TF1, TF2, TF3, TB}
+
+    TF = promote_type(TF1, TF2, TF3)
+
+    return Problem{TM, TF, TB}(meshes, angleofattack, reynolds, mach, viscous, axisymmetric, verbose)
 end
 
 """
