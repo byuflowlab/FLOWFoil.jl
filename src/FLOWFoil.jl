@@ -53,6 +53,6 @@ include("axisymmetric_post_process.jl")
 include("../common_parameterizations/convenience_functions.jl")
 include("../common_parameterizations/conformal_mapping.jl")
 include("../common_parameterizations/naca.jl")
-# include("../common_parameterizations/bspline.jl") #REQUIRES UNREGISTERED PACKAGE
+include("../common_parameterizations/bspline.jl") #REQUIRES UNREGISTERED PACKAGE
 
 end
