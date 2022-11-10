@@ -156,7 +156,7 @@ nothing #hide
 
 Again, we see excellent agreement with the analytical solution.
 
-![](assets/two_inviscid_airfoils.jpg)
+![](assets/two_inviscid_airfoils.jpeg)
 
 ---
 
