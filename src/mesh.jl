@@ -6,16 +6,16 @@ Authors: Judd Mehr,
 
 =#
 
-######################################################################
-#                                                                    #
-#                             MESH TYPES                             #
-#                                                                    #
-######################################################################
-
 abstract type Mesh end
 
+######################################################################
+#                                                                    #
+#                           PLANAR MESHES                            #
+#                                                                    #
+######################################################################
+
 #---------------------------------#
-#        PLANAR MESH TYPES        #
+#              TYPES              #
 #---------------------------------#
 
 """
@@ -63,56 +63,9 @@ struct PlanarMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
 end
 
 #---------------------------------#
-#     AXISYMMETRIC MESH TYPES     #
+#            FUNCTIONS            #
 #---------------------------------#
 
-"""
-    AxiSymMesh{TP,TB}
-
-Axisymmetric Mesh Object
-
-**Fields:**
-- `panels::FLOWFoil.AxiSymPanel` : panel objects describing surface geometry.
-- `bodyofrevolution::Bool` : Flag as to whether or not the mesh represents a body of revolution.
-"""
-struct AxiSymMesh{TP,TB} <: Mesh
-    panels::TP
-    bodyofrevolution::TB
-end
-
-"""
-    AxiSymPanel{TF,TA}
-
-Panel object for axisymmetric meshes.
-
-**Fields:**
-- `controlpoint::Array{Float}` : [x;r] coordinates of panel midpoint.
-- `length::Float` : length of panel
-- `normal::Array{Float}` : unit normal vector of panel (TODO: remove if unused)
-- `beta::Float` : angle panel makes with positive x-axis (radians)
-- `radiusofcurvature::Float` : the radius of curvature of the geometry at the panel control point. TODO: make sure this is actually correct with current implementation.
-"""
-struct AxiSymPanel{TF,TA}
-    controlpoint::TA
-    length::TF
-    normal::TA
-    beta::TF
-    radiusofcurvature::TF
-end
-
-#---------------------------------#
-#       PERIODIC MESH TYPES       #
-#---------------------------------#
-
-######################################################################
-#                                                                    #
-#                          MESH GENERATION                           #
-#                                                                    #
-######################################################################
-
-#---------------------------------#
-#             PLANAR              #
-#---------------------------------#
 """
     generate_mesh(x, y; chordlength, wakelength)
 
@@ -182,8 +135,52 @@ function generate_mesh(coordinates; gaptolerance=1e-10)
     return generate_mesh(x, y; gaptolerance=gaptolerance)
 end
 
+######################################################################
+#                                                                    #
+#                       AXISYMMETRIC MESHES                          #
+#                                                                    #
+######################################################################
+
 #---------------------------------#
-#           AXISYMMETRIC          #
+#              TYPES              #
+#---------------------------------#
+
+"""
+    AxiSymMesh{TP,TB}
+
+Axisymmetric Mesh Object
+
+**Fields:**
+- `panels::FLOWFoil.AxiSymPanel` : panel objects describing surface geometry.
+- `bodyofrevolution::Bool` : Flag as to whether or not the mesh represents a body of revolution.
+"""
+struct AxiSymMesh{TP,TB} <: Mesh
+    panels::TP
+    bodyofrevolution::TB
+end
+
+"""
+    AxiSymPanel{TF,TA}
+
+Panel object for axisymmetric meshes.
+
+**Fields:**
+- `controlpoint::Array{Float}` : [x;r] coordinates of panel midpoint.
+- `length::Float` : length of panel
+- `normal::Array{Float}` : unit normal vector of panel (TODO: remove if unused)
+- `beta::Float` : angle panel makes with positive x-axis (radians)
+- `radiusofcurvature::Float` : the radius of curvature of the geometry at the panel control point. TODO: make sure this is actually correct with current implementation.
+"""
+struct AxiSymPanel{TF,TA}
+    controlpoint::TA
+    length::TF
+    normal::TA
+    beta::TF
+    radiusofcurvature::TF
+end
+
+#---------------------------------#
+#            FUNCTIONS            #
 #---------------------------------#
 
 """
@@ -297,6 +294,16 @@ function generate_axisym_mesh(x, r; bodyofrevolution=true, ex=1e-5)
     return AxiSymMesh(panels, bodyofrevolution)
 end
 
+######################################################################
+#                                                                    #
+#                          PERIODIC MESHES                           #
+#                                                                    #
+######################################################################
+
 #---------------------------------#
-#             PERIODIC            #
+#              TYPES              #
+#---------------------------------#
+
+#---------------------------------#
+#            FUNCTIONS            #
 #---------------------------------#
