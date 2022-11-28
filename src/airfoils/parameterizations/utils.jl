@@ -1,5 +1,6 @@
 #=
 Various convenience functions for dealing with airfoil parameterizations and coordinates.
+TODO: move all of these to the airfoil manipulations file.
 
 =#
 

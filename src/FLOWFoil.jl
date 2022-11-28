@@ -27,14 +27,11 @@ export karman_trefftz, joukowsky, naca4#, gbs
 
 # - INCLUDED FILES
 
-# Types
-include("types.jl")
-
 # Geometry Generation and Modification
-include("geometry.jl")
+include("panel.jl")
 
 # Singularity Distributions
-include("singularities.jl")
+include("singularity.jl")
 
 # Inviscid Solver
 include("inviscid_system.jl")
@@ -46,13 +43,17 @@ include("inviscid_system.jl")
 include("solve.jl")
 
 # Post Processing
+include("post_process.jl")
+
 include("planar_post_process.jl")
 include("axisymmetric_post_process.jl")
 
 # Common Airfoil Parameterizations
-include("../common_parameterizations/convenience_functions.jl")
-include("../common_parameterizations/conformal_mapping.jl")
-include("../common_parameterizations/naca.jl")
-include("../common_parameterizations/bspline.jl") #REQUIRES UNREGISTERED PACKAGE
+include("airfoils/parameterizations/utils.jl")
+include("airfoils/parameterizations/conformal_mapping.jl")
+include("airfoils/parameterizations/naca.jl")
+# include("airfoils/parameterizations/cst.jl")
+# include("airfoils/parameterizations/parsec.jl")
+# include("airfoils/parameterizations/bspline.jl") #REQUIRES UNREGISTERED PACKAGE
 
 end
