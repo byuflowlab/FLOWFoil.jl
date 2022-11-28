@@ -8,19 +8,6 @@ Date Started: 04 November 2022
 Change Log:
 =#
 
-"""
-    AxiSymPolar{TF,TA}
-
-**Fields:**
-- `thrust::Float` : Thrust (or drag) of body
-- `surface_velocity::Array{Float}` : surface velocity on each panel
-- `surface_pressure::Array{Float}` : surface pressure coefficient on each panel
-"""
-struct AxiSymPolar{TF,TA} <: Polar
-    thrust::TF
-    surface_velocity::TA
-    surface_pressure::TA
-end
 
 """
     get_axisymmetric_polar(inviscid_solution, Vinf; rho=1.225)
