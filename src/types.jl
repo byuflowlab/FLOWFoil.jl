@@ -14,70 +14,8 @@ Change Log:
 #                          GENERAL TYPES                             #
 #                                                                    #
 ######################################################################
-"""
-    Problem{TM,TF,TB}
 
-Problem definition (geometry, operating point(s), and method selection) and output behavior.
 
-**Fields:**
- - `meshes::Array{PlanarMesh}` : Array of mesh objects
- - `angleofattack::Float` : angle of attack to analyze.
- - `reynolds::Float` : Reynolds number to analyze.
- - `mach::Float` : Mach number to analyze.
- - `viscous::Bool` : Flag to solve viscous or inviscid only
- - `verbose::Bool` : Flag to print out verbose statements
-"""
-struct Problem{TM,TF,TB}
-    meshes::TM
-    angleofattack::TF
-    reynolds::TF
-    mach::TF
-    viscous::TB
-    axisymmetric::TB
-    verbose::TB
-end
-
-"""
-    Problem(meshes, angleofattack=0.0, reynolds=0.0, mach=0.0; viscous=true, verbose=false)
-
-Constructor for Problem Objects.
-
-**Arguments:**
- - `meshes::Array{PlanarMesh or AxiSymMesh}` : Array of mesh objects
- - `angleofattack::Float` : Angle of Attack (currently unused)
- - `reynolds::Float` : Reynolds Number (currently unused)
- - `mach::Float` : Mach Number (currently unused)
-
-**Keyword Arguments:**
- - `viscous::Bool` : Flag to solve viscous or inviscid only
- - `axisymmetric::Bool` : Flag for axisymmetric solver.
- - `verbose::Bool` : Flag to print out verbose statements
-"""
-function Problem(
-    meshes,
-    angleofattack=0.0,
-    reynolds=0.0,
-    mach=0.0;
-    viscous=true,
-    axisymmetric=false,
-    verbose=false,
-)
-    return Problem(meshes, angleofattack, reynolds, mach, viscous, axisymmetric, verbose)
-end
-
-"""
-    InviscidSystem{TF}
-
-**Fields:**
- - `vcoeffmat::Array{Float,2}` : Vortex Coefficient Matrix used in solution.
- - `bccoeffvec::Array{Float,2}` : Boundary Coefficient Vector used in solution.
- - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
-"""
-struct InviscidSystem{TA,TB,TI}
-    vcoeffmat::TA
-    bccoeffvec::TB
-    Ns::TI
-end
 
 # """
 # **Fields:**
@@ -90,23 +28,6 @@ end
 #     bccoeffvec::Array{TF}
 # end
 
-"""
-    InviscidSolution{TM,TF,TD}
-
-**Fields:**
- - `mesh::PlanarMesh` : PlanarMesh object describing airfoil nodes etc.
- - `panelgammas::Array{Float,2}` : \$\\gamma_0\$ and \$\\gamma_{90}\$ values at each airfoil node.
- - `bodystrength::Array{Float}` : if 2D system, bodystrength = \$\\Psi_0\$ (constant stream function) 0 and 90 values.  If axisymmetric system, bodystrength = bound vortex strength of body.
- - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
- - `system::InviscidSystem` : system object.
-"""
-struct InviscidSolution{TM,TF,TI,TD}
-    meshes::TM
-    panelgammas::TF
-    bodystrength::TF
-    Ns::TI
-    system::TD
-end
 
 # """
 #     WakeMesh{TF}
