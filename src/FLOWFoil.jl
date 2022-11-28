@@ -37,6 +37,9 @@ export karman_trefftz, joukowsky, naca4#, gbs
 # Problem Object Definition
 include("problem.jl")
 
+# Mesh Generation
+include("mesh.jl")
+
 # Panel Geometry Functions
 include("panel.jl")
 
