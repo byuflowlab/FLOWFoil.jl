@@ -1,59 +1,77 @@
 module FLOWFoil
 
-# - DEPENDENCIES
+##### ----- DEPENDENCIES ----- #####
 using LinearAlgebra
 using FLOWMath
 using SpecialFunctions
 
-# - EXPORTS
+##### ----- EXPORTS ----- #####
 
-#TYPES
-# geometry types
+### --- TYPES --- ###
+
+# - Geometry - #
 export PlanarMesh, PlanarMeshSystem, AxiSymMesh, AxiSymPanel
-# problem types
+
+# - Problem - #
 export Problem, InviscidSolution
-# output types
+
+# - Polar - #
 export PlanarPolar, AxiSymPolar
 
-#FUNCTIONS
-# geometry functions
+### --- FUNCTIONS --- ###
+
+# - Geometry - #
 export generate_mesh, generate_axisym_mesh, position_coordinates, position_coordinates!
-# inviscid solver functions
+
+# - Solution - #
 export solve
-# post processing functions
+
+# - Polar - #
 export get_planar_polar, get_axisymmetric_polar
-# common airfoil parameterizations
+
+# - Airfoils - #
 export karman_trefftz, joukowsky, naca4#, gbs
 
-# - INCLUDED FILES
+##### ----- INCLUDES ----- #####
 
-# Geometry Generation and Modification
+# Problem Object Definition
+include("problem.jl")
+
+# Panel Geometry Functions
 include("panel.jl")
 
-# Singularity Distributions
+# Singularity Functions
 include("singularity.jl")
 
-# Inviscid Solver
-include("inviscid_system.jl")
+# Linear System Generation
+include("system.jl")
 
-# Boundary Layer Integration
-# include("viscous_system.jl")
-
-# Solver
+# Linear System Solve
 include("solve.jl")
 
-# Post Processing
+# Solution Post Processing
 include("post_process.jl")
 
-include("planar_post_process.jl")
-include("axisymmetric_post_process.jl")
+### --- Airfoil Parameterizations and Manipulations --- ###
 
-# Common Airfoil Parameterizations
+# - MANIPULATIONS - #
 include("airfoils/parameterizations/utils.jl")
+
+# - PARAMETERIZAIONS - #
+
+# Conformal Mapping
 include("airfoils/parameterizations/conformal_mapping.jl")
+
+# NACA 4-Series
 include("airfoils/parameterizations/naca.jl")
+
+# Class-Shape Transformation
 # include("airfoils/parameterizations/cst.jl")
+
+# PARSEC
 # include("airfoils/parameterizations/parsec.jl")
+
+# B-Spline
 # include("airfoils/parameterizations/bspline.jl") #REQUIRES UNREGISTERED PACKAGE
 
 end

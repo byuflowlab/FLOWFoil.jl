@@ -4,13 +4,17 @@ General Post Processing Types and Functions
 Authors: Judd Mehr,
 =#
 
+abstract type Polar end
+
 ######################################################################
 #                                                                    #
-#                            POLAR TYPES                             #
+#                       PLANAR POST PROCESSING                       #
 #                                                                    #
 ######################################################################
 
-abstract type Polar end
+#---------------------------------#
+#              TYPES              #
+#---------------------------------#
 
 """
     PlanarPolar{TF}
@@ -36,6 +40,20 @@ struct PlanarPolar{TF,TS<:Vector{TF}} <: Polar
     surface_pressure::TS
 end
 
+#---------------------------------#
+#            FUNCTIONS            #
+#---------------------------------#
+
+######################################################################
+#                                                                    #
+#                    AXISYMMETRIC POST PROCESSING                    #
+#                                                                    #
+######################################################################
+
+#---------------------------------#
+#              TYPES              #
+#---------------------------------#
+
 """
     AxiSymPolar{TF,TA}
 
@@ -49,3 +67,7 @@ struct AxiSymPolar{TF,TA} <: Polar
     surface_velocity::TA
     surface_pressure::TA
 end
+
+#---------------------------------#
+#            FUNCTIONS            #
+#---------------------------------#
