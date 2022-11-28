@@ -7,31 +7,6 @@ Authors: Judd Mehr,
 
 ######################################################################
 #                                                                    #
-#                            SOLVER TYPES                            #
-#                                                                    #
-######################################################################
-
-# Define abstract type of which each solver struct will be a subtype
-abstract type AnalysisType end
-
-# - Planar (2D) - #
-# This is the standard airfoil analysis type (similar to XFoil)
-struct Planar <: AnalysisType end
-# NOTE: Currently, the only Planer implementation is the mfoil solver.
-# TODO: eventually, allow for user defined panel and singularity types
-
-# - Axisymmetric - #
-# The Axisymmetric solver type is used for bodies of revolution and annular airfoils (ducts)
-struct Axisymmetric{TB} <: AnalysisType
-    body_of_refolution::TB
-end
-
-# - Periodic (Cascade) - #
-# The periodic type is specifically used for cascade analysis.
-struct Periodic <: AnalysisType end
-
-######################################################################
-#                                                                    #
 #                          INVISCID SOLVER                           #
 #                                                                    #
 ######################################################################
@@ -50,7 +25,7 @@ Solve problem defined by the input Problem object and return the solution in a S
 function solve(problem)
 
     # Check viscosity and solve accordingly
-    if problem.viscous
+    if problem.reynolds != nothing && problem.reynolds > 0.0
         @error "No viscous implementation."
     else
         solution = solve_inviscid(problem)
@@ -87,12 +62,12 @@ Solves the inviscid problem.
 function solve_inviscid(problem)
 
     # Check to make sure you want the invsicid solution:
-    if problem.viscous
+    if problem.reynolds != nothing && problem.reynolds > 0.0
         @warn "Viscous mismatch, please set problem.viscous=false if you would like to solve the inviscid system alone."
     end
 
     # get inviscid system
-    inviscid_system = generate_inviscid_system(problem.mesh, problem.solver)
+    inviscid_system = generate_inviscid_system(problem.mesh, problem.type)
 
     solution = solve_inviscid_system(inviscid_system, problem.mesh)
 

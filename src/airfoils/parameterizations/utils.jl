@@ -59,3 +59,50 @@ function normalize_airfoil!(x, z)
 
     return nothing
 end
+
+"""
+    position_coordinates!(meshes, scales, angles, locations)
+
+Take in meshes and adjust scale, leading edge location, and angle of attack of the individual meshes in the system.  Updates mesh objects in place.
+
+**Arguments:**
+ - `meshes::Array{PlanarMesh}` : Array of mesh objects.
+ - `scales::Array{Float}` : Array of numbers by which to scale respective meshes.
+ - `angles::Array{Float}` : Array of angles, in degrees, by which to rotate respective meshes (positive = pitch up).
+ - `locations::Array{Array{Float}}` : Array of [x y] positions of leading edges for respective meshes.
+
+**Keyword Arguments:**
+- `flipped::Bool` : flag whether to flip airfoil upside down
+
+**Returns:**
+- `xcoordinates::Array{Float}` : array of x-coordinates
+- `zcoordinates::Array{Float}` : array of z-coordinates
+
+"""
+function position_coordinates(
+    coordinates, scale, angle, location; flipped=false, constant_point=[0.0 0.0]
+)
+
+    #flip if needed
+    if flipped
+        coordinates[:, 2] .*= -1.0
+        reverse!(coordinates; dims=1)
+    end
+
+    # scale
+    coordinates .*= scale
+
+    coordinates .-= constant_point
+
+    # get rotation matrix
+    R = [cosd(-angle) -sind(-angle); sind(-angle) cosd(-angle)]
+
+    # rotate and translate
+    for j in 1:length(coordinates[:, 1])
+        coordinates[j, :] = R * coordinates[j, :]
+        coordinates[j, :] .+= location
+    end
+    coordinates .+= constant_point
+
+    return coordinates[:, 1], coordinates[:, 2]
+end

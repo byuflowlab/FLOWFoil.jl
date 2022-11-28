@@ -8,6 +8,32 @@ Authors: Judd Mehr,
 
 ######################################################################
 #                                                                    #
+#                          PROBLEM TYPES                             #
+#                                                                    #
+######################################################################
+
+# Define abstract type of which each solver struct will be a subtype
+abstract type ProblemType end
+
+# - Planar (2D) - #
+# This is the standard airfoil analysis type (similar to XFoil)
+struct Planar <: ProblemType end
+# NOTE: Currently, the only Planer implementation is the mfoil solver.
+# TODO: eventually, allow for user defined panel and singularity types
+
+# - Axisymmetric - #
+# The Axisymmetric solver type is used for bodies of revolution and annular airfoils (ducts)
+struct Axisymmetric{TB} <: ProblemType
+    body_of_refolution::TB
+end
+# QUESTION FOR TAYLOR: Here TB could be a single bool or an array of bools.  Should I keep it as TB, or should I always make it an array of bools explicitly?
+
+# - Periodic (Cascade) - #
+# The periodic type is specifically used for cascade analysis.
+struct Periodic <: ProblemType end
+
+######################################################################
+#                                                                    #
 #                         PROBLEM DEFINITION                         #
 #                                                                    #
 ######################################################################
@@ -24,7 +50,7 @@ Problem definition (geometry, operating point(s), and method selection) and outp
  - `reynolds::Float` : Reynolds number to analyze.
  - `mach::Float` : Mach number to analyze.
  - `viscous::Bool` : Flag to solve viscous or inviscid only
-- `solver::AnalysisType` : Analysis method to use for problem.
+- `solver::ProblemType` : Analysis method to use for problem.
 """
 struct Problem{TM,TF,TB}
     mesh::TM
@@ -32,14 +58,14 @@ struct Problem{TM,TF,TB}
     reynolds::TF
     mach::TF
     viscous::TB
-    solver::AnalysisType
+    type::ProblemType
 end
 
 # - Basic Function - #
 """
 """
 function define_problem(
-    ::AnalysisType,
+    ::ProblemType,
     coordinates,
     angle_of_attack,
     reynolds,
@@ -50,13 +76,11 @@ function define_problem(
 ) end
 
 # - Simple Implementation (Like XFoil) - #
-"""
-"""
 function define_problem(
     coordinates,
     angle_of_attack,
-    reynolds=-1.0,
-    mach=-1.0;
+    reynolds=nothing,
+    mach=nothing;
     scaling=[],
     translation=[],
     flip=[],
@@ -64,7 +88,7 @@ function define_problem(
 
     # If no solver type, use planar
     return define_problem(
-        ::Planar,
+        Planar(),
         coordinates,
         angle_of_attack;
         reynolds=reynolds,

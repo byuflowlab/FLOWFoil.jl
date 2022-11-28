@@ -34,6 +34,8 @@ export karman_trefftz, joukowsky, naca4#, gbs
 
 ##### ----- INCLUDES ----- #####
 
+### --- Core Functionality --- ###
+
 # Problem Object Definition
 include("problem.jl")
 

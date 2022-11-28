@@ -20,10 +20,15 @@ struct InviscidSystem{TA,TB,TI}
     Ns::TI
 end
 
+######################################################################
+#                                                                    #
+#                         SYSTEM GENERATION                          #
+#                                                                    #
+######################################################################
 """
 """
 function generate_inviscid_system(problem::Problem)
-    return generate_inviscid_system(problem.mesh, problem.solver)
+    return generate_inviscid_system(problem.mesh, problem.type)
 end
 
 """
@@ -42,7 +47,7 @@ end
 
 """
 **Arguments:**
-- `mesh::Array{PlanarMesh}` : PlanarMesh for airfoil to analyze.
+- `mesh::Array{AxisymMesh}` : AxisymMesh for airfoil to analyze.
 """
 function generate_inviscid_system(mesh, ::Axisymmetric)
     # Get coeffiecient matrix (A, left hand side)
@@ -59,3 +64,71 @@ end
 - `mesh::Array{PlanarMesh}` : PlanarMesh for airfoil to analyze.
 """
 function generate_inviscid_system(mesh, ::Periodic) end
+
+######################################################################
+#                                                                    #
+#                         UTILITY FUNCTIONS                          #
+#                                                                    #
+######################################################################
+
+"""
+    size_system(mesh)
+
+Count size of inviscid system matrix.
+
+**Arguments:**
+ - `mesh::Array{Mesh}` : The system for which to calculate the linear system size.
+"""
+function size_system(meshes, ::Planar)
+
+    # initialize
+    # number of bodies for convenience
+    numbodies = length(meshes)
+
+    # initialize total system size
+    N = 0
+
+    # initialize system size contributions from each mesh
+    Ns = [1 for i in 1:numbodies]
+
+    # Count number of airfoil nodes in each mesh.
+    for i in 1:numbodies
+        Ns[i] = length(meshes[i].nodes)
+        N += Ns[i]
+    end
+
+    return N, Ns
+end
+
+function size_system(meshes, ::Axisymmetric)
+
+    # initialize
+    # number of bodies for convenience
+    numbodies = length(meshes)
+
+    # initialize total system size
+    N = 0
+
+    # initialize system size contributions from each mesh
+    Ns = [1 for i in 1:numbodies]
+
+    # Count number of airfoil nodes in each mesh.
+    for i in 1:numbodies
+        Ns[i] = length(meshes[i].panels)
+        N += Ns[i]
+    end
+
+    return N, Ns
+end
+
+"""
+    get_offset(Ns)
+
+Get the offset values for the mesh system to be used in the system matrix assembly.
+
+**Arguments:**
+ - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
+"""
+function get_offset(Ns)
+    return [0; cumsum(Ns[1:(end - 1)])]
+end

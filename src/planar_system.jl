@@ -172,4 +172,3 @@ function assemble_boundary_conditions(meshes)
 
     return bc
 end
-
