@@ -3,15 +3,11 @@ Compose Type Definitions
 
 Authors: Judd Mehr,
 
-Date Started: 27 April 2022
-
-Change Log:
-10/22 - Axisymmetric types added
 =#
 
 ######################################################################
 #                                                                    #
-#                          GENERAL TYPES                             #
+#                          VISCOUS TYPES                             #
 #                                                                    #
 ######################################################################
 
@@ -180,129 +176,3 @@ Change Log:
 #        gamma_air, eta_crit, eta_D, GA, GB, GC, Klag, Ctau, Etau, rSu, fw, dw, epsilonw
 #    )
 #end
-
-######################################################################
-#                                                                    #
-#                         PLANAR (2D) TYPES                          #
-#                                                                    #
-######################################################################
-
-"""
-    PlanarMesh{TF,TB,TN}
-
-Mesh for single body.
-
-**Fields:**
- - `nodes::Array{Array{Float,2}}` : [x y] node (panel edge) locations for airfoil
- - `chord::Float` : airfoil chord length
- - `blunt_te::Bool` : boolean for whether or not the trailing edge is blunt or not.
- - `trailing_edge_gap::Float` : trailing edge gap distance
- - `tdp::Float` : dot product of unit vectors of trailing edge bisection and gap vectors
- - `txp::Float` : pseudo-cross product of unit vectors of trailing edge bisection and gap vectors
-**Assuptions:**
- - x and y coordinates start at the bottom trailing edge and proceed clockwise.
-
-"""
-struct PlanarMesh{TF,TB,TN<:Vector{Matrix{TF}}}
-    nodes::TN
-    chord::TF
-    blunt_te::TB
-    trailing_edge_gap::TF
-    tdp::TF
-    txp::TF
-end
-
-"""
-    PlanarMeshSystem{TM,TF,TL}
-
-System of meshes to solve.
-
-**Fields:**
- - `meshes::Array{Mesh}` : Array of mesh objects.
- - `scales::Vector{Float}` : Airfoil scaling factors.
- - `angles::Vector{Float}` : Airfoil angles of attack.
- - `locations::Array{Array{TF}}` : Array of leading edge locations.
-
-"""
-struct PlanarMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
-    meshes::TM
-    scales::TF
-    angles::TF
-    locations::TL
-end
-
-"""
-    PlanarPolar{TF}
-
-**Fields:**
- - `lift::Float` : Lift Coefficient.
- - `drag::Float` : Total Drag Coefficient.
- - `pdrag::Float` : Pressure Drag Coefficient.
- - `idrag::Float` : Induced Drag Coefficient.
- - `moment::Float` : Moment Coefficient.
- - `surfacevelocity::Vector{Float}` : surface velocity distribution
- - `surfacepressure::Vector{Float}` : surface pressure distribution
-"""
-struct PlanarPolar{TF,TS<:Vector{TF}}
-    lift::TF
-    drag::TF
-    pdrag::TF
-    idrag::TF
-    moment::TF
-    surface_velocity::TS
-    surface_pressure::TS
-end
-
-######################################################################
-#                                                                    #
-#                        AXISYMMETRIC TYPES                          #
-#                                                                    #
-######################################################################
-
-"""
-    AxiSymMesh{TP,TB}
-
-Axisymmetric Mesh Object
-
-**Fields:**
-- `panels::FLOWFoil.AxiSymPanel` : panel objects describing surface geometry.
-- `bodyofrevolution::Bool` : Flag as to whether or not the mesh represents a body of revolution.
-"""
-struct AxiSymMesh{TP,TB}
-    panels::TP
-    bodyofrevolution::TB
-end
-
-"""
-    AxiSymPanel{TF,TA}
-
-Panel object for axisymmetric meshes.
-
-**Fields:**
-- `controlpoint::Array{Float}` : [x;r] coordinates of panel midpoint.
-- `length::Float` : length of panel
-- `normal::Array{Float}` : unit normal vector of panel (TODO: remove if unused)
-- `beta::Float` : angle panel makes with positive x-axis (radians)
-- `radiusofcurvature::Float` : the radius of curvature of the geometry at the panel control point. TODO: make sure this is actually correct with current implementation.
-"""
-struct AxiSymPanel{TF,TA}
-    controlpoint::TA
-    length::TF
-    normal::TA
-    beta::TF
-    radiusofcurvature::TF
-end
-
-"""
-    AxiSymPolar{TF,TA}
-
-**Fields:**
-- `thrust::Float` : Thrust (or drag) of body
-- `surface_velocity::Array{Float}` : surface velocity on each panel
-- `surface_pressure::Array{Float}` : surface pressure coefficient on each panel
-"""
-struct AxiSymPolar{TF,TA}
-    thrust::TF
-    surface_velocity::TA
-    surface_pressure::TA
-end

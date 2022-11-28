@@ -30,10 +30,10 @@ end
 - `mesh::Array{PlanarMesh}` : PlanarMesh for airfoil to analyze.
 """
 function generate_inviscid_system(mesh, ::Planar)
-    # get coefficient matrix
+    # Get coeffiecient matrix (A, left hand side)
     A, Ns = assemble_ring_vortex_matrix(mesh)
 
-    # get boundary conditions
+    # Get boundary conditions (b, right hand side)
     b = assemble_ring_boundary_conditions(mesh)
 
     return InviscidSystem(A, b, Ns)
@@ -47,7 +47,7 @@ function generate_inviscid_system(mesh, ::Axisymmetric)
     # Get coeffiecient matrix (A, left hand side)
     A, Ns = assemble_vortex_matrix(mesh)
 
-    # Get boundary conditions (RHS)
+    # Get boundary conditions (b, right hand side)
     b = assemble_boundary_conditions(mesh)
 
     return InviscidSystem(A, b, Ns)

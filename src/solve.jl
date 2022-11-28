@@ -3,10 +3,6 @@ Solve Functions
 
 Authors: Judd Mehr,
 
-Date Started: 27 April 2022
-
-Change Log:
-10/22 - axisymmetric solver options available.
 =#
 
 ######################################################################
