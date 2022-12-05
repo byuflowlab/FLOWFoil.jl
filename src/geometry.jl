@@ -18,24 +18,26 @@ Calculate various items needed for trailing edge treatment.
  - `txp::Float` : "cross product" of TE bisection and TE gap unit vectors
  - `trailing_edge_gap::Float` : TE gap distance
 """
-function get_trailing_edge_info(nodes)
-    # get bisection vector
+function get_trailing_edge_info(panel_edges)
+
+    # - get bisection vector - #
     # get vector along first panel
-    d1, d1mag = get_d(nodes[2], nodes[1])
+    d1, d1mag = get_d(panel_edges[1, :, :])
     d1 /= d1mag
 
     # get vector along second panel
-    dn, dnmag = get_d(nodes[end - 1], nodes[end])
+    dn, dnmag = get_d(panel_edges[end, :, :])
     dn /= dnmag
 
     # calculate vector that bisects the first and last panel vectors
     bisector = 0.5 * (d1 + dn)
 
+    # - Calculate tdp - #
     # normalize to get the unit vector
     ttehat = bisector / sqrt(bisector[1]^2 + bisector[2]^2)
 
     # get panel vector
-    dte, dtemag = get_d(nodes[1], nodes[end])
+    dte, dtemag = get_d([panel_edges[1, 1, :]'; panel_edges[end, 2, :]'])
 
     # normalize panelvector
     dtehat = dte / dtemag
@@ -43,13 +45,23 @@ function get_trailing_edge_info(nodes)
     # get dot product of bisection vector and panel vector.
     tdp = ttehat[1] * dtehat[1] + ttehat[2] * dtehat[2]
 
+    # - Calculate txp - #
     # get cross product of bisection vector and panel vector
     txp = abs(ttehat[1] * dtehat[2] - ttehat[2] * dtehat[1])
 
-    # get trailing edge gap
+    # - Get trailing edge gap - #
     trailing_edge_gap = -dte[1] * ttehat[2] + dte[2] * ttehat[1]
 
-    return isnan(tdp) ? 0.0 : tdp, isnan(txp) ? 0.0 : txp, trailing_edge_gap
+    # - Get other panel geometry - #
+
+    # gap edges
+    gap_edges = [panel_edges[end, 2, :]'; panel_edges[1, 1, :]']
+    # panel vector and length
+    panel_vector, panel_length = get_d(gap_edges)
+
+    return isnan(tdp) ? 0.0 : tdp,
+    isnan(txp) ? 0.0 : txp, trailing_edge_gap, gap_edges, panel_vector,
+    panel_length
 end
 
 """
@@ -90,10 +102,10 @@ Calculate panel length (between adjacent nodes).
  - `d::Vector{Float}` : vector from node1 to node2
  - `dmag::Float` : length of panel between node1 and node2
 """
-function get_d(node1, node2)
+function get_d(edges)
 
     # simply call get_r, since it`s exactly what is needed
-    return get_r(node1, node2)
+    return get_r(edges[1, :], edges[2, :])
 end
 
 """
@@ -111,7 +123,7 @@ function get_theta(h, a)
 end
 
 """
-    get_theta(h, a, dmag)
+    get_theta2(h, a, dmag)
 
 Get angle (in radians) between panel and vector from node2 to evaluation point.
 
@@ -121,12 +133,12 @@ Get angle (in radians) between panel and vector from node2 to evaluation point.
  - `dmag::Float` : Panel lentgh.
 
 """
-function get_theta(h, a, dmag)
+function get_theta2(h, a, dmag)
     return atan(h, a - dmag)
 end
 
 """
-    get_h(r1, d, dmag)
+    get_r_normal(r1, d, dmag)
 
 Calculate distance from panel to evalulation point in the panel normal direction.
 
@@ -136,10 +148,10 @@ Calculate distance from panel to evalulation point in the panel normal direction
  - `dmag::Float` : panel length
 
 """
-function get_h(r1, d, dmag)
+function get_r_normal(r1, d, dmag)
 
     # get unit normal to panel
-    nhat = get_normal(d, dmag)
+    nhat = get_panel_normal(d, dmag)
 
     # calculate h (dot product of unit normal and r1 vector
     h = r1[1] * nhat[1] + r1[2] * nhat[2]
@@ -148,7 +160,7 @@ function get_h(r1, d, dmag)
 end
 
 """
-    get_a(r1, d, dmag)
+    get_r_tangent(r1, d, dmag)
 
 Calculate distance from panel to evalulation point in the panel tangent direction.
 
@@ -158,10 +170,10 @@ Calculate distance from panel to evalulation point in the panel tangent directio
  - `dmag::Float` : panel length
 
 """
-function get_a(r1, d, dmag)
+function get_r_tangent(r1, d, dmag)
 
     # Get unit tangent vector
-    that = get_tangent(d, dmag)
+    that = get_panel_tangent(d, dmag)
 
     # calculate a (dot product of unit tangent and r1 vector)
     a = r1[1] * that[1] + r1[2] * that[2]
@@ -169,7 +181,7 @@ function get_a(r1, d, dmag)
 end
 
 """
-    get_tangent(d, dmag)
+    get_panel_tangent(d, dmag)
 
 Get unit tangent to panel.
 
@@ -178,12 +190,12 @@ Get unit tangent to panel.
  - `dmag::Float` : panel length
 
 """
-function get_tangent(d, dmag)
+function get_panel_tangent(d, dmag)
     return (dmag == 0.0) ? [0.0; 0.0] : (d / dmag)
 end
 
 """
-    get_normal(d, dmag)
+    get_panel_normal(d, dmag)
 
 Get unit normal to panel.
 
@@ -192,98 +204,15 @@ Get unit normal to panel.
  - `dmag::Float` : panel length
 
 """
-function get_normal(d, dmag)
+function get_panel_normal(d, dmag)
 
     # get unit tangent
-    that = get_tangent(d, dmag)
+    that = get_panel_tangent(d, dmag)
 
     # use fancy trick to rotate to be unit normal
     nhat = [-that[2]; that[1]]
 
     return nhat
-end
-
-"""
-    get_distances(node1, node2, point)
-
-Get vectors and magnitudes for panel and between nodes and validation points.
-
-**Arguments:**
- - `node1::Array{Float}` : [x y] position of node1.
- - `node2::Array{Float}` : [x y] position of node2.
- - `point::Array{Float}` : [x y] position of evaluation point.
-
-**Returns:**
- - `r1::Vector{Float}` : vector from node1 to evaluation point.
- - `r1mag::Float` : distance from node1 to evaluation point.
- - `r2::Vector{Float}` : vector from node2 to evaluation point.
- - `r2mag::Float` : distance from node2 to evaluation point.
- - `d::Vector{Float}` : vector from node1 to node2.
- - `dmag::Float` : panel length
-
-"""
-function get_distances(node1, node2, point)
-
-    # Get vector and magnitude from node1 to point
-    r1, r1mag = get_r(node1, point)
-
-    # Get vector and magnitude from node2 to point
-    r2, r2mag = get_r(node2, point)
-
-    # Get vector and magnitude of panel
-    d, dmag = get_d(node1, node2)
-
-    return r1, r1mag, r2, r2mag, d, dmag
-end
-
-"""
-    get_orientation(node1, node2, point)
-
-Get angles between panel and evaluation point, ln of distances from nodes to evaluation point, and evaluation point position relative to panel.
-
-**Arguments:**
- - `node1::Array{Float}` : [x y] position of node1.
- - `node2::Array{Float}` : [x y] position of node2.
- - `point::Array{Float}` : [x y] position of evaluation point.
-
-**Returns:**
- - `theta1::Float` : Angle between panel and evaluation point, centered at node1.
- - `theta2::Float` : Angle between panel and evaluation point, centered at node2.
- - `ln1::Float` : Natural log of distance from node1 to evaluation point.
- - `ln2::Float` : Natural log of distance from node2 to evaluation point.
- - `h::Float` : Distance from panel to evaluation in panel normal direction.
- - `a::Float` : Distance from node1 to evaluation in panel tangent direction.
-
-"""
-function get_orientation(node1, node2, point; epsilon=1e-9)
-
-    # get distances
-    r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
-
-    # Get distances normal and tangent to panel from node1
-    h = get_h(r1, d, dmag)
-    a = get_a(r1, d, dmag)
-
-    # Calculate natural log values, setting to zero if the point is close enough to the node, also get theta values and change based on point location if necessary
-    theta1 = get_theta(h, a)
-    theta2 = get_theta(h, a, dmag)
-    if r1mag < epsilon
-        ln1 = 0.0
-        theta1 = pi
-        theta2 = pi
-    else
-        ln1 = log(r1mag)
-    end
-
-    if r2mag < epsilon
-        ln2 = 0.0
-        theta1 = 0.0
-        theta2 = 0.0
-    else
-        ln2 = log(r2mag)
-    end
-
-    return theta1, theta2, ln1, ln2, h, a
 end
 
 ######################################################################

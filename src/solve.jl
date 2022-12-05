@@ -22,14 +22,8 @@ Solve problem defined by the input Problem object and return the solution in a S
 **Returns:**
  - `solution::{InviscidSolution or ViscousSolution}` : returns solution of type matching viscous flag in problem.
 """
-function solve(problem)
-
-    # Check viscosity and solve accordingly
-    if problem.reynolds != nothing && problem.reynolds > 0.0
-        @error "No viscous implementation."
-    else
-        solution = solve_inviscid(problem)
-    end
+function solve(system)
+    solution = solve_inviscid(system)
 
     return solution
 end
@@ -42,10 +36,9 @@ end
  - `mesh::Mesh` : Mesh object describing airfoil nodes etc.
  - `system::InviscidSystem` : system object.
 """
-struct InviscidSolution{TM,TF,TI,TD}
+struct InviscidSolution{TF,TS<:System}
     x::TF
-    mesh::TM
-    system::TD
+    system::TS
 end
 
 """
@@ -59,17 +52,8 @@ Solves the inviscid problem.
 **Returns:**
  - `solution::InviscidSolution`
 """
-function solve_inviscid(problem)
-
-    # Check to make sure you want the invsicid solution:
-    if problem.reynolds != nothing && problem.reynolds > 0.0
-        @warn "Viscous mismatch, please set problem.viscous=false if you would like to solve the inviscid system alone."
-    end
-
-    # get inviscid system
-    inviscid_system = generate_inviscid_system(problem.mesh, problem.type)
-
-    solution = solve_inviscid_system(inviscid_system, problem.mesh)
+function solve_inviscid(system)
+    solution = solve_inviscid_system(system)
 
     return solution
 end
@@ -89,12 +73,12 @@ Outputs the InviscidSolution object which contains the inviscid_system.
  - `solution::InviscidSolution`
 
 """
-function solve_inviscid(inviscid_system, meshes)
+function solve_inviscid(inviscid_system)
 
     # Solve System
-    x = inviscid_system.vcoeffmat \ inviscid_system.bccoeffvec
+    x = inviscid_system.A \ inviscid_system.b
 
-    return InviscidSolution(x, meshes, inviscid_system)
+    return InviscidSolution(x, inviscid_system)
 end
 
 # # MOVE TO POST PROCESSING

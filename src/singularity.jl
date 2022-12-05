@@ -9,6 +9,12 @@ Change Log:
 10/22 - Add axisymmetric ring vortex and related functions
 =#
 
+######################################################################
+#                                                                    #
+#               XFOIL METHODS (linear vortex for now)                #
+#                                                                    #
+######################################################################
+
 """
     get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
 
@@ -91,7 +97,7 @@ function get_psitildesigma(psibarsigma, r1mag, r2mag, theta1, theta2, dmag, h, a
 end
 
 """
-    get_vortex_influence(node1, node2, point)
+    calculate_vortex_influence(node1, node2, point)
 
 Calculate vortex influence coefficients on the evaluation point from the panel between node1 and node2.
 
@@ -101,27 +107,38 @@ Calculate vortex influence coefficients on the evaluation point from the panel b
  - `point::Array{Float}(2)` : [x y] location of evaluation point
 
 """
-function get_vortex_influence(node1, node2, point)
-
-    # Use inputs to get raw distances
-    r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
-
-    # Calculate a, h, and natural logs based on position of point
-    theta1, theta2, ln1, ln2, h, a = get_orientation(node1, node2, point)
-
+function calculate_vortex_influence(::Linear, mesh, i, j)
     # get psibargamma value
-    psibargamma = get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
+    psibargamma = get_psibargamma(
+        mesh.theta1[i, j],
+        mesh.theta2[i, j],
+        mesh.lnr1[i, j],
+        mesh.lnr2[i, j],
+        mesh.panel_length[j],
+        mesh.r1normal[i, j],
+        mesh.r1tangent[i, j],
+    )
 
     # get psitildegamma value
     psitildegamma = get_psitildegamma(
-        psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a
+        psibargamma,
+        mesh.r1[i, j],
+        mesh.r2[i, j],
+        mesh.theta1[i, j],
+        mesh.theta2[i, j],
+        mesh.lnr1[i, j],
+        mesh.lnr2[i, j],
+        mesh.panel_length[j],
+        mesh.r1normal[i, j],
+        mesh.r1tangent[i, j],
     )
+
     # put psi`s together
     return (psibargamma - psitildegamma), psitildegamma
 end
 
 """
-    get_source_influence(node1, node2, point)
+    calculate_source_influence(::Constant, node1, node2, point)
 
 Calculate source influence coefficients on the evaluation point from the panel between node1 and node2.
 
@@ -130,16 +147,17 @@ Calculate source influence coefficients on the evaluation point from the panel b
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point
 """
-function get_source_influence(node1, node2, point)
-
-    # Use inputs to get raw distances
-    r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
-
-    # Calculate a, h, and natural logs based on position of point
-    theta1, theta2, ln1, ln2, h, a = get_orientation(node1, node2, point)
-
+function calculate_source_influence(::Constant, mesh, i, j)
     #get psibarsigma value
-    psibarsigma = get_psibarsigma(theta1, theta2, ln1, ln2, dmag, h, a)
+    psibarsigma = get_psibarsigma(
+        mesh.theta1[i, j],
+        mesh.theta2[i, j],
+        mesh.lnr1[i, j],
+        mesh.lnr2[i, j],
+        mesh.panel_length[j],
+        mesh.r1normal[i, j],
+        mesh.r1tangent[i, j],
+    )
 
     # shift source in order to get a better behaved branch cut orientation
     if (theta1 + theta2) > pi

@@ -1,49 +1,33 @@
 module FLOWFoil
 
-##### ----- DEPENDENCIES ----- #####
+#---------------------------------#
+#           DEPENDENCIES          #
+#---------------------------------#
 using LinearAlgebra
 using FLOWMath
 using SpecialFunctions
+using StaticArrays
 
-##### ----- EXPORTS ----- #####
+#---------------------------------#
+#             INCLUDES            #
+#---------------------------------#
 
-### --- TYPES --- ###
+##### ----- CORE FUNCTIONALITY ----- #####
 
-# - Geometry - #
-export PlanarMesh, PlanarMeshSystem, AxiSymMesh, AxiSymPanel
-
-# - Problem - #
-export Problem, InviscidSolution
-
-# - Polar - #
-export PlanarPolar, AxiSymPolar
-
-### --- FUNCTIONS --- ###
-
-# - Geometry - #
-export generate_mesh, generate_axisym_mesh, position_coordinates, position_coordinates!
-
-# - Solution - #
-export solve
-
-# - Polar - #
-export get_planar_polar, get_axisymmetric_polar
-
-# - Airfoils - #
-export karman_trefftz, joukowsky, naca4#, gbs
-
-##### ----- INCLUDES ----- #####
-
-### --- Core Functionality --- ###
+# Dispatch Types
+include("dispatch_types.jl")
 
 # Problem Object Definition
 include("problem.jl")
 
+# Panel Definition
+include("panel.jl")
+
 # Mesh Generation
 include("mesh.jl")
 
-# Panel Geometry Functions
-include("panel.jl")
+# Geometry Utilities
+include("geometry.jl")
 
 # Singularity Functions
 include("singularity.jl")
@@ -54,10 +38,13 @@ include("system.jl")
 # Linear System Solve
 include("solve.jl")
 
-# Solution Post Processing
-include("post_process.jl")
+# # Solution Post Processing
+# include("post_process.jl")
 
-### --- Airfoil Parameterizations and Manipulations --- ###
+# Convenience Functions
+include("convenience_functions.jl")
+
+##### ----- AIRFOIL PARAMETERIZATIONS AND MANIPULATIONS ----- #####
 
 # - MANIPULATIONS - #
 include("airfoils/parameterizations/utils.jl")
@@ -65,7 +52,7 @@ include("airfoils/parameterizations/utils.jl")
 # - PARAMETERIZAIONS - #
 
 # Conformal Mapping
-include("airfoils/parameterizations/conformal_mapping.jl")
+# include("airfoils/parameterizations/conformal_mapping.jl")
 
 # NACA 4-Series
 include("airfoils/parameterizations/naca.jl")
@@ -78,5 +65,52 @@ include("airfoils/parameterizations/naca.jl")
 
 # B-Spline
 # include("airfoils/parameterizations/bspline.jl") #REQUIRES UNREGISTERED PACKAGE
+
+#---------------------------------#
+#             EXPORTS             #
+#---------------------------------#
+
+### --- TYPES --- ###
+# Singularities
+export Source, Doublet, Vortex
+export Constant, Linear, Quadratic, Spline
+
+# Boundary Conditions
+export Neumann, Dirichlet, Robin, Mixed
+
+# Problem
+export Problem, PlanarProblem, AxisymmetricProblem, PeriodicProblem
+
+# Panels
+export PlanarFlatPanel, AxisymmetricFlatPanel
+
+# Mesh
+export generate_mesh
+
+# System
+export generate_inviscid_system
+
+### --- FUNCTIONS --- ###
+
+# Convenience Functions
+export solve
+
+# Problem
+export define_problem
+
+# Panels
+export generate_panels
+
+# Airfoil Parameterizations
+export naca4
+
+#---------------------------------#
+#       OVERLOADED FUNCTIONS      #
+#---------------------------------#
+
+import Base.size
+function size(t::Tuple)
+    return length(t)
+end
 
 end
