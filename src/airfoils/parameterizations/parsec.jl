@@ -7,7 +7,7 @@ import Dierckx
 Calculate the x,y airfoil coordinates using the PARSEC polynomial.
 """
 function getxy(a::Array, N::Int64=80)
-    x = cosinespacing(N)
+    x = cosine_spacing(N)
     y = zeros(N)
     if real(a)!=a
         x = complex(x)
@@ -108,7 +108,7 @@ function parsec(p::Array, N::Int64=80)
         error("Incorrect number of parameters, must have one of the following: \n9: Sharp TE \n11: Full Parameter Set \n12: Full Set + AoA")
     end
     #--- Get x-values ---#
-    x = cosinespacing(N)
+    x = cosine_spacing(N)
 
     #--- Upper Curve ---#
     au = solveas([ p[1]; p[2]; p[4]; p[6]; p[8]; p[10]], true)
@@ -321,7 +321,7 @@ function parsecstd(p::Array, N::Int64=80)
         error("Incorrect number of parameters, must have one of the following: \n9: Sharp TE \n11: Full Parameter Set \n12: Full Set + AoA")
     end
     #--- Get x-values ---#
-    x = cosinespacing(N)
+    x = cosine_spacing(N)
 
     #--- Upper Curve ---#
     au = solveasstd([ p[1]; p[2]; p[4]; p[6]; p[8]; p[9]; p[10]; p[11]], true)

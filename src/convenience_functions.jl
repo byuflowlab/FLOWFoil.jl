@@ -53,14 +53,13 @@ function solve(coordinates, angle_of_attack, reynolds, mach, pt::ProblemType)
     system = generate_inviscid_system(pt, panels, mesh, TEmesh)
 
     # Solve Linear System
-    return solution = solve(system)
+    solution = solve(system)
 
-    # # Post Process Solution
-    # polar = post_process(problem, panels, mesh, solution)
+    # Post Process Solution
+    polar = post_process(pt, problem, panels, mesh, solution)
 
-    # # Return
-    # return polar
-    return nothing
+    # Return
+    return polar
 end
 
 # - Mach = 0.0 - #

@@ -37,11 +37,14 @@ include("system.jl")
 # Linear System Solve
 include("solve.jl")
 
-# # Solution Post Processing
-# include("post_process.jl")
+# Solution Post Processing
+include("post_process.jl")
 
 # Convenience Functions
 include("convenience_functions.jl")
+
+# Utility Functions
+include("utils.jl")
 
 ##### ----- AIRFOIL PARAMETERIZATIONS AND MANIPULATIONS ----- #####
 
@@ -83,11 +86,8 @@ export Problem, PlanarProblem, AxisymmetricProblem, PeriodicProblem
 # Panels
 export PlanarFlatPanel, AxisymmetricFlatPanel
 
-# Mesh
-export generate_mesh
-
 # System
-export generate_inviscid_system
+export InviscidSystem
 
 ### --- FUNCTIONS --- ###
 
@@ -99,6 +99,15 @@ export define_problem
 
 # Panels
 export generate_panels
+
+# Mesh
+export generate_mesh
+
+# Systems
+export generate_inviscid_system
+
+# Post Processing
+export post_process
 
 # Airfoil Parameterizations
 export naca4

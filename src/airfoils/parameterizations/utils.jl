@@ -5,7 +5,7 @@ TODO: move all of these to the airfoil manipulations file.
 =#
 
 """
-    function cosinespacing(N=180)
+    function cosine_spacing(N=180)
 
 Calculate N cosine spaced points.
 
@@ -13,7 +13,7 @@ Calculate N cosine spaced points.
  - `N::Int` : Number of points
 
 """
-function cosinespacing(N=80)
+function cosine_spacing(N=80)
     return [0.5 * (1 - cos(pi * (i - 1) / (N - 1))) for i in 1:N]
 end
 

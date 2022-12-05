@@ -11,7 +11,7 @@ function bernstein(r, n, x)
 end
 
 function cst(coeffs::AbstractArray{<:Number,1}, N::Integer=80,
-    x::AbstractArray{<:Number,1}=cosinespacing(N), dzu::Number=0.0, dzl::Number=0.0,
+    x::AbstractArray{<:Number,1}=cosine_spacing(N), dzu::Number=0.0, dzl::Number=0.0,
     N1::Number=0.5, N2::Number=1.0)
 
     if length(coeffs)%2 != 0
@@ -30,7 +30,7 @@ function cst(coeffs::AbstractArray{<:Number,1}, N::Integer=80,
 
 end
 
-function halfcst(coeffs::AbstractArray{<:Number,1}, x::AbstractArray{<:Number,1}=cosinespacing(N),
+function halfcst(coeffs::AbstractArray{<:Number,1}, x::AbstractArray{<:Number,1}=cosine_spacing(N),
     dz::Number=0.0, N1::Number=0.5, N2::Number=1.0)
 
     n = length(coeffs)

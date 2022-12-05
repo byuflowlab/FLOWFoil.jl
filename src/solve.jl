@@ -42,23 +42,6 @@ struct InviscidSolution{TF,TS<:System}
 end
 
 """
-    solve_inviscid(problem)
-
-Solves the inviscid problem.
-
-**Arguments:**
- - `problem::Problem` : Problem to solve.  viscous field must be set to false.
-
-**Returns:**
- - `solution::InviscidSolution`
-"""
-function solve_inviscid(system)
-    solution = solve_inviscid_system(system)
-
-    return solution
-end
-
-"""
     solve_inviscid(inviscid_system, mesh)
 
 Solve the inviscid_system for the vortex and streamfunction strengths.

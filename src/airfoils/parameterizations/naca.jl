@@ -71,7 +71,7 @@ function naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_TE=false, split=fal
     # get x coordinates
     N = Int(ceil(N / 2))
     if x == nothing
-        x = cosinespacing(N)
+        x = cosine_spacing(N)
     end
 
     #naca digits
