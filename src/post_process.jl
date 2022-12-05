@@ -193,8 +193,9 @@ function post_process_vortex(
                 For the inviscid case, cdp is zero and cdi=cd for now.
             =#
             cdp[m, a] = 0.0
+            #TODO: check of drag calculation needs to be negative or not
             cdi[m, a] =
-                sum([
+                -sum([
                     cpibar[i] * (
                         cosd(alpha[a]) * panel_vector[i, 2] -
                         sind(alpha[a]) * panel_vector[i, 1]
@@ -233,6 +234,7 @@ function post_process_vortex(
 end
 
 """
+TODO: probably move this to utils.jl (but maybe not, keep here for now)
 """
 function smooth_distributions(::Linear, panel_edges, distribution, npanels)
 
