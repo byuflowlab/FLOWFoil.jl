@@ -6,7 +6,6 @@ module FLOWFoil
 using LinearAlgebra
 using FLOWMath
 using SpecialFunctions
-using StaticArrays
 
 #---------------------------------#
 #             INCLUDES            #
