@@ -94,7 +94,7 @@ FLOWFoil.calculate_duct_thrust
 ```@docs
 FLOWFoil.thickness
 FLOWFoil.camber
-FLOWFoil.cosinespacing
+FLOWFoil.cosine_spacing
 FLOWFoil.split_upper_lower
 FLOWFoil.joukowskyflow
 FLOWFoil.normalize_airfoil!
