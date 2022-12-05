@@ -8,6 +8,10 @@ Authors: Judd Mehr,
 
 abstract type Mesh end
 
+"""
+"""
+function generate_mesh(::AnalysisType, coordinates) end
+
 ######################################################################
 #                                                                    #
 #                           PLANAR MESHES                            #
@@ -43,45 +47,39 @@ struct PlanarMesh{TF,TB,TN<:Vector{Matrix{TF}}} <: Mesh
     txp::TF
 end
 
-"""
-    PlanarMeshSystem{TM,TF,TL}
-
-System of meshes to solve.
-
-**Fields:**
- - `meshes::Array{Mesh}` : Array of mesh objects.
- - `scales::Vector{Float}` : Airfoil scaling factors.
- - `angles::Vector{Float}` : Airfoil angles of attack.
- - `locations::Array{Array{TF}}` : Array of leading edge locations.
-
-"""
-struct PlanarMeshSystem{TM,TF,TL<:Vector{Matrix{TF}}}
-    meshes::TM
-    scales::TF
-    angles::TF
-    locations::TL
-end
-
 #---------------------------------#
 #            FUNCTIONS            #
 #---------------------------------#
 
 """
-    generate_mesh(x, y; chordlength, wakelength)
-
-Create panels from input geometry coordinates.
-
 **Arguments:**
- - `x::Vector{Float}` : x coordinates defining airfoil geometry.
- - `y::Vector{Float}` : y coordinates defining airfoil geometry.
-
-**Keyword Arguments:**
- - `gaptolerance::Float` : Tolerance for how close, relative to the chord, the trailing edge nodes can be before being considered a sharp trailing edge. (default = 1e-10)
-
-**Returns**
- - `mesh::PlanarMesh` : Geometry mesh, including panel nodes and trailing edge condition.
+ - `coordinates::Tuple{Array{Float,2}}` : Tuple containting arrays of both x and y coordinates (x first column, y second column) for each airfoil in the airfoil system.
 """
-function generate_mesh(x, y; gaptolerance=1e-10)
+function generate_mesh(p::Planar, coordinates::Tuple; gaptolerance=1e-10)
+
+    # get number of meshes
+    nm = length(coordinates)
+
+    # QUESTION FOR TAYLOR: How can I initialize this array in a way that will be okay for optimization?
+    mesh = Array{PlanarMesh}(undef, nm)
+
+    for i in 1:nm
+        mesh[i] = generate_mesh(p, coordinates[i]; gaptolerance=gaptolerance)
+    end
+
+    return mesh
+end
+
+# QUESTION FOR TAYLOR: what is the best way to do this, where I could have more than one mesh to create?  What do I need to do to make this work for AD?
+"""
+**Arguments:**
+ - `coordinates::Array{Float,2}` : array of both x and y coordinates (x first column, y second column).
+"""
+function generate_mesh(::Planar, coordinates::Matrix; gaptolerance=1e-10)
+
+    # Separate out coordinates
+    x = coordinates[:, 1]
+    y = coordinates[:, 2]
 
     # check x and y are equal lengths
     if length(x) != length(y)
@@ -116,23 +114,6 @@ function generate_mesh(x, y; gaptolerance=1e-10)
     mesh = FLOWFoil.PlanarMesh(nodes, chordlength, blunt_te, trailing_edge_gap, tdp, txp)
 
     return mesh
-end
-
-"""
-    generate_mesh(coordinates; kwargs)
-
-Identical to implementation with x and y separate, but here with x,y coordinates together in a single array [X Y].
-
-**Arguments:**
- - `coordinates::Array{Float,2}` : array of both x and y coordinates (x first column, y second column).
-"""
-function generate_mesh(coordinates; gaptolerance=1e-10)
-
-    # Separate out coordinates
-    x = coordinates[:, 1]
-    y = coordinates[:, 2]
-
-    return generate_mesh(x, y; gaptolerance=gaptolerance)
 end
 
 ######################################################################
@@ -184,21 +165,43 @@ end
 #---------------------------------#
 
 """
-    generate_axisym_mesh(x, r; bodyofrevolution)
+    generate_mesh(x, r; bodyofrevolution)
 
 Generate mesh for axisymmetric body.
 
 **Arguments:**
-- `x::Array{Float}` : x-coordinates of geometry
-- `r::Array{Float}` : r-coordinates of geometry
 
 **Keyword Arguments:**
-- `bodyofrevolution::Bool` : flag whether body is a body of revolution (default=true)
 
 **Returns:**
-- `mesh::FLOWFoil.AxiSymMesh` : axisymmetric mesh object
+- `mesh::FLOWFoil.Array{Mesh}` :
 """
-function generate_axisym_mesh(x, r; bodyofrevolution=true, ex=1e-5)
+function generate_mesh(axisym::Axisymmetric, coordinates; ex=1e-5)
+
+    # get number of meshes
+    nm = length(axisym.bodyofrevolution)
+
+    #check to make sure inputs are correct sizes
+    @assert length(coordiantes) == nm || nm == 1
+
+    mesh = Array{Mesh}(undef, nm)
+
+    for i in 1:nm
+        if axisym.bodyofrevolution[i]
+            mesh[i]generate_mesh(axisym, coordinates[i]; bodyofrevolution=true, ex=ex)
+        else
+            mesh[i]generate_mesh(axisym, coordinates[i]; bodyofrevolution=false, ex=ex)
+        end
+    end
+
+    return mesh
+end
+
+function generate_mesh(::Axisymmetric, coordinates; bodyofrevolution=true, ex=1e-5)
+
+    # Separate out coordinates
+    x = coordinates[:, 1]
+    r = coordinates[:, 2]
 
     #check of any r coordinates are negative
     @assert all(x -> x >= -eps(), r)
