@@ -1,22 +1,58 @@
 #=
 
-Panel Generation Functions
+Panel Generation Types and Functions
+
+Panels are defined as the geometry of the discretized pieces of the overall geometry, organized in a way that will be helpful for finding geometric relations later (meshing).
 
 Authors: Judd Mehr,
 
 =#
 
+######################################################################
+#                                                                    #
+#                              GENERAL                               #
+#                                                                    #
+######################################################################
+
+#---------------------------------#
+#              Types              #
+#---------------------------------#
+
 abstract type Panel end
+
+#---------------------------------#
+#            Functions            #
+#---------------------------------#
+
+"""
+    generate_panels(p, coordinates)
+
+Generate panel object for a give set of coordinates.
+
+**Arguments:**
+- `p::ProblemType` : problem type object
+- `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
+
+**Returns:**
+- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
+"""
+function generate_panels(::ProblemType, coordinates) end
 
 ######################################################################
 #                                                                    #
 #                              PLANAR                                #
 #                                                                    #
 ######################################################################
-"""
 
-**Arguments:**
-- `npanel::Vector{Int}` : number of panels on each body
+#---------------------------------#
+#              Types              #
+#---------------------------------#
+
+"""
+    PlanarFlatPanel
+
+**Fields:**
+- `npanels::Vector{Int}` : number of panels on each body
 - `panel_edges::Array{Float, 3}` : Panel edge [x z] coordinates, indexed as [panel number, edge (1 or 2), coordinate (x or z)]
 - `panel_vector::Matrix{TF}` : Vectors from panel edge 1 to panel edge 2, index as [panel number, edge number]
 - `panel_length::Vector{TF}` : Lengths of panels (magnitude of panel vector)
@@ -28,16 +64,19 @@ struct PlanarFlatPanel{TF} <: Panel
     panel_length::Vector{TF}
 end
 
-"""
-"""
+#---------------------------------#
+#            Functions            #
+#---------------------------------#
+
+#= NOTE:
+The current implentation here is the Xfoil-like implementation.  Eventually, this will likely be moved to it's own dispatch method as better methods are developed.
+=#
 function generate_panels(p::PlanarProblem, coordinates)
 
     #broadcast for multiple airfoils
     return generate_panels.(Ref(p), coordinates)
 end
 
-"""
-"""
 function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
 
     # Separate out coordinates
@@ -70,6 +109,7 @@ end
 #                            AXISYMMETRIC                            #
 #                                                                    #
 ######################################################################
+
 #TODO: look at planar struct for updated formatting
 """
 """
@@ -82,16 +122,12 @@ struct AxisymmetricFlatPanel{TF} <: Panel
     panel_angle::Vector{TF}
 end
 
-"""
-"""
 function generate_panels(p::AxisymmetricProblem, coordinates)
 
     #broadcast for multiple airfoils
     return generate_panels.(Ref(p), coordinates)
 end
 
-"""
-"""
 function generate_panels(::AxisymmetricProblem, coordinates::Matrix{TF}) where {TF}
     # Separate out coordinates
     x = coordinates[:, 1]

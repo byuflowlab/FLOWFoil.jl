@@ -1,6 +1,9 @@
 #=
 
-Problem Definition Functions
+Problem Definition Types and Functions
+
+"Problems" allow users to choose what angles of attack, Reynolds numbers, and Mach numbers they want to analyze their airfoil system for.
+Users also define what type of problem they are solve (e.g. planar, axisymmetric, or periodic).
 
 Authors: Judd Mehr,
 
@@ -16,15 +19,15 @@ Authors: Judd Mehr,
 """
     Problem{TF}
 
-Problem definition (geometry, operating point(s), and method selection) and output behavior.
+Problem definition and output behavior.
 
 **Fields:**
- - `mesh::Array{Mesh}` : Array of mesh objects
- - `aoa::Float` : angle of attack to analyze.
- - `reynolds::Float` : Reynolds number to analyze.
- - `mach::Float` : Mach number to analyze.
- - `viscous::Bool` : Flag to solve viscous or inviscid only
-- `solver::ProblemType` : Analysis method to use for problem.
+- `nbody::Int` : Number of bodies in system to analyze.
+- `angle_of_attack::Vector{Float}` : angle(s) of attack to analyze.
+- `reynolds::Vector{Float}` : Reynolds number(s) to analyze.
+- `mach::Vector{Float}` : Mach number(s) to analyze.
+- `viscous::Bool` : Flag to solve viscous or inviscid only
+- `method::ProblemType` : Analysis method to use for problem.
 """
 struct Problem{TF}
     nbody::Int
@@ -32,13 +35,13 @@ struct Problem{TF}
     reynolds::Vector{TF}
     mach::Vector{TF}
     viscous::Bool
-    type::ProblemType
+    method::ProblemType
 end
 
 """
     define_problem(problemtype::ProblemType, coordinates, angle_of_attack, reynolds, mach)
 
-Defines a Problem object to be used throughout setup, solution, and post-processing.
+Defines a Problem object to be used for setup and post-processing.
 
 **Arguments:**
 - `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
@@ -100,13 +103,4 @@ function define_problem(
 
     # - RETURN - #
     return Problem(nbody, aoa, reynolds_numbers, mach_numbers, viscous, problemtype)
-end
-
-# - Simple Implementation (Like XFoil) - #
-function define_problem(coordinates, angle_of_attack, reynolds=nothing, mach=nothing;)
-
-    # If no solver type, use planar
-    return define_problem(
-        Planar(), coordinates, angle_of_attack; reynolds=reynolds, mach=mach
-    )
 end

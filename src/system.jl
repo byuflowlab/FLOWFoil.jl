@@ -6,6 +6,12 @@ Authors: Judd Mehr,
 
 =#
 
+######################################################################
+#                                                                    #
+#                           GENERAL TYPES                            #
+#                                                                    #
+######################################################################
+
 abstract type System end
 
 """
@@ -24,24 +30,33 @@ end
 
 ######################################################################
 #                                                                    #
-#                         SYSTEM GENERATION                          #
+#                    SYSTEM GENERATION FUNCTIONS                     #
 #                                                                    #
 ######################################################################
 
 """
+    generate_inviscid_system(problemtype::ProblemType, mesh, TEmesh)
+
+**Arguments:**
+- `problemtype::ProblemType` : ProblemType object for dispatch
+- `mesh::Mesh` : Mesh for airfoil system to analyze.
+- `TEMesh::Mesh` : Trailing edge gap panel influence mesh.
+
+**Returns:**
+` inviscid_system::InviscidSystem` : Inviscid System object containing influence and boundary condition matrices for the system.
 """
-function generate_inviscid_system(problem::Problem, mesh)
-    return generate_inviscid_system(problem.type, mesh)
+function generate_inviscid_system(problemtype::ProblemType, panels, mesh, TEmesh)
+    return generate_inviscid_system(problemtype.method, panels, mesh, TEmesh)
 end
 
 #---------------------------------#
 #             PLANAR              #
 #---------------------------------#
 
-"""
-**Arguments:**
-- `mesh::Array{PlanarMesh}` : PlanarMesh for airfoil to analyze.
-"""
+#= NOTE:
+The system assembly here is based on the Xfoil implementation, which does not strictly fit in the overall structure (it solves based on stream functions rather than potentials).
+Likely, this will be moved elsewhere as other methods are developed.
+=#
 function generate_inviscid_system(pt::PlanarProblem, panels, mesh, TEmesh)
     # Get coeffiecient matrix (A, left hand side)
     A = assemble_influence_matrix(pt.singularity, mesh, TEmesh)
@@ -52,11 +67,41 @@ function generate_inviscid_system(pt::PlanarProblem, panels, mesh, TEmesh)
     return InviscidSystem(A, b, mesh.node_indices)
 end
 
+"""
+    assemble_influence_matrix(v::Vortex, mesh, TEmesh)
+
+Assembles the "A" matrix (left hand side coefficient matrix.
+
+**Arguments:**
+- `s::Singularity` : The singularity type used.
+- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
+- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
+
+**Returns:**
+- A::Matrix{Float}` : The influence coefficient matrix for the linear system
+"""
+function assemble_influence_matrix(::Singularity, mesh, TEmesh) end
+
 function assemble_influence_matrix(v::Vortex, mesh, TEmesh)
     return assemble_vortex_matrix(v.order, mesh, TEmesh)
 end
 
-function assemble_vortex_matrix(o::Order, mesh, TEmesh)
+"""
+    assemble_vortex_matrix(::Order, mesh, TEmesh)
+
+Assembles the coefficient matrix for a given order of singularity.
+
+**Arguments:**
+- `o::Order` : The order of singularity used.
+- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
+- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
+
+**Returns:**
+- A::Matrix{Float}` : The influence coefficient matrix for the linear system
+"""
+function assemble_vortex_matrix(::Order, mesh, TEmesh) end
+
+function assemble_vortex_matrix(::Linear, mesh, TEmesh)
 
     # - Rename For Convenience - #
     pi = mesh.panel_indices
@@ -76,7 +121,7 @@ function assemble_vortex_matrix(o::Order, mesh, TEmesh)
             ### --- Populate main body of influence matrix --- ###
             for i in ni[m]
                 for j in pi[n]
-                    aij, aijp1 = calculate_vortex_influence(o, mesh, i, j)
+                    aij, aijp1 = calculate_vortex_influence(Linear(), mesh, i, j)
 
                     # add coefficients to matrix at correct nodes
                     if j == 1
@@ -168,12 +213,19 @@ end
 Assemble boundary condition vector.
 
 **Arguments:**
- - `meshes::Array{PlanarMesh}` : mesh system for which to solve
+- `bc::BoundaryCondition` : The type of boundary condition to be used.
+- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
+- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
 
 **Returns**
- - `psi_inf::Array{Float,2}` : Boundary condition array.
+ - `b::Matrix{Float}` : Boundary condition matrix
 """
-function assemble_boundary_conditions(::Neumann, panels, mesh, TEmesh)
+function assemble_boundary_conditions(::BoundaryCondition, panels, mesh, TEmesh) end
+
+#= NOTE:
+This implementation doesn't precisely fit.  As stated in other places, this Xfoil-like implementation will likely be moved with a better method can replace it.
+=#
+function assemble_boundary_conditions(::Dirichlet, panels, mesh, TEmesh)
 
     # - Rename For Convenience - #
     ni = mesh.node_indices
@@ -226,43 +278,4 @@ function generate_inviscid_system(::AxisymmetricProblem, mesh)
     b = assemble_boundary_conditions(mesh)
 
     return InviscidSystem(A, b, Ns)
-end
-
-######################################################################
-#                                                                    #
-#                         UTILITY FUNCTIONS                          #
-#                                                                    #
-######################################################################
-
-function size_system(meshes, ::AxisymmetricProblem)
-
-    # initialize
-    # number of bodies for convenience
-    numbodies = length(meshes)
-
-    # initialize total system size
-    N = 0
-
-    # initialize system size contributions from each mesh
-    Ns = [1 for i in 1:numbodies]
-
-    # Count number of airfoil nodes in each mesh.
-    for i in 1:numbodies
-        Ns[i] = length(meshes[i].panels)
-        N += Ns[i]
-    end
-
-    return N, Ns
-end
-
-"""
-    get_offset(Ns)
-
-Get the offset values for the mesh system to be used in the system matrix assembly.
-
-**Arguments:**
- - `Ns::Array{Float}` : Array of numbers of nodes for each airfoil in the system.
-"""
-function get_offset(Ns)
-    return [0; cumsum(Ns[1:(end - 1)])]
 end

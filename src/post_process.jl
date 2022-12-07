@@ -31,11 +31,11 @@ Also used for Periodic (cascade) post processing.
  - `surfacepressure::Vector{Float}` : surface pressure distribution
 """
 struct PlanarPolar{TF} <: Polar
-    lift::Vector{TF}
-    drag::Vector{TF}
-    pdrag::Vector{TF}
-    idrag::Vector{TF}
-    moment::Vector{TF}
+    lift::Matrix{TF}
+    drag::Matrix{TF}
+    pdrag::Matrix{TF}
+    idrag::Matrix{TF}
+    moment::Matrix{TF}
     surface_velocity::Array{TF,3}
     surface_pressure::Array{TF,3}
     xsmooth::Array{TF,3}
@@ -105,17 +105,17 @@ function post_process_vortex(
     # - Coefficients - #
 
     # Lift coefficient
-    cl = zeros(TF, nbodies)
+    cl = zeros(TF, nbodies, naoa)
 
     # Total drag coefficient
-    cd = zeros(TF, nbodies)
+    cd = zeros(TF, nbodies, naoa)
     # Profile drag coefficient
-    cdp = zeros(TF, nbodies)
+    cdp = zeros(TF, nbodies, naoa)
     # Inviscid drag coefficient
-    cdi = zeros(TF, nbodies)
+    cdi = zeros(TF, nbodies, naoa)
 
     # Moment coefficient
-    cm = zeros(TF, nbodies)
+    cm = zeros(TF, nbodies, naoa)
 
     # - Surface Distributions - #
 
@@ -227,7 +227,9 @@ function post_process_vortex(
 
     # Again, returns depend on debug flag
     if debug
-        return sum(cl), sum(cd), sum(cdp), sum(cdi), sum(cm), v_surf, p_surf
+        return sum(cl; dims=1),
+        sum(cd; dims=1), sum(cdp; dims=1), sum(cdi; dims=1), sum(cm; dims=1), v_surf,
+        p_surf
     else
         return PlanarPolar(cl, cd, cdp, cdi, cm, v_surf, p_surf, smooth_nodes)
     end

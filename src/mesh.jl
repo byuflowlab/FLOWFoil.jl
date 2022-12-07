@@ -1,12 +1,39 @@
 #=
 
-Meshing Functions
+Meshing Types and Functions
+
+The term Mesh, here, indicates the relational geometry used in calculating influence coefficients for the system.
 
 Authors: Judd Mehr,
 
 =#
 
+######################################################################
+#                                                                    #
+#                              GENERAL                               #
+#                                                                    #
+######################################################################
+
+#---------------------------------#
+#              TYPES              #
+#---------------------------------#
+
 abstract type Mesh end
+
+#---------------------------------#
+#            FUNCTIONS            #
+#---------------------------------#
+
+"""
+**Arguments:**
+- `p::ProblemType` : Problem type object for dispatch
+- `panels::Vector{Panel}` : Array of panel object for airfoil system. (can also be a single panel object if only one body is being modeled)
+
+**Returns:**
+- `mesh::Mesh` : Mesh object including various influence geometries for the system
+- `TEmesh::Mesh` : Mesh object specifically for trailing edge gap panels if present.
+"""
+function generate_mesh(p::ProblemType, panels; gap_tolerance=1e-10) end
 
 ######################################################################
 #                                                                    #
@@ -20,24 +47,32 @@ abstract type Mesh end
 
 #= TODO: This is way too complicated.
 The mfoil/xfoil implementation was probably put together for quickness in fortran.
-Need to re-derive linear vortex distributions at some point
+Need to re-derive linear vortex distributions at some point,
   and update to a generalized methodology if possible.
+Will probably make the xfoil implementation a special case in its own directory with and Xfoil <: ProblemType dispatch.
 =#
 """
-    PlanarMesh{TF,TB,TN}
+    PlanarMesh <: Mesh
 
-Mesh for single body.
+Influence geometry for an airfoil or airfoil system.
 
 **Fields:**
-- `chord::Float` : airfoil chord length
-- `blunt_te::Bool` : boolean for whether or not the trailing edge is blunt or not.
-- `trailing_edge_gap::Float` : trailing edge gap distance
-- `tdp::Float` : dot product of unit vectors of trailing edge bisection and gap vectors
-- `txp::Float` : pseudo-cross product of unit vectors of trailing edge bisection and gap vectors
+- `nbodies::Int64` : number of bodies in the system.
+- `panel_indices::Vector{UnitRange{Int64}}` : vector of indices of the overall system matrix associated with each of the panels.
+- `node_indices::Vector{UnitRange{Int64}}` : vector of indices of the overall system matrix associated with each panel edge (node).
+- `chord::TF` : chord length of system (maximum trailing egde x-coordinate minus minimum leading edge x-coordinate)
+- `panel_length::Vector{TF}` : length of each panel
+- `r1::Matrix{TF}` : distance from first panel edge of influence panel to field point
+- `lnr1::Matrix{TF}` : ln(r1), adjusted to zero for self-influence of panels
+- `r1normal::Matrix{TF}` : component of r1 in normal direction of influence panel
+- `r1tangent::Matrix{TF}` : component of r1 in tangent direction of influence panel
+- `theta1::Matrix{TF}` : angle between influece panel vector and the r1 vector, adjusted to π for self-influence of panels
+- `r2::Matrix{TF}` : distance from second panel edge of influence panel to field point.
+- `lnr2::Matrix{TF}` : ln(r2), adjusted to zero for self-influence of panels
+- `theta2::Matrix{TF}` angle between influence panel vector and the r2 vector, adjusted to π for self-influence of panels
 
 **Assuptions:**
 - x and y coordinates start at the bottom trailing edge and proceed clockwise.
-
 """
 struct PlanarMesh{TF} <: Mesh
     nbodies::Int64
@@ -55,6 +90,26 @@ struct PlanarMesh{TF} <: Mesh
     theta2::Matrix{TF}
 end
 
+"""
+    PlanarBluntTEMesh <: Mesh
+
+Similar to PlanarMesh, but specifically for the trailing edge gap panels (as panels of influence), if they exist.
+
+**Arguments:**
+- `blunt_te::Bool` : boolean for whether or not the trailing edge is blunt or not.
+- `trailing_edge_gap::Float` : trailing edge gap distance
+- `tdp::Float` : dot product of unit vectors of trailing edge bisection and gap vectors
+- `txp::Float` : pseudo-cross product of unit vectors of trailing edge bisection and gap vectors
+- `panel_length::Vector{TF}` : length of each panel
+- `r1::Matrix{TF}` : distance from first panel edge of influence panel to field point
+- `lnr1::Matrix{TF}` : ln(r1), adjusted to zero for self-influence of panels
+- `r1normal::Matrix{TF}` : component of r1 in normal direction of influence panel
+- `r1tangent::Matrix{TF}` : component of r1 in tangent direction of influence panel
+- `theta1::Matrix{TF}` : angle between influece panel vector and the r1 vector, adjusted to π for self-influence of panels
+- `r2::Matrix{TF}` : distance from second panel edge of influence panel to field point.
+- `lnr2::Matrix{TF}` : ln(r2), adjusted to zero for self-influence of panels
+- `theta2::Matrix{TF}` angle between influence panel vector and the r2 vector, adjusted to π for self-influence of panels
+"""
 struct PlanarBluntTEMesh{TF} <: Mesh
     blunt_te::Vector{Bool}
     trailing_edge_gap::Vector{TF}
@@ -70,14 +125,12 @@ struct PlanarBluntTEMesh{TF} <: Mesh
     lnr2::Matrix{TF}
     theta2::Matrix{TF}
 end
+
 #---------------------------------#
 #            FUNCTIONS            #
 #---------------------------------#
 
-"""
-**Arguments:**
-- `coordinates::NTuple{N,Matrix{Float}}` : Tuple containting arrays of both x and y coordinates (x first column, y second column) for each airfoil in the airfoil system.
-"""
+# TODO: There are probably a bunch of places in this function that broadcasting could be leveraged to shorten code/simplify things.
 function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
 
     ### --- Convenience Variables --- ###
@@ -255,10 +308,15 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
 
     # Define System Chord Length
     # TODO: figure out how to expose different options here to the user in a slick way
-    # (see absolute_chord and sum_chord functions below)
     chord_length = maximum(trailing_edges) - minimum(leading_edges)
 
     # - Generate mesh objects - #
+    #= TODO:
+        There has got to be a better way to do all this.
+        The problem is that it's unknown beforehand if there is a trailing edge gap.
+        Possibly do the trailing edge gap panel discovery and geometry in the paneling function(s), and then pass those in as part of everything.
+        Indexing could get tricky trying to combine everything together though, since the TE panels only influence and are not influenced, so they don't add any more equations to the system.
+    =#
     # main mesh
     mesh = PlanarMesh(
         nbodies,
@@ -296,18 +354,50 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
     return mesh, TEmesh
 end
 
+"""
+    calculate_influence_geometry(
+        influence_panel_edge,
+        influence_panel_vector,
+        influence_panel_length,
+        field_panel_edge;
+        gap_tolerance=1e-10,
+    )
+
+Calculate all the various geometric pieces of the influence coefficients.
+
+**Arguments:**
+- `influence_panel_edge::Array{Float}` : Array of the edge locations of the panel doing the influencing.
+- `influence_panel_vector::Vector{Float}` : Vector from the first to second panel edge.
+- `influence_panel_length::Float` : Length of the influencing panel.
+- `field_point::Vector::Float` : position of field point (point being influence).
+
+**Keyword Arguments:**
+- `gap_tolerance::Float` : Distance at which self-induction is assumed (to avoid NaNs and Infs). default = 1e-10
+
+**Returns:**
+- `r1::Matrix{TF}` : distance from first panel edge of influence panel to field point
+- `r2::Matrix{TF}` : distance from second panel edge of influence panel to field point.
+- `r1normal::Matrix{TF}` : component of r1 in normal direction of influence panel
+- `r1tangent::Matrix{TF}` : component of r1 in tangent direction of influence panel
+- `theta1::Matrix{TF}` : angle between influece panel vector and the r1 vector, adjusted to π for self-influence of panels
+- `theta2::Matrix{TF}` angle between influence panel vector and the r2 vector, adjusted to π for self-influence of panels
+- `lnr1::Matrix{TF}` : ln(r1), adjusted to zero for self-influence of panels
+- `lnr2::Matrix{TF}` : ln(r2), adjusted to zero for self-influence of panels
+"""
 function calculate_influence_geometry(
     influence_panel_edge,
     influence_panel_vector,
     influence_panel_length,
-    field_panel_edge;
+    field_point;
     gap_tolerance=1e-10,
 )
-    r1vec, r1 = get_r(influence_panel_edge[1, :], field_panel_edge)
+
+    # Get vector and magnitude from first edge of the panel of influence to the field point (edge of panel being influenced)
+    r1vec, r1 = get_r(influence_panel_edge[1, :], field_point)
 
     # Get vector and magnitude from second edge of the panel of influence to the field point (edge of panel being influenced)
     # NOTE: index i goes 1 beyond length of number of panels, so need to repeat over last panel twice, using the second panel edge on the repeat
-    r2vec, r2 = get_r(influence_panel_edge[2, :], field_panel_edge)
+    r2vec, r2 = get_r(influence_panel_edge[2, :], field_point)
 
     # Get the component of r1vec normal to the panel of influence
     r1normal = get_r_normal(r1vec, influence_panel_vector, influence_panel_length)
@@ -321,9 +411,13 @@ function calculate_influence_geometry(
     # Get the angle between the panel of influence and field point with angle vertex at the second edge of the panel of influence
     theta2 = get_theta2(r1normal, r1tangent, influence_panel_length)
 
-    # Calculate natural log values to be used in calculating the influence coefficients, setting to zero if self-induction is likely.
-    # NOTE: probably will have other probems if another panel is as close as a panel is to itself...
-    # Also adjust the values of the angles for self-induction cases.
+    # Calculate natural log values
+    #= Natural Log values are to be used in calculating the influence coefficients
+        We set the natural logs to zero if the field point is very close to the panel,
+        that is, for the self-influence cases.
+        NOTE: probably will have other probems if another panel is as close as a panel is to itself...
+        We also adjust the values of the angles previously calculated for self-induction cases to be pi or zero depending on positions.
+    =#
     if r1 < gap_tolerance
         lnr1 = 0.0
         theta1 = pi
@@ -343,20 +437,9 @@ function calculate_influence_geometry(
     return r1, r2, r1normal, r1tangent, theta1, theta2, lnr1, lnr2
 end
 
+# - If single airfoil, need to put Panel object in a vector - #
 function generate_mesh(p::PlanarProblem, panels::TP; gap_tolerance=1e-10) where {TP<:Panel}
     return generate_mesh(p, [panels]; gap_tolerance=gap_tolerance)
-end
-
-"""
-"""
-function absolute_chord(leading_edges, trailing_edges)
-    return maximum(trailing_edges) - minimum(leading_edges)
-end
-
-"""
-"""
-function sum_chord(leading_edges, trailing_edges)
-    return sum(trailing_edges .- leading_edges)
 end
 
 ######################################################################

@@ -1,3 +1,10 @@
+#=
+
+Abstract types and structs used in dispatching.
+
+Authors: Judd Mehr,
+
+=#
 
 ######################################################################
 #                                                                    #
@@ -10,26 +17,71 @@ abstract type Order end
 
 ### --- Singularity Types --- ###
 
+"""
+    Source <: Singularity
+
+One of the types of singularities available.
+
+**Fields:**
+- `order::Order` : order of singularities
+"""
 struct Source{TO} <: Singularity where {TO<:Order}
     order::TO
 end
 
+"""
+    Vortex <: Singularity
+
+One of the types of singularities available.
+
+**Fields:**
+- `order::Order` : order of singularities
+"""
 struct Vortex{TO} <: Singularity where {TO<:Order}
     order::TO
 end
 
+"""
+    Doublet <: Singularity
+
+One of the types of singularities available.
+
+**Fields:**
+- `order::Order` : order of singularities
+"""
 struct Doublet{TO} <: Singularity where {TO<:Order}
     order::TO
 end
 
 ### --- Singularity Order Types --- ###
 
+"""
+    Constant <: Order
+
+One of the singularity orders available.
+"""
 struct Constant <: Order end
 
+"""
+    Linear <: Order
+
+One of the singularity orders available.
+"""
 struct Linear <: Order end
 
+"""
+    Quadratic <: Order
+
+One of the singularity orders available.
+"""
 struct Quadratic <: Order end
 
+"""
+    Spline <: Order
+
+One of the singularity orders available.
+Used for **I**so**g**eometric **A**nalyis (IgA) implementations.
+"""
 struct Spline <: Order end
 
 ######################################################################
@@ -40,19 +92,40 @@ struct Spline <: Order end
 
 abstract type BoundaryCondition end
 
-# Neumann BC defines velocity, viz., the derivative of the potential
-# (this is the no flow through condition)
+"""
+    Neumann <: BoundaryCondition
+
+One of the available boundary conditions.
+
+The Neumann boundary condition defines velocity, viz., the derivative of the potential, on the boundary. (This is the no flow through condition.)
+"""
 struct Neumann <: BoundaryCondition end
 
-# Dirichlet BC defines potential (zero potential inside the body)
+"""
+    Dirichlet <: BoundaryCondition
+
+One of the available boundary conditions.
+
+The Dirichlet boundary condition defines the potential on the boundary. (This is the zero potential inside the body condition.)
+"""
 struct Dirichlet <: BoundaryCondition end
 
-# Robin BC is a weighted combination of Dirichlet and Neumann over the entire boundary
-# Will take some extra stuff to get working
+"""
+    Robin
+
+One of the available boundary conditions.
+
+The Robin boundary condition is a weighted combination of Dirichlet and Neumann conditions over the entire boundary.
+"""
 struct Robin <: BoundaryCondition end
 
-# Mixed BC is where Neumann and Dirichlet BCs are used at disparate locations on the boundary
-# Also will take some extra stuff to get working
+"""
+    Mixed
+
+One of the available boundary conditions.
+
+The Mixed boundary condition is where a combination of Neumann and Dirichlet conditions are used at disparate locations along the boundary.
+"""
 struct Mixed <: BoundaryCondition end
 
 ######################################################################

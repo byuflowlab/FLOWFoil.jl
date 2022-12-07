@@ -72,7 +72,8 @@ include("airfoils/parameterizations/naca.jl")
 #             EXPORTS             #
 #---------------------------------#
 
-### --- TYPES --- ###
+##### ----- TYPES ----- #####
+
 # Singularities
 export Source, Doublet, Vortex
 export Constant, Linear, Quadratic, Spline
@@ -89,7 +90,7 @@ export PlanarFlatPanel, AxisymmetricFlatPanel
 # System
 export InviscidSystem
 
-### --- FUNCTIONS --- ###
+##### ----- FUNCTIONS ----- #####
 
 # Convenience Functions
 export solve
@@ -103,10 +104,10 @@ export generate_panels
 # Mesh
 export generate_mesh
 
-# Systems
+# System
 export generate_inviscid_system
 
-# Post Processing
+# Post Process
 export post_process
 
 # Airfoil Parameterizations
@@ -116,6 +117,9 @@ export naca4
 #       OVERLOADED FUNCTIONS      #
 #---------------------------------#
 
+#= NOTE:
+    Used in problem definition function to help count number of bodies, the coordinates of which are a tuple of vectors if multiple bodies are being analyzed together.
+=#
 import Base.size
 function size(t::Tuple)
     return length(t)

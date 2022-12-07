@@ -15,6 +15,11 @@ Authors: Judd Mehr,
 #---------------------------------#
 #             DEFAULTS            #
 #---------------------------------#
+#=
+    Most users will probably be wanting to do Xfoil-like 2D analyses,
+    so we'll have the defaults be xfoil-like implementaions.
+=#
+
 """
     solve(coordinates, angle_of_attack, reynolds, mach, problemtype)
 
@@ -25,7 +30,9 @@ Convenience function for setting up, solving, and post-processing airfoils and a
 - `angle_of_attack::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
 - `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
-- `problemtype::ProblemType` : Type of problem to solve (planar, axisymmetric, or periodic).
+
+**Keyword Arguments:**
+- `method::ProblemType` : Type of problem to solve (Planar, axisymmetric, or periodic). Defaults to XFoil-like method: PlanarProblem(Vortex(Linear(),Neumann())
 
 **Returns:**
 - `polar::Polar` : Polar object according to ProblemType
@@ -33,46 +40,63 @@ Convenience function for setting up, solving, and post-processing airfoils and a
 ---
 
 ## Other Implementations:
-`solve(coordinates, angle_of_attack, reynolds, problemtype)` : assumes mach = 0.0
-`solve(coordinates, angle_of_attack, problemtype)` : assumes inviscid and mach = 0.0
-`solve(coordinates, problemtype)` : assumes inviscid and mach and angle of attack are 0.0
+`solve(coordinates, angle_of_attack, reynolds; method)` : assumes mach = 0.0
+`solve(coordinates, angle_of_attack; method)` : assumes inviscid and mach = 0.0
+`solve(coordinates; method)` : assumes inviscid and mach and angle of attack are 0.0
 
 """
-function solve(coordinates, angle_of_attack, reynolds, mach, pt::ProblemType)
+function solve(
+    coordinates,
+    angle_of_attack,
+    reynolds,
+    mach;
+    method::ProblemType=PlanarProblem(Vortex(Linear()), Neumann()),
+)
 
     # Generate Problem Object
-    problem = define_problem(pt, coordinates, angle_of_attack, reynolds, mach)
+    problem = define_problem(method, coordinates, angle_of_attack, reynolds, mach)
 
     # Generate Panel Geometry
-    panels = generate_panels(pt, coordinates)
+    panels = generate_panels(method, coordinates)
 
     # Generate Influence Mesh
-    mesh, TEmesh = generate_mesh(pt, panels)
+    mesh, TEmesh = generate_mesh(method, panels)
 
     # Assemble Linear System
-    system = generate_inviscid_system(pt, panels, mesh, TEmesh)
+    system = generate_inviscid_system(method, panels, mesh, TEmesh)
 
     # Solve Linear System
     solution = solve(system)
 
     # Post Process Solution
-    polar = post_process(pt, problem, panels, mesh, solution)
+    polar = post_process(method, problem, panels, mesh, solution)
 
     # Return
     return polar
 end
 
 # - Mach = 0.0 - #
-function solve(coordinates, angle_of_attack, reynolds, pt::ProblemType)
-    return solve(coordinates, angle_of_attack, reynolds, [-1.0], pt)
+function solve(
+    coordinates,
+    angle_of_attack,
+    reynolds;
+    method::ProblemType=PlanarProblem(Vortex(Linear()), Neumann()),
+)
+    return solve(coordinates, angle_of_attack, reynolds, [-1.0]; method=method)
 end
 
 # - Inviscid; Mach = 0.0 - #
-function solve(coordinates, angle_of_attack, pt::ProblemType)
-    return solve(coordinates, angle_of_attack, [-1.0], [-1.0], pt)
+function solve(
+    coordinates,
+    angle_of_attack;
+    method::ProblemType=PlanarProblem(Vortex(Linear()), Neumann()),
+)
+    return solve(coordinates, angle_of_attack, [-1.0], [-1.0]; method=method)
 end
 
 # - Inviscid; AoA = Mach = 0.0 - #
-function solve(coordinates, pt::ProblemType)
-    return solve(coordinates, [0.0], [-1.0], [-1.0], pt)
+function solve(coordinates; method::ProblemType=PlanarProblem(Vortex(Linear()), Neumann()))
+    return solve(coordinates, [0.0], [-1.0], [-1.0]; method=method)
 end
+
+# TODO: consider also adding convenience functions for the other implementations.
