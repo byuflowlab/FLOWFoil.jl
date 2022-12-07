@@ -7,7 +7,7 @@
     x = [1.0; 2.0; 3.0; 4.0]
     z = [0.0; 0.0; 0.0; 0.0]
     coordinates = [x z]
-    panels = generate_panels(PlanarProblem(Vortex(Linear), Neumann()), coordinates)
+    panels = generate_panels(PlanarProblem(Vortex(Linear), Dirichlet()), coordinates)
     @test panels.npanels == 3
     @test panels.panel_edges[1, :, :] == [1.0 0.0; 2.0 0.0]
     @test panels.panel_edges[2, :, :] == [2.0 0.0; 3.0 0.0]

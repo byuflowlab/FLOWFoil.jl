@@ -8,7 +8,7 @@
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
     y = [-0.01; -0.5; 0.0; 0.5; 0.01]
     coordinates = [x y]
-    pt = PlanarProblem(Vortex(Linear()), Neumann())
+    pt = PlanarProblem(Vortex(Linear()), Dirichlet())
 
     # Generate Panel Geometry
     panels = generate_panels(pt, coordinates)

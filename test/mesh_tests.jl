@@ -4,8 +4,8 @@
     x = [1.0; 0.0; 1.0]
     z = [0.0; 0.0; eps()]
     coordinates = [x z]
-    panels = generate_panels(PlanarProblem(Vortex(Linear), Neumann()), coordinates)
-    mesh, TEmesh = generate_mesh(PlanarProblem(Vortex(Linear), Neumann()), panels)
+    panels = generate_panels(PlanarProblem(Vortex(Linear), Dirichlet()), coordinates)
+    mesh, TEmesh = generate_mesh(PlanarProblem(Vortex(Linear), Dirichlet()), panels)
 
     @test mesh.panel_indices == [1:2]
     @test mesh.node_indices == [1:3]
