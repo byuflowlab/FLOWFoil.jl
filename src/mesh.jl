@@ -458,6 +458,11 @@ end
 Axisymmetric Mesh Object
 
 **Fields:**
+- `nbodies::Int64` : number of bodies in the system.
+- `panel_indices::Vector{UnitRange{Int64}}` : vector of indices of the overall system matrix associated with each of the panels.
+- `x::Matrix{TF}` : Normalized x-components of distance between panel centers
+- `r::Matrix{TF}` : Normalized r-components of distance between panel centers
+- `m::Matrix{TF}` : Input values to Elliptic Integral functions
 """
 struct AxisymmetricMesh{TF} <: Mesh
     nbodies::Int
@@ -509,26 +514,31 @@ function generate_mesh(axisym::AxisymmetricProblem, panels; ex=1e-5)
     # variable used in elliptic function calculations
     k2 = zeros(TF, (total_panels, total_panels))
 
+    ### --- Loop through bodies --- ###
     for m in 1:nbodies
         for n in 1:nbodies
+            ### --- Loop through panels --- ###
             for i in panel_indices[m]
                 for j in panel_indices[m]
-                    xi = panels[m].panel_center[i, 1]
-                    ri = panels[m].panel_center[i, 2]
 
+                    # Get x-locations of influencing and influenced panels
+                    xi = panels[m].panel_center[i, 1]
                     xj = panels[n].panel_center[j, 1]
+
+                    # Get r-locations of influencing and influenced panels
+                    ri = panels[m].panel_center[i, 2]
                     rj = panels[n].panel_center[j, 2]
 
-                    #get x and r for these panels
+                    # Calculate normalized distance components for current set of panels
                     x[i, j] = (xi - xj) / rj
                     r[i, j] = ri / rj
 
-                    #get phi for these panels
+                    # Calculate the k^2 value for the elliptic integrals
                     k2[i, j] = 4.0 * r[i, j] / (x[i, j]^2 + (r[i, j] + 1.0)^2)
-                end
-            end
-        end
-    end
+                end #for jth influencing panel
+            end #for ith influenced panel
+        end #for nth influencing body
+    end #for mth influenced body
 
     # Return Mesh
     return AxisymmetricMesh(nbodies, panel_indices, x, r, k2)

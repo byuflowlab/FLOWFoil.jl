@@ -46,13 +46,14 @@ function post_process(
 Also used for Periodic (cascade) post processing.
 
 **Fields:**
- - `lift::Float` : Lift Coefficient.
- - `drag::Float` : Total Drag Coefficient.
- - `pdrag::Float` : Pressure Drag Coefficient.
- - `idrag::Float` : Induced Drag Coefficient.
- - `moment::Float` : Moment Coefficient.
- - `surfacevelocity::Vector{Float}` : smoothed surface velocity distribution
- - `surfacepressure::Vector{Float}` : smoothed surface pressure distribution
+- `lift::Matrix{Float}` : Lift Coefficient.
+- `drag::Matrix{Float}` : Total Drag Coefficient.
+- `pdrag::Matrix{Float}` : Pressure Drag Coefficient.
+- `idrag::Matrix{Float}` : Induced Drag Coefficient.
+- `moment::Matrix{Float}` : Moment Coefficient.
+- `surfacevelocity::Array{Float}` : smoothed surface velocity distribution
+- `surfacepressure::Array{Float}` : smoothed surface pressure distribution
+- `xsmooth::Array{Float}` : x-values associated with smoothed surface distributions
 """
 struct PlanarPolar{TF} <: Polar
     lift::Matrix{TF}
@@ -172,6 +173,7 @@ function post_process(
                 # Get Mean Pressure at PANEL MIDPOINTS
                 cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
             else
+                #smooth_distributions functions are found in utils.jl
                 v_surf[m, :, a], smooth_nodes[m, :, a] = smooth_distributions(
                     Linear(), panel_edges, vti, npanels
                 )
@@ -242,51 +244,6 @@ function post_process(
     end
 end
 
-"""
-TODO: probably move this to utils.jl (but maybe not, keep here for now)
-"""
-function smooth_distributions(::Linear, panel_edges, distribution, npanels)
-
-    #= NOTE:
-        Akima splines in FLOWMath require the 'x' values to be monotonically ascending.
-        Therefore, we need to get all the panel edge points and then divide them into top and bottom in order to create our splines.
-    =#
-
-    # - Get 'x' values from panel edges - #
-    x = [panel_edges[:, 1, 1]; panel_edges[end, 2, 1]]
-
-    # - Split the 'x' values - #
-
-    # find the minimum and index
-    minx, minidx = findmin(x)
-
-    # the bottom needs to be flipped to ascend monotonically
-    xbot = x[minidx:-1:1]
-    # the top is already in the right direction
-    xtop = x[minidx:end]
-
-    # - Get smooth 'x' values from cosine spacing - #
-    # Get cosine spaced values from zero to one.
-    xcosine = cosine_spacing(npanels)
-
-    # - Transform the cosine spaced values to the minimum and maximum points - #
-    # Get the maximum x value
-    maxx = maximum(x)
-
-    xsmooth = linear_transform([0.0; 1.0], [minx; maxx], xcosine)
-
-    # - Generate smooth distribution - #
-    distbot = FLOWMath.akima(xbot, distribution[minidx:-1:1], xsmooth)
-    disttop = FLOWMath.akima(xtop, distribution[minidx:end], xsmooth)
-
-    # - Combine distribution and x values - #
-    xs = [reverse(xsmooth); xsmooth[2:end]]
-    dist = [reverse(distbot); disttop[2:end]]
-
-    # - Return - #
-    return dist, xs
-end
-
 ######################################################################
 #                                                                    #
 #                    AXISYMMETRIC POST PROCESSING                    #
@@ -301,8 +258,9 @@ end
     AxiSymPolar{TF,TA}
 
 **Fields:**
-- `surface_velocity::Array{Float}` : surface velocity on each panel
-- `surface_pressure::Array{Float}` : surface pressure coefficient on each panel
+- `surface_velocity::Matrix{Float}` : surface velocity on each panel
+- `surface_pressure::Matrix{Float}` : surface pressure coefficient on each panel
+- `xsmooth::Matrix{Float}` : x-values associated with smoothed surface distributions
 """
 struct AxisymmetricPolar{TF} <: Polar
     surface_velocity::Matrix{TF}
@@ -343,6 +301,7 @@ function post_process(
         cpi = 1.0 .- (vti) .^ 2
 
         ### --- Smooth Distributions --- ###
+        #smooth_distributions functions are found in utils.jl
         v_surf[m, :], xsmooth[m, :] = smooth_distributions(
             Constant(), panels[m].panel_center, vti, npanels
         )
@@ -352,51 +311,6 @@ function post_process(
     end
 
     return AxisymmetricPolar(v_surf, p_surf, xsmooth)
-end
-
-"""
-TODO: probably move this to utils.jl (but maybe not, keep here for now)
-"""
-function smooth_distributions(::Constant, panel_center, distribution, npanels)
-
-    #= NOTE:
-        Akima splines in FLOWMath require the 'x' values to be monotonically ascending.
-        Therefore, we need to get all the panel edge points and then divide them into top and bottom in order to create our splines.
-    =#
-
-    # - Get 'x' values from panel centers - #
-    x = panel_center[:, 1]
-
-    # - Split the 'x' values - #
-
-    # find the minimum and index
-    minx, minidx = findmin(x)
-
-    # the bottom needs to be flipped to ascend monotonically
-    xbot = x[minidx:-1:1]
-    # the top is already in the right direction
-    xtop = x[minidx:end]
-
-    # - Get smooth 'x' values from cosine spacing - #
-    # Get cosine spaced values from zero to one.
-    xcosine = cosine_spacing(npanels)
-
-    # - Transform the cosine spaced values to the minimum and maximum points - #
-    # Get the maximum x value
-    maxx = maximum(x)
-
-    xsmooth = linear_transform([0.0; 1.0], [minx; maxx], xcosine)
-
-    # - Generate smooth distribution - #
-    distbot = FLOWMath.akima(xbot, distribution[minidx:-1:1], xsmooth)
-    disttop = FLOWMath.akima(xtop, distribution[minidx:end], xsmooth)
-
-    # - Combine distribution and x values - #
-    xs = [reverse(xsmooth); xsmooth[2:end]]
-    dist = [reverse(distbot); disttop[2:end]]
-
-    # - Return - #
-    return dist, xs
 end
 
 """
@@ -434,7 +348,6 @@ function calculate_duct_thrust(polar::AxisymmetricPolar, panels, mesh; Vinf=1.0,
             #dimensionalize pressure
             P = polar.surface_pressure[idx[m]] .* q
 
-            #TODO: YOU ARE HERE (need to update this calculation based on updated solver
             # add panel pressure in x-direction to total sectional force
             fx += sum(
                 P .* panels[m].panel_length[:] .* panels[m].panel_normal[:, 1] .*

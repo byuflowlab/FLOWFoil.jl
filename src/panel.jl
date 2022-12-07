@@ -138,41 +138,45 @@ end
 
 function generate_panels(::AxisymmetricProblem, coordinates::Matrix{TF}) where {TF}
 
+    ### --- SETUP --- ###
+
     # Separate out coordinates
     x = coordinates[:, 1]
     r = coordinates[:, 2]
 
-    #check of any r coordinates are negative
+    # Check if any r coordinates are negative (not allowed in axisymmetric method)
     @assert all(x -> x >= -eps(), r)
 
-    # number of panels
+    # - Rename for Convenience - #
     npanels = length(x) - 1
 
-    # Initialize Outputs
+    # - Initialize Outputs - #
     panel_center = zeros(TF, npanels, 2)
     panel_length = zeros(TF, npanels)
     panel_normal = zeros(TF, npanels, 2)
     panel_curvature = zeros(TF, npanels)
     panel_angle = zeros(TF, npanels)
 
+    ### --- Loop Through Coordinates --- ###
     for i in 1:npanels
 
-        #calculate control point
+        # Calculate control point (panel center)
         panel_center[i, :] = [0.5 * (x[i] + x[i + 1]); 0.5 * (r[i] + r[i + 1])]
 
-        #calculate length
+        # Calculate panel length
         panel_vector, panel_length[i] = get_d([x[i] r[i]; x[i + 1] r[i + 1]])
 
-        #calculate normal
+        # Calculate panel unit normal
         panel_normal[i, :] = get_panel_normal(panel_vector, panel_length[i])
 
-        #find minimum x point (i.e. the leading edge point)
+        # - Calculate Panel Angles - #
+        # Find minimum x point (i.e. the leading edge point) to distinguish between top and bottome of airfoil
         _, minx = findmin(x)
 
-        #use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
+        # NOTE: use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
         beta = atan(panel_vector[2] / panel_vector[1])
 
-        #apply corrections as needed based on orientation of panel in coordinate frame.
+        # Apply corrections as needed based on orientation of panel in coordinate frame.
         if (panel_vector[1] < 0.0) && (i > minx)
             #if panel is on the top half of the airfoil and has a negative x direction, need to correct the angle from atan
             panel_angle[i] = beta - pi
@@ -224,14 +228,21 @@ function generate_panels(::AxisymmetricProblem, coordinates::Matrix{TF}) where {
 
     end
 
-    ### --- Calculate Panel Curvature --- ###
+    # - Calculate Panel Curvature - #
     # - If not the end panels, calculate non-zero curvatures - #
     # NOTE: end panels are trailing edges, which are assumed to have zero curvature.
     for i in 2:(npanels - 1)
         panel_curvature[i] = (panel_angle[i + 1] - panel_angle[i - 1]) / 8.0 / pi
     end
 
+    # - Return Panel Object - #
     return AxisymmetricFlatPanel(
         npanels, panel_center, panel_length, panel_normal, panel_angle, panel_curvature
     )
 end
+
+######################################################################
+#                                                                    #
+#                              PERIODIC                              #
+#                                                                    #
+######################################################################

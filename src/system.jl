@@ -8,9 +8,13 @@ Authors: Judd Mehr,
 
 ######################################################################
 #                                                                    #
-#                           GENERAL TYPES                            #
+#                              GENERAL                               #
 #                                                                    #
 ######################################################################
+
+#---------------------------------#
+#              TYPES              #
+#---------------------------------#
 
 abstract type System end
 
@@ -28,28 +32,36 @@ struct InviscidSystem{TA,TB,TI} <: System
     Ns::TI
 end
 
-######################################################################
-#                                                                    #
-#                    SYSTEM GENERATION FUNCTIONS                     #
-#                                                                    #
-######################################################################
+#---------------------------------#
+#            FUNCTIONS            #
+#---------------------------------#
 
 """
     generate_inviscid_system(problemtype::ProblemType, mesh, TEmesh)
 
 **Arguments:**
-- `problemtype::ProblemType` : ProblemType object for dispatch
-- `mesh::Mesh` : Mesh for airfoil system to analyze.
-- `TEMesh::Mesh` : Trailing edge gap panel influence mesh.
+- If PlanarProblem:
+  - `problemtype::ProblemType` : ProblemType object for dispatch
+  - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
+  - `mesh::Mesh` : Mesh for airfoil system to analyze.
+  - `TEMesh::Mesh` : Trailing edge gap panel influence mesh.
+
+- If AxisymmetricProblem:
+  - `problemtype::ProblemType` : ProblemType object for dispatch
+  - `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
+  - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
+  - `mesh::Mesh` : Mesh for airfoil system to analyze.
 
 **Returns:**
 ` inviscid_system::InviscidSystem` : Inviscid System object containing influence and boundary condition matrices for the system.
 """
 function generate_inviscid_system(problemtype::ProblemType, panels, mesh, TEmesh) end
 
-#---------------------------------#
-#             PLANAR              #
-#---------------------------------#
+######################################################################
+#                                                                    #
+#                               PLANAR                               #
+#                                                                    #
+######################################################################
 
 #= NOTE:
 The system assembly here is based on the Xfoil implementation, which does not strictly fit in the overall structure (it solves based on stream functions rather than potentials).
@@ -65,10 +77,14 @@ function generate_inviscid_system(pt::PlanarProblem, panels, mesh, TEmesh)
     return InviscidSystem(A, b, mesh.node_indices)
 end
 
+#---------------------------------#
+#       COEFFICIENT MATRIX        #
+#---------------------------------#
+
 """
     assemble_influence_matrix(v::Vortex, mesh, TEmesh)
 
-Assembles the "A" matrix (left hand side coefficient matrix.
+Assembles the "A" matrix (left hand side coefficient matrix).
 
 **Arguments:**
 - `s::Singularity` : The singularity type used.
@@ -205,6 +221,10 @@ function assemble_vortex_matrix(::Linear, mesh, TEmesh)
     return amat
 end
 
+#---------------------------------#
+#    BOUNDARY CONDITION MATRIX    #
+#---------------------------------#
+
 """
     assemble_boundary_conditions(meshes)
 
@@ -212,6 +232,7 @@ Assemble boundary condition vector.
 
 **Arguments:**
 - `bc::BoundaryCondition` : The type of boundary condition to be used.
+- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
 - `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
 
@@ -260,14 +281,12 @@ function assemble_boundary_conditions(::Dirichlet, panels, mesh, TEmesh)
     return bmat
 end
 
-#---------------------------------#
-#           AXISYMMETRIC          #
-#---------------------------------#
+######################################################################
+#                                                                    #
+#                            AXISYMMETRIC                            #
+#                                                                    #
+######################################################################
 
-"""
-**Arguments:**
-- `mesh::Array{AxisymMesh}` : AxisymMesh for airfoil to analyze.
-"""
 function generate_inviscid_system(
     p::AxisymmetricProblem, panels::TP, mesh
 ) where {TP<:Panel}
@@ -284,15 +303,20 @@ function generate_inviscid_system(p::AxisymmetricProblem, panels, mesh)
     return InviscidSystem(A, b, mesh.panel_indices)
 end
 
-"""
-    assemble_influence_matrix(v::Vortex, mesh, TEmesh)
+#---------------------------------#
+#       COEFFICIENT MATRIX        #
+#---------------------------------#
 
-Assembles the "A" matrix (left hand side coefficient matrix.
+"""
+    assemble_ring_influence_matrix(v::Vortex, body_of_revolution, panels, mesh)
+
+Assembles the "A" matrix (left hand side coefficient matrix).
 
 **Arguments:**
 - `s::Singularity` : The singularity type used.
+- `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
+- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
-- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
 
 **Returns:**
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
@@ -304,14 +328,15 @@ function assemble_ring_influence_matrix(v::Vortex, body_of_revolution, panels, m
 end
 
 """
-    assemble_vortex_matrix(::Order, mesh, TEmesh)
+    assemble_ring_vortex_matrix(::Order, body_of_revolution, panels, mesh)
 
 Assembles the coefficient matrix for a given order of singularity.
 
 **Arguments:**
 - `o::Order` : The order of singularity used.
+- `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
+- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
-- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
 
 **Returns:**
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
@@ -319,6 +344,8 @@ Assembles the coefficient matrix for a given order of singularity.
 function assemble_ring_vortex_matrix(::Order, body_of_revolution, panels, mesh) end
 
 function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mesh)
+
+    ### --- SETUP --- ###
 
     # Count number of bodies requiring a Kutta Condition
     nk = count(br -> br == false, body_of_revolution)
@@ -333,9 +360,11 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
     amat = zeros(TF, (N + nk, N + nk))
 
     # Loop through system
+
+    ### --- Loop through bodies --- ###
     for m in 1:nbodies
         for n in 1:nbodies
-            # loop through setting up influence coefficients
+            ### --- Loop through panels --- ###
             for i in idx[m]
                 for j in idx[n]
 
@@ -384,7 +413,31 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
     return amat
 end
 
+#---------------------------------#
+#    BOUNDARY CONDITION MATRIX    #
+#---------------------------------#
+
+"""
+    assemble_ring_boundary_conditions(::BoundaryCondition, body_of_revolution, panels, mesh)
+
+Assemble boundary condition vector.
+
+**Arguments:**
+- `bc::BoundaryCondition` : The type of boundary condition to be used.
+- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
+- `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
+- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
+
+**Returns**
+ - `b::Matrix{Float}` : Boundary condition matrix
+"""
+function assemble_ring_boundary_conditions(
+    ::BoundaryCondition, body_of_revolution, panels, mesh
+) end
+
 function assemble_ring_boundary_conditions(::Neumann, body_of_revolution, panels, mesh)
+
+    ### --- SETUP --- ###
 
     # Count number of bodies requiring a Kutta Condition
     nk = count(br -> br == false, body_of_revolution)
@@ -398,10 +451,10 @@ function assemble_ring_boundary_conditions(::Neumann, body_of_revolution, panels
     TF = eltype(mesh.m)
     bc = zeros(TF, N + nk)
 
-    # Loop through system
+    ### --- Loop through bodies --- ###
     for m in 1:nbodies
 
-        # generate boundary condition array
+        # generate portion of boundary condition array associated with mth body
         if body_of_revolution[m]
             bc[idx[m], 1] = [-cos(panels[m].panel_angle[i]) for i in idx[m]]
         else
@@ -411,3 +464,9 @@ function assemble_ring_boundary_conditions(::Neumann, body_of_revolution, panels
 
     return bc
 end
+
+######################################################################
+#                                                                    #
+#                             PERIODIC                               #
+#                                                                    #
+######################################################################

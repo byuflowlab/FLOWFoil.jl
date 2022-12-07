@@ -63,14 +63,3 @@ function solve_inviscid(inviscid_system)
 
     return InviscidSolution(x, inviscid_system)
 end
-
-# # MOVE TO POST PROCESSING
-#     # Separate Outputs
-#     if axisymmetric
-#         nk = countkutta(meshes)
-#         panelgammas = gammas[1:(end - nk), :]
-#         bodystrength = gammas[(end - nk):end, :]
-#     else
-#         panelgammas = gammas[1:(end - length(inviscid_system.Ns)), :]
-#         bodystrength = gammas[(end - (length(inviscid_system.Ns) - 1)):end, :]
-#     end
