@@ -48,7 +48,7 @@ function solve(
     angle_of_attack,
     reynolds,
     mach,
-    method=PlanarProblem(Vortex(Linear()), Dirichlet()),
+    method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
 )
 
     # Generate Problem Object
@@ -78,18 +78,22 @@ function solve(
     coordinates,
     angle_of_attack,
     reynolds,
-    method=PlanarProblem(Vortex(Linear()), Dirichlet()),
+    method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
 ) end
 
 # - Inviscid; Mach = 0.0 - #
 function solve(
-    coordinates, angle_of_attack, method=PlanarProblem(Vortex(Linear()), Dirichlet())
+    coordinates,
+    angle_of_attack,
+    method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
 )
     return solve(coordinates, angle_of_attack, [-1.0], [-1.0], method)
 end
 
 # - Inviscid; AoA = Mach = 0.0 - #
-function solve(coordinates, method=PlanarProblem(Vortex(Linear()), Dirichlet()))
+function solve(
+    coordinates, method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet())
+)
     return solve(coordinates, [0.0], [-1.0], [-1.0], method)
 end
 

@@ -5,6 +5,7 @@ module FLOWFoil
 #---------------------------------#
 using LinearAlgebra
 using FLOWMath
+using ImplicitAD
 using SpecialFunctions
 
 #---------------------------------#
