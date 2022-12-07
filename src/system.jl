@@ -45,9 +45,7 @@ end
 **Returns:**
 ` inviscid_system::InviscidSystem` : Inviscid System object containing influence and boundary condition matrices for the system.
 """
-function generate_inviscid_system(problemtype::ProblemType, panels, mesh, TEmesh)
-    return generate_inviscid_system(problemtype.method, panels, mesh, TEmesh)
-end
+function generate_inviscid_system(problemtype::ProblemType, panels, mesh, TEmesh) end
 
 #---------------------------------#
 #             PLANAR              #
@@ -270,12 +268,146 @@ end
 **Arguments:**
 - `mesh::Array{AxisymMesh}` : AxisymMesh for airfoil to analyze.
 """
-function generate_inviscid_system(::AxisymmetricProblem, mesh)
+function generate_inviscid_system(
+    p::AxisymmetricProblem, panels::TP, mesh
+) where {TP<:Panel}
+    return generate_inviscid_system(p, [panels], mesh)
+end
+
+function generate_inviscid_system(p::AxisymmetricProblem, panels, mesh)
     # Get coeffiecient matrix (A, left hand side)
-    A, Ns = assemble_vortex_matrix(mesh)
+    A = assemble_ring_influence_matrix(p.singularity, p.body_of_revolution, panels, mesh)
 
     # Get boundary conditions (b, right hand side)
-    b = assemble_boundary_conditions(mesh)
+    b = assemble_ring_boundary_conditions(p.boundary, p.body_of_revolution, panels, mesh)
 
-    return InviscidSystem(A, b, Ns)
+    return InviscidSystem(A, b, mesh.panel_indices)
+end
+
+"""
+    assemble_influence_matrix(v::Vortex, mesh, TEmesh)
+
+Assembles the "A" matrix (left hand side coefficient matrix.
+
+**Arguments:**
+- `s::Singularity` : The singularity type used.
+- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
+- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
+
+**Returns:**
+- A::Matrix{Float}` : The influence coefficient matrix for the linear system
+"""
+function assemble_ring_influence_matrix(::Singularity, body_of_revolution, panels, mesh) end
+
+function assemble_ring_influence_matrix(v::Vortex, body_of_revolution, panels, mesh)
+    return assemble_ring_vortex_matrix(v.order, body_of_revolution, panels, mesh)
+end
+
+"""
+    assemble_vortex_matrix(::Order, mesh, TEmesh)
+
+Assembles the coefficient matrix for a given order of singularity.
+
+**Arguments:**
+- `o::Order` : The order of singularity used.
+- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
+- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
+
+**Returns:**
+- A::Matrix{Float}` : The influence coefficient matrix for the linear system
+"""
+function assemble_ring_vortex_matrix(::Order, body_of_revolution, panels, mesh) end
+
+function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mesh)
+
+    # Count number of bodies requiring a Kutta Condition
+    nk = count(br -> br == false, body_of_revolution)
+
+    # - Rename for Convenience - #
+    idx = mesh.panel_indices
+    N = idx[end][end]
+    nbodies = mesh.nbodies
+
+    # initialize coefficient matrix
+    TF = eltype(mesh.m)
+    amat = zeros(TF, (N + nk, N + nk))
+
+    # Loop through system
+    for m in 1:nbodies
+        for n in 1:nbodies
+            # loop through setting up influence coefficients
+            for i in idx[m]
+                for j in idx[n]
+
+                    ### --- Calculate influence coefficient --- ###
+                    amat[i, j] = calculate_ring_vortex_influence(
+                        Constant(), panels[m], panels[n], mesh, i, j
+                    )
+                end
+            end
+
+            if m == n && !body_of_revolution[m]
+
+                ### --- Apply Back Substitution --- ###
+                for i in idx[n]
+                    sum = 0.0
+                    jidx = idx[n][end] + 1 - i
+                    for j in idx[m]
+                        if j != jidx
+                            sum += amat[j, i] * panels[n].panel_length[j]
+                        end
+                    end
+                    dmagj = panels[n].panel_length[jidx]
+                    amat[jidx, i] = -sum / dmagj
+                end
+
+                ### --- Apply Kutta Condition --- ###
+                # put in the kutta condition for each airfoil (end rows of the system matrix)
+                amat[N + m, idx[n][1]] = 1.0
+                amat[N + m, idx[n][end]] = 1.0
+
+                #put unit bound vortex value in each row
+                amat[idx[m], idx[n][end] + n] .= 1.0
+            end
+
+            # # NOTE: this doesn't seem to change anything...
+            # # Bound Vortex Correction
+            # for i in 1:N
+            #     for j in 1:M
+            #         amat[i, j] += meshj.panels[j].length
+            #     end
+            # end
+
+        end
+    end
+
+    return amat
+end
+
+function assemble_ring_boundary_conditions(::Neumann, body_of_revolution, panels, mesh)
+
+    # Count number of bodies requiring a Kutta Condition
+    nk = count(br -> br == false, body_of_revolution)
+
+    # - Rename for Convenience - #
+    idx = mesh.panel_indices
+    N = idx[end][end]
+    nbodies = mesh.nbodies
+
+    # initialize boundary condition array
+    TF = eltype(mesh.m)
+    bc = zeros(TF, N + nk)
+
+    # Loop through system
+    for m in 1:nbodies
+
+        # generate boundary condition array
+        if body_of_revolution[m]
+            bc[idx[m], 1] = [-cos(panels[m].panel_angle[i]) for i in idx[m]]
+        else
+            bc[idx[m], 1] = [1.0 - cos(panels[m].panel_angle[i]) for i in idx[m]]
+        end
+    end
+
+    return bc
 end

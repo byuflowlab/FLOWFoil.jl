@@ -14,4 +14,23 @@
     @test p.mach == [-1.0]
     @test p.viscous == false
     @test p.method == PlanarProblem(Vortex(Linear()), Dirichlet())
+
+    #---------------------------------#
+    #          Axisymmetric           #
+    #---------------------------------#
+    # Very Basic Test
+    coordinates = [[1], [1]]
+    p = define_problem(
+        AxisymmetricProblem([false, true], Vortex(Constant()), Neumann()),
+        coordinates,
+        0.0,
+        -1.0,
+        -1.0,
+    )
+    @test p.nbody == 2
+    @test p.angle_of_attack == [0.0]
+    @test p.reynolds == [-1.0]
+    @test p.mach == [-1.0]
+    @test p.viscous == false
+    @test all(p.method.body_of_revolution .== [false, true])
 end

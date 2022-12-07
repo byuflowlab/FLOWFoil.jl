@@ -6,6 +6,30 @@ Authors: Judd Mehr,
 
 abstract type Polar end
 
+"""
+    post_process(::ProblemType, problem, panels, mesh, solution; debug=false)
+
+Post-process solution and produce a Polar object.
+
+**Arguments:**
+- `method::ProblemType` : Problem type for dispatch
+- `problem::Problem` : Problem object
+- `panels::Vector{Panel}` : vector of Panel objects
+- `mesh::Mesh` : Mesh object
+- `solution::Solution` : Solution object
+
+**Keyword Arguments:**
+- `npanels::Int` : number of panels to use on top and bottom surface for surface distribution smoothing
+- `debug::Bool` : Flag for output format (see below)
+
+**Returns:**
+- If debug == false: `polar::Polar` : a Polar object
+- If debug == true: all the fields of a Polar object (in order), but as a tuple rather than a struct, such that the raw, unsmoothed, velocity and pressure distributions can be output.
+"""
+function post_process(
+    ::ProblemType, problem, panels, mesh, solution; npanels=80, debug=false
+) end
+
 ######################################################################
 #                                                                    #
 #                       PLANAR POST PROCESSING                       #
@@ -27,8 +51,8 @@ Also used for Periodic (cascade) post processing.
  - `pdrag::Float` : Pressure Drag Coefficient.
  - `idrag::Float` : Induced Drag Coefficient.
  - `moment::Float` : Moment Coefficient.
- - `surfacevelocity::Vector{Float}` : surface velocity distribution
- - `surfacepressure::Vector{Float}` : surface pressure distribution
+ - `surfacevelocity::Vector{Float}` : smoothed surface velocity distribution
+ - `surfacepressure::Vector{Float}` : smoothed surface pressure distribution
 """
 struct PlanarPolar{TF} <: Polar
     lift::Matrix{TF}
@@ -45,24 +69,9 @@ end
 #            FUNCTIONS            #
 #---------------------------------#
 
-"""
-
-if debug = true, the outputs will not be in a struct format to allow for potentially non-equal lengths in the surface velocity and pressures
-"""
-function post_process(pp::PlanarProblem, problem, panels, mesh, solution; debug=false)
-    return post_process(pp.singularity, problem, panels, mesh, solution; debug=debug)
-end
-
-"""
-"""
-function post_process(v::Vortex, problem, panels, mesh, solution; debug=false)
-    return post_process_vortex(v.order, problem, panels, mesh, solution; debug=false)
-end
-
-"""
-"""
-function post_process_vortex(
-    ::Linear, problem, panels, mesh, solution; npanels=80, debug=false
+#TODO: once again, this is xfoil specific. Probably want to move this elsewhere eventually
+function post_process(
+    ::PlanarProblem, problem, panels, mesh, solution; npanels=80, debug=false
 )
 
     ##### ----- Set Up ----- #####
@@ -227,9 +236,7 @@ function post_process_vortex(
 
     # Again, returns depend on debug flag
     if debug
-        return sum(cl; dims=1),
-        sum(cd; dims=1), sum(cdp; dims=1), sum(cdi; dims=1), sum(cm; dims=1), v_surf,
-        p_surf
+        return cl, cd, cdp, cdi, cm, v_surf, p_surf
     else
         return PlanarPolar(cl, cd, cdp, cdi, cm, v_surf, p_surf, smooth_nodes)
     end
@@ -294,16 +301,148 @@ end
     AxiSymPolar{TF,TA}
 
 **Fields:**
-- `thrust::Float` : Thrust (or drag) of body
 - `surface_velocity::Array{Float}` : surface velocity on each panel
 - `surface_pressure::Array{Float}` : surface pressure coefficient on each panel
 """
-struct AxiSymPolar{TF,TA} <: Polar
-    thrust::TF
-    surface_velocity::TA
-    surface_pressure::TA
+struct AxisymmetricPolar{TF} <: Polar
+    surface_velocity::Matrix{TF}
+    surface_pressure::Matrix{TF}
+    xsmooth::Matrix{TF}
 end
 
 #---------------------------------#
 #            FUNCTIONS            #
 #---------------------------------#
+
+function post_process(
+    ap::AxisymmetricProblem, problem, panels::TP, mesh, solution; npanels=80, debug=false
+) where {TP<:Panel}
+    return post_process(
+        ap::AxisymmetricProblem, problem, [panels], mesh, solution; npanels=80, debug=false
+    )
+end
+function post_process(
+    ::AxisymmetricProblem, problem, panels, mesh, solution; npanels=80, debug=false
+)
+
+    # - Rename for Convenience - #
+    idx = mesh.panel_indices
+    nbodies = mesh.nbodies
+
+    # - Initialize Outputs - #
+    TF = eltype(mesh.m)
+    v_surf = zeros(TF, nbodies, 2 * npanels - 1)
+    p_surf = zeros(TF, nbodies, 2 * npanels - 1)
+    xsmooth = zeros(TF, nbodies, 2 * npanels - 1)
+
+    for m in 1:nbodies
+        # - Extract surface velocity - #
+        vti = solution.x[1:idx[end][end]]
+
+        # - Calculate surface pressure - #
+        cpi = 1.0 .- (vti) .^ 2
+
+        ### --- Smooth Distributions --- ###
+        v_surf[m, :], xsmooth[m, :] = smooth_distributions(
+            Constant(), panels[m].panel_center, vti, npanels
+        )
+        p_surf[m, :], _ = smooth_distributions(
+            Constant(), panels[m].panel_center, cpi, npanels
+        )
+    end
+
+    return AxisymmetricPolar(v_surf, p_surf, xsmooth)
+end
+
+"""
+TODO: probably move this to utils.jl (but maybe not, keep here for now)
+"""
+function smooth_distributions(::Constant, panel_center, distribution, npanels)
+
+    #= NOTE:
+        Akima splines in FLOWMath require the 'x' values to be monotonically ascending.
+        Therefore, we need to get all the panel edge points and then divide them into top and bottom in order to create our splines.
+    =#
+
+    # - Get 'x' values from panel centers - #
+    x = panel_center[:, 1]
+
+    # - Split the 'x' values - #
+
+    # find the minimum and index
+    minx, minidx = findmin(x)
+
+    # the bottom needs to be flipped to ascend monotonically
+    xbot = x[minidx:-1:1]
+    # the top is already in the right direction
+    xtop = x[minidx:end]
+
+    # - Get smooth 'x' values from cosine spacing - #
+    # Get cosine spaced values from zero to one.
+    xcosine = cosine_spacing(npanels)
+
+    # - Transform the cosine spaced values to the minimum and maximum points - #
+    # Get the maximum x value
+    maxx = maximum(x)
+
+    xsmooth = linear_transform([0.0; 1.0], [minx; maxx], xcosine)
+
+    # - Generate smooth distribution - #
+    distbot = FLOWMath.akima(xbot, distribution[minidx:-1:1], xsmooth)
+    disttop = FLOWMath.akima(xtop, distribution[minidx:end], xsmooth)
+
+    # - Combine distribution and x values - #
+    xs = [reverse(xsmooth); xsmooth[2:end]]
+    dist = [reverse(distbot); disttop[2:end]]
+
+    # - Return - #
+    return dist, xs
+end
+
+"""
+    calculate_duct_thrust(inviscid_solution; Vinf=1.0, rho=1.225)
+
+Calculate the thrust of the duct.
+TODO: need to test!
+
+**Arguments:**
+- `inviscid_solution::FLOWFoil.InviscidSolution` : Inviscid solution object from FLOWFoil.
+- `Vinf::Float` : freestream velocity
+
+**Keyword Arguments:**
+- `rho::Float` : air density
+
+**Returns:**
+- `thrust::Float` : duct thrust (negative indicates drag)
+"""
+function calculate_duct_thrust(polar::AxisymmetricPolar, panels, mesh; Vinf=1.0, rho=1.225)
+
+    # - Rename for Convenience - #
+    idx = mesh.node_indices
+
+    # Calculate dynamic pressure
+    q = 0.5 * rho * Vinf^2
+
+    # Initialize output
+    TF = eltype(mesh.m)
+    fx = zeros(TF, mesh.nbodies)
+
+    # Loop through Bodies
+    for m in 1:(mesh.nbodies)
+        if !problem.body_of_revolution[m]
+
+            #dimensionalize pressure
+            P = polar.surface_pressure[idx[m]] .* q
+
+            #TODO: YOU ARE HERE (need to update this calculation based on updated solver
+            # add panel pressure in x-direction to total sectional force
+            fx += sum(
+                P .* panels[m].panel_length[:] .* panels[m].panel_normal[:, 1] .*
+                panels[m].center_point[:, 2],
+            )
+        end
+    end
+
+    #return total duct thrust for whole annulus: -fx*2pi
+    return fx * 2.0 * pi
+end

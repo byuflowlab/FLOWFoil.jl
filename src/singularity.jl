@@ -169,12 +169,14 @@ function calculate_source_influence(::Constant, mesh, i, j)
     return psibarsigma
 end
 
-####################################
-##### ----- AXISYMMETRIC ----- #####
-####################################
+######################################################################
+#                                                                    #
+#                            AXISYMMETRIC                            #
+#                                                                    #
+######################################################################
 
 """
-    get_ring_vortex_influence(paneli, panelj)
+    calculate_ring_vortex_influence(paneli, panelj)
 
 Cacluate the influence of a ring vortex at panel j onto panel i.
 
@@ -185,32 +187,37 @@ Cacluate the influence of a ring vortex at panel j onto panel i.
 **Returns:**
 - `aij::Float` : Influence of vortex ring strength at panel j onto panel i.
 """
-function get_ring_vortex_influence(paneli, panelj)
-
-    #get geometry of panels and influence
-    x, r, rj, dmagj, m, nhati = get_ring_geometry(paneli, panelj)
+function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
 
     #calculate unit velocities
-    u = get_u_ring(x, r, rj, dmagj, m)
-    v = get_v_ring(x, r, rj, m)
+    u = get_u_ring(
+        mesh.x[i, j],
+        mesh.r[i, j],
+        panelj.panel_center[j, 2],
+        panelj.panel_length[j],
+        mesh.m[i, j],
+    )
+
+    v = get_v_ring(mesh.x[i, j], mesh.r[i, j], panelj.panel_center[j, 2], mesh.m[i, j])
 
     #return appropriate strength
     # if asin(sqrt(m)) != pi / 2
-    if m != 1.0
+    if mesh.m[i, j] != 1.0
 
         #panels are different
-        return (-u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
+        return (-u * cos(paneli.panel_angle[i]) + v * sin(paneli.panel_angle[i])) *
+               panelj.panel_length[j]
     else
         #same panel -> self induction equation
 
         #NOTE: this is not eqn 4.22 in Lewis.  Their code uses this expression which seems to avoid singularities better.  Not sure how they changed the second term (from dj/4piR to -R) though; perhaps the R in the text != the curvature in the code (radiusofcurvature vs curvature).
 
         # constant used in multiple places to clean things up
-        cons = 4.0 * pi * rj / dmagj
+        cons = 4.0 * pi * panelj.panel_center[j, 2] / panelj.panel_length[j]
 
         # return self inducement coefficient
-        return -0.5 - panelj.radiusofcurvature -
-               (log(2.0 * cons) - 0.25) / cons * cos(panelj.beta)
+        return -0.5 - panelj.panel_curvature[j] -
+               (log(2.0 * cons) - 0.25) / cons * cos(panelj.panel_angle[j])
     end
 end
 

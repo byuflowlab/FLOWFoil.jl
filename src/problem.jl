@@ -80,7 +80,7 @@ function define_problem(
     elseif length(reynolds) == 1
         reynolds_numbers = [reynolds[1]]
     else
-        reynolds_nubmers = reynolds
+        reynolds_numbers = reynolds
     end
 
     # - Make Mach Number a Vector (if not one already) - #

@@ -110,16 +110,24 @@ end
 #                                                                    #
 ######################################################################
 
-#TODO: look at planar struct for updated formatting
 """
+    AxisymmetricFlatPanel
+
+**Fields:**
+- `npanels::Vector{Int}` : number of panels on each body
+- `panel_center::Matrix{TF}` : Panel center locations
+- `panel_length::Vector{TF}` : Lengths of panels (magnitude of panel vector)
+- `panel_normal::Matrix{TF}` : Panel normal unit vectors
+- `panel_angle::Vector{TF}` : Angles of panels
+- `panel_curvature::Vector{TF}` : Curvature of panels
 """
 struct AxisymmetricFlatPanel{TF} <: Panel
     npanels::Int
-    control_point::Vector{Vector{TF}}
+    panel_center::Matrix{TF}
     panel_length::Vector{TF}
-    panel_normal::Vector{Vector{TF}}
-    panel_curvature::Vector{TF}
+    panel_normal::Matrix{TF}
     panel_angle::Vector{TF}
+    panel_curvature::Vector{TF}
 end
 
 function generate_panels(p::AxisymmetricProblem, coordinates)
@@ -129,6 +137,7 @@ function generate_panels(p::AxisymmetricProblem, coordinates)
 end
 
 function generate_panels(::AxisymmetricProblem, coordinates::Matrix{TF}) where {TF}
+
     # Separate out coordinates
     x = coordinates[:, 1]
     r = coordinates[:, 2]
@@ -136,91 +145,93 @@ function generate_panels(::AxisymmetricProblem, coordinates::Matrix{TF}) where {
     #check of any r coordinates are negative
     @assert all(x -> x >= -eps(), r)
 
-    #initialize panels
-    panels = Array{AxiSymPanel}(undef, length(x) - 1)
+    # number of panels
+    npanels = length(x) - 1
 
-    cpx = [0.0 for i in 1:(length(x) - 1)]
-    cpr = [0.0 for i in 1:(length(x) - 1)]
-    nhat = [[0.0; 0.0] for i in 1:(length(x) - 1)]
-    dmag = [0.0 for i in 1:(length(x) - 1)]
-    sine = [0.0 for i in 1:(length(x) - 1)]
-    cosine = [0.0 for i in 1:(length(x) - 1)]
-    slope = [0.0 for i in 1:(length(x) - 1)]
-    curve = [0.0 for i in 1:(length(x) - 1)]
+    # Initialize Outputs
+    panel_center = zeros(TF, npanels, 2)
+    panel_length = zeros(TF, npanels)
+    panel_normal = zeros(TF, npanels, 2)
+    panel_curvature = zeros(TF, npanels)
+    panel_angle = zeros(TF, npanels)
 
-    for i in 1:(length(x) - 1)
+    for i in 1:npanels
 
         #calculate control point
-        cpx[i] = 0.5 * (x[i] + x[i + 1])
-        cpr[i] = 0.5 * (r[i] + r[i + 1])
+        panel_center[i, :] = [0.5 * (x[i] + x[i + 1]); 0.5 * (r[i] + r[i + 1])]
 
         #calculate length
-        d, dmag[i] = get_d([x[i]; r[i]], [x[i + 1]; r[i + 1]])
+        panel_vector, panel_length[i] = get_d([x[i] r[i]; x[i + 1] r[i + 1]])
 
         #calculate normal
-        nhat[i] = get_normal(d, dmag[i])
+        panel_normal[i, :] = get_panel_normal(panel_vector, panel_length[i])
 
-        #find minimum x point (i.e. the leading edge point
+        #find minimum x point (i.e. the leading edge point)
         _, minx = findmin(x)
 
         #use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
-        beta = atan(d[2] / d[1])
+        beta = atan(panel_vector[2] / panel_vector[1])
 
         #apply corrections as needed based on orientation of panel in coordinate frame.
-        if (d[1] < 0.0) && (i > minx)
+        if (panel_vector[1] < 0.0) && (i > minx)
             #if panel is on the top half of the airfoil and has a negative x direction, need to correct the angle from atan
-            slope[i] = beta - pi
+            panel_angle[i] = beta - pi
 
-        elseif (d[1] < 0.0) && (i < minx)
+        elseif (panel_vector[1] < 0.0) && (i < minx)
             #if panel is on the bottom half of the airfoil and has a negative x direction, need to correct the angle from atan
-            slope[i] = beta + pi
+            panel_angle[i] = beta + pi
         else
-            slope[i] = beta
+            panel_angle[i] = beta
         end
 
-        #TODO: This is the version from the book code.  Maybe it's more robust?
-        ## sine[i] = (r[i + 1]- r[i]) / dmag[i]
-        #sine[i] = (d[2]) / dmag[i]
-        #cosine[i] = (d[1]) / dmag[i]
-        ## cosine[i] = (x[i + 1]- x[i]) / dmag[i]
-        #abscos = abs(cosine[i])
-        #if abscos > ex
-        #    #use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
-        #    beta = atan(sine[i] / cosine[i])
-        #end
+        #= NOTE:
+        #This is the version from the book code.  Maybe it's more robust?
 
-        ##if the panel is nearly vertical, set the panel slope to vertical in the correct direction.
-        #if abscos < ex
-        #    slope[i] = sign(sine[i]) * pi / 2.0
-        #end
+        # sine[i] = (r[i + 1]- r[i]) / panel_length[i]
+        sine[i] = (panel_vector[2]) / panel_length[i]
+        cosine[i] = (panel_vector[1]) / panel_length[i]
+        # cosine[i] = (x[i + 1]- x[i]) / panel_length[i]
+        abscos = abs(cosine[i])
+        if abscos > ex
+            #use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
+            beta = atan(sine[i] / cosine[i])
+        end
 
-        ##otherwise (in most cases)
-        #if cosine[i] > ex
-        #    slope[i] = beta
-        #end
+        #if the panel is nearly vertical, set the panel panel_angle to vertical in the correct direction.
+        if abscos < ex
+            panel_angle[i] = sign(sine[i]) * pi / 2.0
+        end
+
+        #otherwise (in most cases)
+        if cosine[i] > ex
+            panel_angle[i] = beta
+        end
 
         ## For special cases
-        ##find minimum x point (i.e. the leading edge point
-        #_, minx = findmin(x)
+        #find minimum x point (i.e. the leading edge point
+        _, minx = findmin(x)
 
-        ##if panel is on the top half of the airfoil and has a negative x direction, need to correct the angle from atan
-        #if (cosine[i] < -ex) && (i > minx)
-        #    slope[i] = beta- pi
-        #end
+        #if panel is on the top half of the airfoil and has a negative x direction, need to correct the angle from atan
+        if (cosine[i] < -ex) && (i > minx)
+            panel_angle[i] = beta - pi
+        end
 
-        ##if panel is on the bottom half of the airfoil and has a negative x direction, need to correct the angle from atan
-        #if (cosine[i] < -ex) && (i < minx)
-        #    slope[i] = beta + pi
-        #end
+        #if panel is on the bottom half of the airfoil and has a negative x direction, need to correct the angle from atan
+        if (cosine[i] < -ex) && (i < minx)
+            panel_angle[i] = beta + pi
+        end
+        =#
 
     end
 
-    for i in 2:(length(x) - 2)
-        curve[i] = (slope[i + 1] - slope[i - 1]) / 8.0 / pi
+    ### --- Calculate Panel Curvature --- ###
+    # - If not the end panels, calculate non-zero curvatures - #
+    # NOTE: end panels are trailing edges, which are assumed to have zero curvature.
+    for i in 2:(npanels - 1)
+        panel_curvature[i] = (panel_angle[i + 1] - panel_angle[i - 1]) / 8.0 / pi
     end
 
-    for i in 1:(length(x) - 1)
-        #generate panel objects
-        panels[i] = AxiSymPanel([cpx[i]; cpr[i]], dmag[i], nhat[i], slope[i], curve[i])
-    end
+    return AxisymmetricFlatPanel(
+        npanels, panel_center, panel_length, panel_normal, panel_angle, panel_curvature
+    )
 end

@@ -453,46 +453,86 @@ end
 #---------------------------------#
 
 """
-    AxiSymMesh{TP,TB}
+    AxisymmetricMesh{TF}
 
 Axisymmetric Mesh Object
 
 **Fields:**
-- `controlpoint::Array{Float}` : [x;r] coordinates of panel midpoint.
-- `length::Float` : length of panel
-- `normal::Array{Float}` : unit normal vector of panel (TODO: remove if unused)
-- `beta::Float` : angle panel makes with positive x-axis (radians)
-- `radius_of_curvature::Float` : the radius of curvature of the geometry at the panel control point. TODO: make sure this is actually correct with current implementation.
-- `body_of_revolution::Bool` : Flag as to whether or not the mesh represents a body of revolution.
 """
-struct AxiSymMesh{TF} <: Mesh
-    controlpoint::Vector{Vector{TF}}
-    length::Vector{TF}
-    normal::Vector{Vector{TF}}
-    beta::Vector{TF}
-    radius_of_curvature::Vector{TF}
-    body_of_revolution::Bool
+struct AxisymmetricMesh{TF} <: Mesh
+    nbodies::Int
+    panel_indices::Vector{UnitRange{Int64}}
+    x::Matrix{TF}
+    r::Matrix{TF}
+    m::Matrix{TF}
 end
 
 #---------------------------------#
 #            FUNCTIONS            #
 #---------------------------------#
 
-"""
-    generate_mesh(x, r; body_of_revolution)
+# - If single airfoil, need to put Panel object in a vector - #
+function generate_mesh(p::AxisymmetricProblem, panels::TP; ex=1e-5) where {TP<:Panel}
+    return generate_mesh(p, [panels]; ex=ex)
+end
 
-Generate mesh for axisymmetric body.
+function generate_mesh(axisym::AxisymmetricProblem, panels; ex=1e-5)
 
-**Arguments:**
-- `coordinates::NTuple{N,Matrix{Float}}` : Tuple containting arrays of both x and y coordinates (x first column, y second column) for each airfoil in the airfoil system.
+    ### --- Convenience Variables --- ###
+    nbodies = length(panels)
+    npanels = [panels[i].npanels for i in 1:nbodies]
+    total_panels = sum(npanels)
 
-**Keyword Arguments:**
+    # - Define Body Indexing - #
 
-**Returns:**
-- `mesh::FLOWFoil.Array{Mesh}` :
-"""
-# function generate_mesh(axisym::AxisymmetricProblem, coordinates; ex=1e-5)
-# end
+    #find starting indices for each body
+    cspanels = cumsum(npanels)
+
+    # put together index ranges of panels for each body
+    panel_indices = [
+        (1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:length(nbodies)
+    ]
+
+    ### --- Initialize Vectors --- ###
+    TF = typeof(sum([panels[i].panel_length[1] for i in 1:nbodies]))
+
+    ### --- General Mesh Fields --- ###
+    # Panel Length (contained in panels objects)
+    panel_length = zeros(TF, (total_panels))
+
+    # x-component of normalized distance from influencing panel center to field point
+    x = zeros(TF, (total_panels, total_panels))
+
+    # r-component of normalized distance from influencing panel center to field point
+    r = zeros(TF, (total_panels, total_panels))
+
+    # variable used in elliptic function calculations
+    k2 = zeros(TF, (total_panels, total_panels))
+
+    for m in 1:nbodies
+        for n in 1:nbodies
+            for i in panel_indices[m]
+                for j in panel_indices[m]
+                    xi = panels[m].panel_center[i, 1]
+                    ri = panels[m].panel_center[i, 2]
+
+                    xj = panels[n].panel_center[j, 1]
+                    rj = panels[n].panel_center[j, 2]
+
+                    #get x and r for these panels
+                    x[i, j] = (xi - xj) / rj
+                    r[i, j] = ri / rj
+
+                    #get phi for these panels
+                    k2[i, j] = 4.0 * r[i, j] / (x[i, j]^2 + (r[i, j] + 1.0)^2)
+                end
+            end
+        end
+    end
+
+    # Return Mesh
+    return AxisymmetricMesh(nbodies, panel_indices, x, r, k2)
+end
 
 ######################################################################
 #                                                                    #

@@ -118,6 +118,7 @@ One of the available boundary conditions.
 The Robin boundary condition is a weighted combination of Dirichlet and Neumann conditions over the entire boundary.
 """
 struct Robin <: BoundaryCondition end
+# NOTE: will need to add some fields here if used in the future to contain weighting information
 
 """
     Mixed
@@ -127,6 +128,7 @@ One of the available boundary conditions.
 The Mixed boundary condition is where a combination of Neumann and Dirichlet conditions are used at disparate locations along the boundary.
 """
 struct Mixed <: BoundaryCondition end
+# NOTE: will need to add some fields here if used in the future to contain location information
 
 ######################################################################
 #                                                                    #
@@ -143,13 +145,17 @@ abstract type ProblemType end
     Planar()
 
 One of the available sub-types of ProblemType.  Indicates use of Planar (2D) analysis method.
+
+**Fields:**
+- `singularity::Singularity` : The type of singularities to be used in the problem.
+- `boundary::BoundaryCondition` : The type of boundary condition to be used in the problem.
 """
 struct PlanarProblem{TS,TBC} <: ProblemType where {TS<:Singularity,TBC<:BoundaryCondition}
     singularity::TS
     boundary::TBC
 end
-# NOTE: Currently, the only Planer implementation is the mfoil solver.
-# TODO: eventually, allow for user defined panel and singularity types
+# NOTE: Currently, the only Planar implementation is the mfoil solver.
+# NOTE: Eventually, will likely need to update types here to be vectors to allow for combinations of singularities (or different singularities on different bodies).  (boundary conditions already have mixed types)
 
 # - Axisymmetric - #
 # The Axisymmetric solver type is used for bodies of revolution and annular airfoils (ducts)
@@ -161,8 +167,11 @@ One of the available sub-types of ProblemType.  Indicates use of Axisymmetric an
 **Fields:**
 - `body_of_revolution::Vector{Bool}` : Array of bools indicating whether the associated body is a body of revolution or not. (If not, it will be considered an annular airfoil, i.e., a duct.)
 """
-struct AxisymmetricProblem <: ProblemType
+struct AxisymmetricProblem{TS,TBC} <:
+       ProblemType where {TS<:Singularity,TBC<:BoundaryCondition}
     body_of_revolution::Vector{Bool}
+    singularity::TS
+    boundary::TBC
 end
 
 # - Periodic (Cascade) - #
