@@ -75,18 +75,14 @@ function naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_TE=false, split=fal
     end
 
     #naca digits
-    maxcamber = c / 100
-    camberpose = p / 10
-    maxthick = t / 100
+    maxcamber = c / 100.0
+    camberpose = p / 10.0
+    maxthick = t / 100.0
 
     #initialize arrays
-    yu = zeros(N) #upper y values
-    yl = zeros(N) #lower y values
-
-    if real(c) != c || real(p) != p || real(t) != t
-        yu = complex(yu)
-        yl = complex(yl)
-    end
+    TF = promote_type(typeof(c), eltype(x))
+    yu = zeros(TF, N) #upper y values
+    yl = zeros(TF, N) #lower y values
 
     #--Calculate y-values--#
     for i in 1:N

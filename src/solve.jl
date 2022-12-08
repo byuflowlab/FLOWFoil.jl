@@ -59,7 +59,8 @@ Outputs the InviscidSolution object which contains the inviscid_system.
 function solve_inviscid(inviscid_system)
 
     # Solve System
-    x = ImplicitAD.implicit_linear(inviscid_system.A, inviscid_system.b)
+    # x = ImplicitAD.implicit_linear(inviscid_system.A, inviscid_system.b)
+    x = inviscid_system.A \ inviscid_system.b
 
     return InviscidSolution(x, inviscid_system)
 end

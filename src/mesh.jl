@@ -422,6 +422,7 @@ function calculate_influence_geometry(
         lnr1 = 0.0
         theta1 = pi
         theta2 = pi
+
     else
         lnr1 = log(r1)
     end #if
@@ -430,6 +431,7 @@ function calculate_influence_geometry(
         lnr2 = 0.0
         theta1 = 0.0
         theta2 = 0.0
+
     else
         lnr2 = log(r2)
     end #if

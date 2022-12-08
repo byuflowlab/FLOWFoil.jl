@@ -36,32 +36,32 @@ function get_trailing_edge_info(panel_edges)
     # normalize to get the unit vector
     ttehat = bisector / sqrt(bisector[1]^2 + bisector[2]^2)
 
+    # gap edges
+    gap_edges = [panel_edges[end, 2, :]'; panel_edges[1, 1, :]']
+
     # get panel vector
     dte, dtemag = get_d([panel_edges[1, 1, :]'; panel_edges[end, 2, :]'])
 
-    # normalize panelvector
-    dtehat = dte / dtemag
+    if dtemag == 0.0
+        return 1.0, 0.0, 0.0, gap_edges, dte, dtemag
+    else
+        # normalize panelvector
+        dtehat = dte / dtemag
 
-    # get dot product of bisection vector and panel vector.
-    tdp = ttehat[1] * dtehat[1] + ttehat[2] * dtehat[2]
+        # get dot product of bisection vector and panel vector.
+        tdp = ttehat[1] * dtehat[1] + ttehat[2] * dtehat[2]
 
-    # - Calculate txp - #
-    # get cross product of bisection vector and panel vector
-    txp = abs(ttehat[1] * dtehat[2] - ttehat[2] * dtehat[1])
+        # - Calculate txp - #
+        # get cross product of bisection vector and panel vector
+        txp = abs(ttehat[1] * dtehat[2] - ttehat[2] * dtehat[1])
 
-    # - Get trailing edge gap - #
-    trailing_edge_gap = -dte[1] * ttehat[2] + dte[2] * ttehat[1]
+        # - Get trailing edge gap - #
+        trailing_edge_gap = -dte[1] * ttehat[2] + dte[2] * ttehat[1]
 
-    # - Get other panel geometry - #
+        # - Get other panel geometry - #
 
-    # gap edges
-    gap_edges = [panel_edges[end, 2, :]'; panel_edges[1, 1, :]']
-    # panel vector and length
-    panel_vector, panel_length = get_d(gap_edges)
-
-    return isnan(tdp) ? 0.0 : tdp,
-    isnan(txp) ? 0.0 : txp, trailing_edge_gap, gap_edges, panel_vector,
-    panel_length
+        return tdp, txp, trailing_edge_gap, gap_edges, dte, dtemag
+    end
 end
 
 """
@@ -79,13 +79,23 @@ Calculate the vector, \$\\mathbf{r}\$, and distance, \$|r|\$, from the node to t
 """
 function get_r(node, point)
 
-    # Calculate vector
-    r = point .- node
+    # Need to make adjustments for sqrt(0) cases
+    if isapprox(point, node)
+        TF = eltype(node)
+        r = zeros(TF, 2)
+        rmag = TF(0.0)
 
-    # Calculate magnitude
-    rmag = sqrt(r[1]^2 + r[2]^2)
+        return r, rmag
 
-    return r, rmag
+    else
+        # Calculate vector
+        r = point .- node
+
+        # Calculate magnitude
+        rmag = sqrt(r[1]^2 + r[2]^2)
+
+        return r, rmag
+    end
 end
 
 """
@@ -257,11 +267,6 @@ function get_ring_geometry(paneli, panelj)
 
     #get phi for these panels
     m = 4.0 * r / (x^2 + (r + 1.0)^2)
-    if isnan(m)
-        println("m: ", m)
-        display(paneli.controlpoint)
-        display(panelj.controlpoint)
-    end
 
     return x, r, rj, dmagj, m, nhati
 end

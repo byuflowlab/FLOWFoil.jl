@@ -12,12 +12,12 @@
     @test mesh.node_indices == [1:3]
     @test mesh.chord == 1.0
     @test mesh.panel_length == [1.0; 1.0]
-    @test mesh.r1 == [0.0 1.0; 1.0 0.0; eps() 1.0]
+    @test isapprox(mesh.r1, [0.0 1.0; 1.0 0.0; eps() 1.0])
     @test mesh.lnr1 == zeros(3, 2)
-    @test mesh.r1normal == [0.0 -eps(); 0.0 0.0; -eps() 0.0]
+    @test isapprox(mesh.r1normal, [0.0 -eps(); 0.0 0.0; 0.0 0.0])
     @test mesh.r1tangent == [0.0 1.0; 1.0 0.0; 0.0 1.0]
     @test mesh.theta1 == [pi 0.0; 0.0 pi; pi 0.0]
-    @test mesh.r2 == [1.0 eps(); 0.0 1.0; 1.0 0.0]
+    @test isapprox(mesh.r2, [1.0 eps(); 0.0 1.0; 1.0 0.0])
     @test mesh.lnr2 == zeros(3, 2)
     @test mesh.theta2 == [pi 0.0; 0.0 pi; pi 0.0]
 
