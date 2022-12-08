@@ -17,7 +17,6 @@
 
     x0 = [2.0, 4.0, 12.0]
     J = ForwardDiff.jacobian(planar_temp, x0)
-    println(J)
 
     ######################################################################
     #                                                                    #
@@ -59,7 +58,6 @@
     end
 
     J = ForwardDiff.gradient(axisym_temp, x0)
-    println(J)
 
     @test true
 end
