@@ -325,3 +325,44 @@ function get_elliptics(m)
     return SpecialFunctions.ellipk(m), SpecialFunctions.ellipe(m)
     # end
 end
+
+######################################################################
+#                                                                    #
+#                              PERIODIC                              #
+#                                                                    #
+######################################################################
+
+"""
+    calculate_periodic_vortex_influence(paneli, panelj)
+
+Cacluate the influence of a periodic vortex at panel j onto panel i.
+
+**Arguments:**
+- `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
+- `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
+
+**Returns:**
+- `aij::Float` : Influence of vortex strength at panel j onto panel i.
+"""
+function calculate_periodic_vortex_influence(::Constant, paneli, panelj, mesh, i, j, t)
+
+    # - Self Induction Term - #
+    if isapprox([mesh.x[i, j]; mesh.y[i, j]], [0.0; 0.0])
+        return -0.5 - paneli.delta_angle[i] / (4.0 * pi)
+
+    else
+        # - Standard Periodic Coefficient - #
+
+        dmagj = panelj.panel_length[j]
+
+        num =
+            sin(2 * pi / t) * mesh.y[i, j] * cos(paneli.panel_angle[i]) -
+            sinh(2 * pi / t) * mesh.x[i, j] * sin(paneli.panel_angle[i])
+
+        den =
+            cosh(2 * pi / t) * mesh.x[i, j] -
+            cos(2 * pi / t) * mesh.y[i, j]
+
+        return dmagj / (4 * pi) * num / den
+    end
+end

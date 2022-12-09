@@ -21,13 +21,13 @@ Authors: Judd Mehr,
 =#
 
 """
-    solve(coordinates, angle_of_attack, reynolds, mach, method)
+    solve(coordinates, flow_angle, reynolds, mach, method)
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
 **Arguments:**
 - `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
-- `angle_of_attack::Vector{Float}` : Vector of angles of attack (may be a single float as well)
+- `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
 - `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
 - `method::ProblemType` : Type of problem to solve (Planar, axisymmetric, or periodic). Defaults to XFoil-like method: PlanarProblem(Vortex(Linear(),Dirichlet())
@@ -38,21 +38,21 @@ Convenience function for setting up, solving, and post-processing airfoils and a
 ---
 
 ## Other Implementations:
-`solve(coordinates, angle_of_attack, reynolds; method)` : assumes mach = 0.0
-`solve(coordinates, angle_of_attack; method)` : assumes inviscid and mach = 0.0
+`solve(coordinates, flow_angle, reynolds; method)` : assumes mach = 0.0
+`solve(coordinates, flow_angle; method)` : assumes inviscid and mach = 0.0
 `solve(coordinates; method)` : assumes inviscid and mach and angle of attack are 0.0
 
 """
 function solve(
     coordinates,
-    angle_of_attack,
+    flow_angle,
     reynolds,
     mach,
     method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
 )
 
     # Generate Problem Object
-    problem = define_problem(method, coordinates, angle_of_attack, reynolds, mach)
+    problem = define_problem(method, coordinates, flow_angle, reynolds, mach)
 
     # Generate Panel Geometry
     panels = generate_panels(method, coordinates)
@@ -76,7 +76,7 @@ end
 # - Mach = 0.0 - #
 function solve(
     coordinates,
-    angle_of_attack,
+    flow_angle,
     reynolds,
     method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
 ) end
@@ -84,10 +84,10 @@ function solve(
 # - Inviscid; Mach = 0.0 - #
 function solve(
     coordinates,
-    angle_of_attack,
+    flow_angle,
     method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
 )
-    return solve(coordinates, angle_of_attack, [-1.0], [-1.0], method)
+    return solve(coordinates, flow_angle, [-1.0], [-1.0], method)
 end
 
 # - Inviscid; AoA = Mach = 0.0 - #

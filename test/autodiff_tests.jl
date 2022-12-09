@@ -27,7 +27,7 @@
     function axisym_temp(x0)
         x, z = FLOWFoil.naca4(x0[1], x0[2], x0[3])
         coordinates = [x z .+ 1.0]
-        method = AxisymmetricProblem([false], Vortex(Constant()), Neumann())
+        method = AxisymmetricProblem(Vortex(Constant()), Neumann(), [false])
 
         #TODO: consider putting this in the convenience functions file...
         function solve_axisymmetric(method, coordinates)

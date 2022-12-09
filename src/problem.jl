@@ -23,7 +23,7 @@ Problem definition and output behavior.
 
 **Fields:**
 - `nbody::Int` : Number of bodies in system to analyze.
-- `angle_of_attack::Vector{Float}` : angle(s) of attack to analyze.
+- `flow_angle::Vector{Float}` : angle(s) of attack to analyze.
 - `reynolds::Vector{Float}` : Reynolds number(s) to analyze.
 - `mach::Vector{Float}` : Mach number(s) to analyze.
 - `viscous::Bool` : Flag to solve viscous or inviscid only
@@ -31,7 +31,7 @@ Problem definition and output behavior.
 """
 struct Problem{TF}
     nbody::Int
-    angle_of_attack::Vector{TF}
+    flow_angle::Vector{TF}
     reynolds::Vector{TF}
     mach::Vector{TF}
     viscous::Bool
@@ -39,13 +39,13 @@ struct Problem{TF}
 end
 
 """
-    define_problem(problemtype::ProblemType, coordinates, angle_of_attack, reynolds, mach)
+    define_problem(problemtype::ProblemType, coordinates, flow_angle, reynolds, mach)
 
 Defines a Problem object to be used for setup and post-processing.
 
 **Arguments:**
 - `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
-- `angle_of_attack::Vector{Float}` : Vector of angles of attack (may be a single float as well)
+- `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
 - `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
 - `problemtype::ProblemType` : Type of problem to solve (planar, axisymmetric, or periodic).
@@ -54,7 +54,7 @@ Defines a Problem object to be used for setup and post-processing.
 - `problem::Problem` : Problem object
 """
 function define_problem(
-    problemtype::ProblemType, coordinates, angle_of_attack, reynolds, mach
+    problemtype::ProblemType, coordinates, flow_angle, reynolds, mach
 )
 
     # - Get Number of Bodies - #
@@ -68,10 +68,10 @@ function define_problem(
     end
 
     # - Make Angles of Attack a Vector (if not one already) - #
-    if length(angle_of_attack) == 1
-        aoa = [angle_of_attack[1]]
+    if length(flow_angle) == 1
+        aoa = [flow_angle[1]]
     else
-        aoa = angle_of_attack
+        aoa = flow_angle
     end
 
     # - Make Reynolds Number a Vector (if not one already) - #

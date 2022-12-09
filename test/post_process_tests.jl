@@ -25,7 +25,7 @@
 
     x, z = FLOWFoil.naca4()
     coordinates = [x z .+ 1.0]
-    method = AxisymmetricProblem([false], Vortex(Constant()), Neumann())
+    method = AxisymmetricProblem(Vortex(Constant()), Neumann(),[false])
 
     # Generate Problem Object
     problem = define_problem(method, coordinates, [0.0], [-1.0], [-1.0])

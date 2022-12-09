@@ -35,13 +35,31 @@ end
     z = [0.0; 1.0; 2.0]
     coordinates = [x z]
     panels = generate_panels(
-        AxisymmetricProblem([true], Vortex(Constant()), Neumann()), coordinates
+        AxisymmetricProblem(Vortex(Constant()), Neumann(), [true]), coordinates
     )
-    mesh = generate_mesh(AxisymmetricProblem([true], Vortex(Constant()), Neumann()), panels)
+    mesh = generate_mesh(AxisymmetricProblem(Vortex(Constant()), Neumann(), [true]), panels)
 
     @test mesh.nbodies == 1
     @test mesh.panel_indices == [1:2]
     @test mesh.x == [0.0 (0.5 - 1.5)/1.5; 1.0/0.5 0.0]
     @test mesh.r == [1.0 0.5/1.5; 1.5/0.5 1.0]
     @test mesh.m == [1.0 0.6; 0.6 1.0]
+end
+
+@testset "Periodic Mesh Tests" begin
+
+    # - Very Basic Test - #
+
+    x = [0.0; 1.0; 2.0]
+    z = [0.0; 1.0; 2.0]
+    coordinates = [x z]
+    panels = generate_panels(
+        PeriodicProblem(Vortex(Constant()), Neumann(), [1.0]), coordinates
+    )
+    mesh = generate_mesh(PeriodicProblem(Vortex(Constant()), Neumann(), [1.0]), panels)
+
+    @test mesh.nbodies == 1
+    @test mesh.panel_indices == [1:2]
+    @test mesh.x == [0.0 -1.0; 1.0 0.0]
+    @test mesh.y == [0.0 -1.0; 1.0 0.0]
 end

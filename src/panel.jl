@@ -49,7 +49,7 @@ function generate_panels(::ProblemType, coordinates) end
 #---------------------------------#
 
 """
-    PlanarFlatPanel
+    LinearFlatPanel
 
 **Fields:**
 - `npanels::Vector{Int}` : number of panels on each body
@@ -57,7 +57,7 @@ function generate_panels(::ProblemType, coordinates) end
 - `panel_vector::Matrix{TF}` : Vectors from panel edge 1 to panel edge 2, index as [panel number, edge number]
 - `panel_length::Vector{TF}` : Lengths of panels (magnitude of panel vector)
 """
-struct PlanarFlatPanel{TF} <: Panel
+struct LinearFlatPanel{TF} <: Panel
     npanels::Int
     panel_edges::Array{TF,3}
     panel_vector::Matrix{TF}
@@ -79,7 +79,7 @@ end
 
 function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
 
-    # Separate out coordinates
+    # Separate coordinates
     x = coordinates[:, 1]
     y = coordinates[:, 2]
 
@@ -101,7 +101,7 @@ function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
         # Calculate Panel Vectors
         panel_vectors[i, :] = [x[i + 1] - x[i] y[i + 1] - y[i]]
     end
-    return PlanarFlatPanel(numpanels, panel_edges, panel_vectors, panel_lengths)
+    return LinearFlatPanel(numpanels, panel_edges, panel_vectors, panel_lengths)
 end
 
 ######################################################################
@@ -109,6 +109,10 @@ end
 #                            AXISYMMETRIC                            #
 #                                                                    #
 ######################################################################
+
+#---------------------------------#
+#              Types              #
+#---------------------------------#
 
 """
     AxisymmetricFlatPanel
@@ -130,6 +134,10 @@ struct AxisymmetricFlatPanel{TF} <: Panel
     panel_curvature::Vector{TF}
 end
 
+#---------------------------------#
+#            Functions            #
+#---------------------------------#
+
 function generate_panels(p::AxisymmetricProblem, coordinates)
 
     #broadcast for multiple airfoils
@@ -140,7 +148,7 @@ function generate_panels(::AxisymmetricProblem, coordinates::Matrix{TF}) where {
 
     ### --- SETUP --- ###
 
-    # Separate out coordinates
+    # Separate coordinates
     x = coordinates[:, 1]
     r = coordinates[:, 2]
 
@@ -246,3 +254,104 @@ end
 #                              PERIODIC                              #
 #                                                                    #
 ######################################################################
+
+#---------------------------------#
+#              Types              #
+#---------------------------------#
+
+"""
+    ConstantFlatPanel
+
+**Fields:**
+- `npanels::Vector{Int}` : number of panels on each body
+- `panel_center::Matrix{TF}` : Panel center locations
+- `panel_length::Vector{TF}` : Lengths of panels (magnitude of panel vector)
+- `panel_normal::Matrix{TF}` : Panel normal unit vectors
+- `panel_angle::Vector{TF}` : Angles of panels
+- `delta_angle::Vector{TF}` : Change in angle of panels from one side to the other
+"""
+struct ConstantFlatPanel{TF} <: Panel
+    npanels::Int
+    panel_center::Matrix{TF}
+    panel_length::Vector{TF}
+    panel_normal::Matrix{TF}
+    panel_angle::Vector{TF}
+    delta_angle::Vector{TF}
+end
+
+#---------------------------------#
+#            Functions            #
+#---------------------------------#
+
+function generate_panels(p::PeriodicProblem, coordinates)
+
+    #broadcast for multiple airfoils
+    return generate_panels.(Ref(p), coordinates)
+end
+
+function generate_panels(::PeriodicProblem, coordinates::Matrix{TF}) where {TF}
+
+    ### --- SETUP --- ###
+
+    # Separate coordinates
+    x = coordinates[:, 1]
+    y = coordinates[:, 2]
+
+    # - Rename for Convenience - #
+    npanels = length(x) - 1
+
+    # - Initialize Outputs - #
+    panel_center = zeros(TF, npanels, 2)
+    panel_length = zeros(TF, npanels)
+    panel_normal = zeros(TF, npanels, 2)
+    panel_curvature = zeros(TF, npanels)
+    panel_angle = zeros(TF, npanels)
+    delta_angle = zeros(TF, npanels)
+
+    ### --- Loop Through Coordinates --- ###
+    for i in 1:npanels
+
+        # Calculate control point (panel center)
+        panel_center[i, :] = [0.5 * (x[i] + x[i + 1]); 0.5 * (y[i] + y[i + 1])]
+
+        # Calculate panel length
+        panel_vector, panel_length[i] = get_d([x[i] y[i]; x[i + 1] y[i + 1]])
+
+        # Calculate panel unit normal
+        panel_normal[i, :] = get_panel_normal(panel_vector, panel_length[i])
+
+        # - Calculate Panel Angles - #
+        # Find minimum x point (i.e. the leading edge point) to distinguish between top and bottome of airfoil
+        _, minx = findmin(x)
+
+        # NOTE: use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
+        beta = atan(panel_vector[2] / panel_vector[1])
+
+        # Apply corrections as needed based on orientation of panel in coordinate frame.
+        if (panel_vector[1] < 0.0) && (i > minx)
+            #if panel is on the top half of the airfoil and has a negative x direction, need to correct the angle from atan
+            panel_angle[i] = beta - pi
+
+        elseif (panel_vector[1] < 0.0) && (i < minx)
+            #if panel is on the bottom half of the airfoil and has a negative x direction, need to correct the angle from atan
+            panel_angle[i] = beta + pi
+        else
+            panel_angle[i] = beta
+        end
+    end
+
+    for i in 1:npanels
+        if i == 1
+            delta_angle[i] = 0.0
+        elseif i == npanels
+            delta_angle[i] = 0.0
+        else
+            delta_angle[i] = panel_angle[i + 1] - panel_angle[i - 1]
+        end
+    end
+
+    # - Return Panel Object - #
+    return ConstantFlatPanel(
+        npanels, panel_center, panel_length, panel_normal, panel_angle, delta_angle
+    )
+end

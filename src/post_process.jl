@@ -83,7 +83,7 @@ function post_process(
     nbodies = mesh.nbodies
 
     # number of angles of attack
-    alpha = problem.angle_of_attack
+    alpha = problem.flow_angle
     naoa = length(alpha)
 
     # node indices

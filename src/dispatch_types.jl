@@ -165,13 +165,15 @@ end
 One of the available sub-types of ProblemType.  Indicates use of Axisymmetric analysis method.
 
 **Fields:**
+- `singularity::Singularity` : The type of singularities to be used in the problem.
+- `boundary::BoundaryCondition` : The type of boundary condition to be used in the problem.
 - `body_of_revolution::Vector{Bool}` : Array of bools indicating whether the associated body is a body of revolution or not. (If not, it will be considered an annular airfoil, i.e., a duct.)
 """
 struct AxisymmetricProblem{TS,TBC} <:
        ProblemType where {TS<:Singularity,TBC<:BoundaryCondition}
-    body_of_revolution::Vector{Bool}
     singularity::TS
     boundary::TBC
+    body_of_revolution::Vector{Bool}
 end
 
 # - Periodic (Cascade) - #
@@ -180,5 +182,14 @@ end
     Periodic()
 
 One of the available sub-types of ProblemType.  Indicates use of Periodic (cascade) analysis method.
+**Fields:**
+- `singularity::Singularity` : The type of singularities to be used in the problem.
+- `boundary::BoundaryCondition` : The type of boundary condition to be used in the problem.
+- `cascade_pitch::Vector{Float}` : Distance between airfoils in cascade
 """
-struct PeriodicProblem <: ProblemType end
+struct PeriodicProblem{TS,TBC,TF} <:
+       ProblemType where {TS<:Singularity,TBC<:BoundaryCondition}
+    singularity::TS
+    boundary::TBC
+    cascade_pitch::Vector{TF}
+end
