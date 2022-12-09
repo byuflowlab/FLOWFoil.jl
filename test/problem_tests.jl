@@ -51,5 +51,4 @@
     @test p.reynolds == [-1.0]
     @test p.mach == [-1.0]
     @test p.viscous == false
-    @test all(p.method.body_of_revolution .== [false, true])
 end

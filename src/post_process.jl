@@ -83,8 +83,8 @@ function post_process(
     nbodies = mesh.nbodies
 
     # number of angles of attack
-    alpha = problem.flow_angle
-    naoa = length(alpha)
+    flow_angle = problem.flow_angle
+    naoa = length(flow_angle)
 
     # node indices
     pidx = mesh.panel_indices
@@ -157,7 +157,8 @@ function post_process(
                 For xfoil-like method, the "solution" values ARE the velocity components on the surface.
             =#
             vti = [
-                gamma0[i] * cosd(alpha[a]) + gamma90[i] * sind(alpha[a]) for i in nidx[m]
+                gamma0[i] * cosd(flow_angle[a]) + gamma90[i] * sind(flow_angle[a]) for
+                i in nidx[m]
             ]
 
             # - Get Surface Pressure (Steady State) - #
@@ -188,14 +189,14 @@ function post_process(
 
             #quarter chord location (moment reference location for inviscid case)
             x0 = chord / 4.0
-            z0 = 0.0 #x0*sind(alpha[a]) #TODO should this be zero, or rotated with the airfoil?
+            z0 = 0.0 #x0*sind(flow_angle[a]) #TODO should this be zero, or rotated with the airfoil?
 
             ### --- Calculate Lift Coefficient --- ###
             cl[m, a] =
                 sum([
                     cpibar[i] * (
-                        -sind(alpha[a]) * panel_vector[i, 2] -
-                        cosd(alpha[a]) * panel_vector[i, 1]
+                        -sind(flow_angle[a]) * panel_vector[i, 2] -
+                        cosd(flow_angle[a]) * panel_vector[i, 1]
                     ) for i in pidx[m]
                 ]) / chord
 
@@ -208,8 +209,8 @@ function post_process(
             cdi[m, a] =
                 -sum([
                     cpibar[i] * (
-                        cosd(alpha[a]) * panel_vector[i, 2] -
-                        sind(alpha[a]) * panel_vector[i, 1]
+                        cosd(flow_angle[a]) * panel_vector[i, 2] -
+                        sind(flow_angle[a]) * panel_vector[i, 1]
                     ) for i in pidx[m]
                 ]) / chord
             cd[m, a] = cdi[m, a]
@@ -255,7 +256,7 @@ end
 #---------------------------------#
 
 """
-    AxiSymPolar{TF,TA}
+    AxisymmetricPolar{TF,TA}
 
 **Fields:**
 - `surface_velocity::Matrix{Float}` : surface velocity on each panel
@@ -358,4 +359,91 @@ function calculate_duct_thrust(polar::AxisymmetricPolar, panels, mesh; Vinf=1.0,
 
     #return total duct thrust for whole annulus: -fx*2pi
     return fx * 2.0 * pi
+end
+######################################################################
+#                                                                    #
+#                    AXISYMMETRIC POST PROCESSING                    #
+#                                                                    #
+######################################################################
+
+#---------------------------------#
+#              TYPES              #
+#---------------------------------#
+
+"""
+    PeriodicPolar{TF,TA}
+
+**Fields:**
+- `surface_velocity::Matrix{Float}` : surface velocity on each panel
+- `surface_pressure::Matrix{Float}` : surface pressure coefficient on each panel
+- `xsmooth::Matrix{Float}` : x-values associated with smoothed surface distributions
+"""
+struct PeriodicPolar{TF} <: Polar
+    surface_velocity::Array{TF,3}
+    surface_pressure::Array{TF,3}
+    xsmooth::Array{TF,3}
+end
+
+#---------------------------------#
+#            FUNCTIONS            #
+#---------------------------------#
+
+function post_process(
+    ap::PeriodicProblem, problem, panels::TP, mesh, solution; npanels=80, debug=false
+) where {TP<:Panel}
+    return post_process(
+        ap::PeriodicProblem, problem, [panels], mesh, solution; npanels=80, debug=false
+    )
+end
+
+function post_process(
+    ::PeriodicProblem, problem, panels, mesh, solution; npanels=80, debug=false
+)
+
+    # - Rename for Convenience - #
+    idx = mesh.panel_indices
+    nbodies = mesh.nbodies
+    flow_angle = problem.flow_angle
+    naoa = length(flow_angle)
+
+    # - Initialize Outputs - #
+    TF = eltype(mesh.x)
+    # Surface Velocities
+    v_surf = zeros(TF, nbodies, 2 * npanels - 1, naoa)
+    # Surface Pressures
+    p_surf = zeros(TF, nbodies, 2 * npanels - 1, naoa)
+    xsmooth = zeros(TF, nbodies, 2 * npanels - 1, naoa)
+
+    # vortex strengths
+    gamma0 = solution.x[:, 1]
+    gamma90 = solution.x[:, 2]
+
+    # Flow angles
+    flow_angle = problem.flow_angle
+
+    for m in 1:nbodies
+        for a in 1:naoa
+            # - Extract surface velocity - #
+            # vti = solution.x[1:idx[end][end]]
+            vti = [
+                gamma0[i] * cosd(flow_angle[a]) + gamma90[i] * sind(flow_angle[a]) for
+                i in idx[m]
+            ]
+
+            # - Calculate surface pressure - #
+            cpi = 1.0 .- (vti) .^ 2
+
+            ### --- Smooth Distributions --- ###
+            #smooth_distributions functions are found in utils.jl
+            #smooth_distributions functions are found in utils.jl
+            v_surf[m, :, a], xsmooth[m, :, a] = smooth_distributions(
+                Constant(), panels[m].panel_center, vti, npanels
+            )
+            p_surf[m, :, a], _ = smooth_distributions(
+                Constant(), panels[m].panel_center, cpi, npanels
+            )
+        end
+    end
+
+    return PeriodicPolar(v_surf, p_surf, xsmooth)
 end
