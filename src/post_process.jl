@@ -424,11 +424,11 @@ function post_process(
     for m in 1:nbodies
         for a in 1:naoa
             # - Extract surface velocity - #
-            # vti = solution.x[1:idx[end][end]]
-            vti = [
-                gamma0[i] * cosd(flow_angle[a]) + gamma90[i] * sind(flow_angle[a]) for
-                i in idx[m]
-            ]
+            vti = solution.x[1:idx[end][end]]
+            # vti = [
+            #     gamma0[i] * cosd(flow_angle[a]) + gamma90[i] * sind(flow_angle[a]) for
+            #     i in idx[m]
+            # ]
 
             # - Calculate surface pressure - #
             cpi = 1.0 .- (vti) .^ 2

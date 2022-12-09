@@ -356,13 +356,11 @@ function calculate_periodic_vortex_influence(::Constant, paneli, panelj, mesh, i
         dmagj = panelj.panel_length[j]
 
         num =
-            sin(2 * pi / t) * mesh.y[i, j] * cos(paneli.panel_angle[i]) -
-            sinh(2 * pi / t) * mesh.x[i, j] * sin(paneli.panel_angle[i])
+            sin(2 * pi * mesh.y[i, j] / t) * cos(paneli.panel_angle[i]) -
+            sinh(2 * pi * mesh.x[i, j] / t) * sin(paneli.panel_angle[i])
 
-        den =
-            cosh(2 * pi / t) * mesh.x[i, j] -
-            cos(2 * pi / t) * mesh.y[i, j]
+        den = cosh(2 * pi * mesh.x[i, j] / t) - cos(2 * pi * mesh.y[i, j] / t)
 
-        return dmagj / (4 * pi) * num / den
+        return dmagj / (2 * t) * num / den
     end
 end
