@@ -3,7 +3,7 @@ include("cascade_data.jl")
 
 coordinates = [x y]
 
-pt = PeriodicProblem(Vortex(Constant()), Neumann(), [0.900364])
+pt = PeriodicProblem(Vortex(Constant()), Neumann(), 0.900364, 0.0)
 
 problem = define_problem(pt, coordinates, 35.0, -1.0, -1.0)
 

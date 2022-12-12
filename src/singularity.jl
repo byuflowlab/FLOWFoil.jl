@@ -336,6 +336,7 @@ end
     calculate_periodic_vortex_influence(paneli, panelj)
 
 Cacluate the influence of a periodic vortex at panel j onto panel i.
+TODO: BUGGY, NOT WORKING, NEED TO FIX
 
 **Arguments:**
 - `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
@@ -354,7 +355,7 @@ function calculate_periodic_vortex_influence(::Constant, paneli, panelj, mesh, i
 
         # - Standard Periodic Coefficient - #
         s = mesh.stagger * pi / 180.0
-        t = mesh.pitch * pi / 180.0
+        t = mesh.pitch
 
         a = (mesh.x[i, j] * cos(s) - mesh.y[i, j] * sin(s)) * 2 * pi / t
         b = (mesh.x[i, j] * sin(s) + mesh.y[i, j] * cos(s)) * 2 * pi / t
