@@ -344,23 +344,30 @@ Cacluate the influence of a periodic vortex at panel j onto panel i.
 **Returns:**
 - `aij::Float` : Influence of vortex strength at panel j onto panel i.
 """
-function calculate_periodic_vortex_influence(::Constant, paneli, panelj, mesh, i, j, t)
+function calculate_periodic_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
 
     # - Self Induction Term - #
     if isapprox([mesh.x[i, j]; mesh.y[i, j]], [0.0; 0.0])
         return -0.5 - paneli.delta_angle[i] / (4.0 * pi)
 
     else
-        # - Standard Periodic Coefficient - #
 
+        # - Standard Periodic Coefficient - #
+        s = mesh.stagger * pi / 180.0
+        t = mesh.pitch * pi / 180.0
+
+        a = (mesh.x[i, j] * cos(s) - mesh.y[i, j] * sin(s)) * 2 * pi / t
+        b = (mesh.x[i, j] * sin(s) + mesh.y[i, j] * cos(s)) * 2 * pi / t
+        e = exp(a)
+        sinha = 0.5 * (e - 1.0 / e)
+        cosha = 0.5 * (e + 1.0 / e)
+        k = 0.5 / t / (cosha - cos(b))
+
+        dmagi = paneli.panel_length[i]
         dmagj = panelj.panel_length[j]
 
-        num =
-            sin(2 * pi * mesh.y[i, j] / t) * cos(paneli.panel_angle[i]) -
-            sinh(2 * pi * mesh.x[i, j] / t) * sin(paneli.panel_angle[i])
+        betaj = panelj.panel_angle[j]
 
-        den = cosh(2 * pi * mesh.x[i, j] / t) - cos(2 * pi * mesh.y[i, j] / t)
-
-        return dmagj / (2 * t) * num / den
+        return sinha * sin(s + betaj) - sin(b) * cos(s + betaj) * k * dmagj
     end
 end

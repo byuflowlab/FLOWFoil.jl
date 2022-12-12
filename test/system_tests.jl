@@ -43,7 +43,7 @@
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
     y = [-0.01; -0.5; 0.0; 0.5; 0.01] .+ 1.0
     coordinates = [x y]
-    pt = AxisymmetricProblem(Vortex(Constant()), Neumann(),[false])
+    pt = AxisymmetricProblem(Vortex(Constant()), Neumann(), [false])
 
     # Generate Panel Geometry
     panels = generate_panels(pt, coordinates)
@@ -78,7 +78,7 @@
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
     y = [-0.01; -0.5; 0.0; 0.5; 0.01] .+ 1.0
     coordinates = [x y]
-    pt = PeriodicProblem(Vortex(Constant()), Neumann(), [1.0])
+    pt = PeriodicProblem(Vortex(Constant()), Neumann(), 1.0, 0.0)
 
     # Generate Panel Geometry
     panels = generate_panels(pt, coordinates)

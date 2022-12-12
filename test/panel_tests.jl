@@ -40,7 +40,7 @@
     z = [0.0; 0.0; 0.0; 0.0]
     coordinates = [x z]
     panels = generate_panels(
-        PeriodicProblem(Vortex(Constant()), Neumann(), [1.0]), coordinates
+        PeriodicProblem(Vortex(Constant()), Neumann(), 1.0, 0.0), coordinates
     )
     @test panels.npanels == 3
     @test panels.panel_center == [1.5 0.0; 2.5 0.0; 3.5 0.0]

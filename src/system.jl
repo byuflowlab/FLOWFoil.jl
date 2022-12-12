@@ -547,9 +547,16 @@ function assemble_periodic_vortex_matrix(::Constant, panels, mesh)
                 for j in idx[n]
 
                     ### --- Calculate influence coefficient --- ###
-                    amat[i, j] = calculate_periodic_vortex_influence(
-                        Constant(), panels[m], panels[n], mesh, i, j, mesh.cascade_pitch[1]
-                    )
+                    s = j >= idx[m][end] - i ? -1.0 : 1.0
+                    amat[i, j] =
+                        s * calculate_periodic_vortex_influence(
+                            Constant(),
+                            panels[m],
+                            panels[n],
+                            mesh,
+                            i,
+                            j,
+                        )
                 end
             end
 

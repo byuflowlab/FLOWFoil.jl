@@ -40,7 +40,7 @@
     # Very Basic Test
     coordinates = [[1], [1]]
     p = define_problem(
-        PeriodicProblem(Vortex(Constant()), Neumann(), [1.0]),
+        PeriodicProblem(Vortex(Constant()), Neumann(), 1.0, 0.0),
         coordinates,
         0.0,
         -1.0,

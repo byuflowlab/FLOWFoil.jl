@@ -341,12 +341,10 @@ function generate_panels(::PeriodicProblem, coordinates::Matrix{TF}) where {TF}
     end
 
     for i in 1:npanels
-        if i == 1
-            delta_angle[i] = 0.0
-        elseif i == npanels
-            delta_angle[i] = 0.0
+        if i == 1 || i == npanels
+            delta_angle[i] = (panel_angle[i]) / 2.0
         else
-            delta_angle[i] = panel_angle[i + 1] - panel_angle[i - 1]
+            delta_angle[i] = (panel_angle[i + 1] - panel_angle[i - 1]) / 2.0
         end
     end
 

@@ -566,14 +566,15 @@ Periodic Mesh Object
 - `panel_indices::Vector{UnitRange{Int64}}` : vector of indices of the overall system matrix associated with each of the panels.
 - `x::Matrix{TF}` : x-components of distance between panel centers
 - `y::Matrix{TF}` : y-components of distance between panel centers
-- `cascade_pitch::Vector{Float}` : Distance between airfoils in cascade
+- `pitch::Vector{Float}` : Distance between airfoils in cascade
 """
 struct PeriodicMesh{TF} <: Mesh
     nbodies::Int
     panel_indices::Vector{UnitRange{Int64}}
     x::Matrix{TF}
     y::Matrix{TF}
-    cascade_pitch::Vector{TF}
+    pitch::TF
+    stagger::TF
 end
 
 #---------------------------------#
@@ -639,5 +640,5 @@ function generate_mesh(pp::PeriodicProblem, panels)
     end #for mth influenced body
 
     # Return Mesh
-    return PeriodicMesh(nbodies, panel_indices, x, y, pp.cascade_pitch)
+    return PeriodicMesh(nbodies, panel_indices, x, y, pp.pitch, pp.stagger)
 end

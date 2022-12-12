@@ -191,5 +191,6 @@ struct PeriodicProblem{TS,TBC,TF} <:
        ProblemType where {TS<:Singularity,TBC<:BoundaryCondition}
     singularity::TS
     boundary::TBC
-    cascade_pitch::Vector{TF}
+    pitch::TF
+    stagger::TF
 end
