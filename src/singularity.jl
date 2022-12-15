@@ -137,6 +137,19 @@ function calculate_vortex_influence(::Linear, mesh, i, j)
     return (psibargamma - psitildegamma), psitildegamma
 end
 
+function calculate_vortex_influence(::Constant, mesh, i, j)
+    # get psibargamma value
+    return get_psibargamma(
+        mesh.theta1[i, j],
+        mesh.theta2[i, j],
+        mesh.lnr1[i, j],
+        mesh.lnr2[i, j],
+        mesh.panel_length[j],
+        mesh.r1normal[i, j],
+        mesh.r1tangent[i, j],
+    )
+end
+
 """
     calculate_source_influence(::Constant, node1, node2, point)
 
@@ -160,10 +173,10 @@ function calculate_source_influence(::Constant, mesh, i, j)
     )
 
     # shift source in order to get a better behaved branch cut orientation
-    if (theta1 + theta2) > pi
-        psibarsigma -= 0.25 * dmag
+    if (mesh.theta1[i, j] + mesh.theta2[i, j]) > pi
+        psibarsigma -= 0.25 * mesh.panel_length[j]
     else
-        psibarsigma += 0.75 * dmag
+        psibarsigma += 0.75 * mesh.panel_length[j]
     end
 
     return psibarsigma

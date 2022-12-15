@@ -97,16 +97,6 @@ function post_process(
     # chord length
     chord = mesh.chord
 
-    # Panel Values
-    # length
-    panel_length = panels.panel_length
-    # vector
-    panel_vector = panels.panel_vector
-    # edge locations
-    panel_edges = panels.panel_edges
-    # midpoints
-    panel_midpoints = (panel_edges[:, 2, :] .+ panel_edges[:, 1, :]) ./ panel_length
-
     ### --- Initialize Outputs --- ###
 
     # output floating point type
@@ -149,6 +139,17 @@ function post_process(
 
     ##### ----- Loop Through Bodies ----- #####
     for m in 1:nbodies
+
+        # Panel Values
+        # length
+        panel_length = panels[m].panel_length
+        # vector
+        panel_vector = panels[m].panel_vector
+        # edge locations
+        panel_edges = panels[m].panel_edges
+        # midpoints
+        panel_midpoints = (panel_edges[:, 2, :] .+ panel_edges[:, 1, :]) ./ panel_length
+
         for a in 1:naoa
 
             ### --- Get Surface Distributions --- ###
@@ -191,13 +192,15 @@ function post_process(
             x0 = chord / 4.0
             z0 = 0.0 #x0*sind(flow_angle[a]) #TODO should this be zero, or rotated with the airfoil?
 
+            panelidx = mesh.mesh2panel
+
             ### --- Calculate Lift Coefficient --- ###
             cl[m, a] =
                 sum([
                     cpibar[i] * (
                         -sind(flow_angle[a]) * panel_vector[i, 2] -
                         cosd(flow_angle[a]) * panel_vector[i, 1]
-                    ) for i in pidx[m]
+                    ) for i in panelidx[pidx[m]]
                 ]) / chord
 
             ### --- Calculate Drag Coefficients --- ###
@@ -211,7 +214,7 @@ function post_process(
                     cpibar[i] * (
                         cosd(flow_angle[a]) * panel_vector[i, 2] -
                         sind(flow_angle[a]) * panel_vector[i, 1]
-                    ) for i in pidx[m]
+                    ) for i in panelidx[pidx[m]]
                 ]) / chord
             cd[m, a] = cdi[m, a]
 
@@ -221,18 +224,24 @@ function post_process(
 
             # Moment arms
             dxddmi =
-                panel_vector[pidx[m], 1] .* (panel_edges[pidx[m], 1, 1] .- x0) .+
-                panel_vector[pidx[m], 2] .* (panel_edges[pidx[m], 1, 2] .- z0)
+                panel_vector[panelidx[pidx[m]], 1] .*
+                (panel_edges[panelidx[pidx[m]], 1, 1] .- x0) .+
+                panel_vector[panelidx[pidx[m]], 2] .*
+                (panel_edges[panelidx[pidx[m]], 1, 2] .- z0)
 
             dxddmip1 =
-                panel_vector[pidx[m], 1] .* (panel_edges[pidx[m], 2, 1] .- x0) .+
-                panel_vector[pidx[m], 2] .* (panel_edges[pidx[m], 2, 2] .- z0)
+                panel_vector[panelidx[pidx[m]], 1] .*
+                (panel_edges[panelidx[pidx[m]], 2, 1] .- x0) .+
+                panel_vector[panelidx[pidx[m]], 2] .*
+                (panel_edges[panelidx[pidx[m]], 2, 2] .- z0)
 
             # Moment Coefficient Calculation
             cm[m, a] =
                 sum([
-                    ([cpi[i] cpi[i + 1]] * cmmat * [dxddmi[i]; dxddmip1[i]])[1] for
-                    i in pidx[m]
+                    ([cpi[i] cpi[panelidx[i + 1]]] * cmmat * [
+                        dxddmi[i]
+                        dxddmip1[i]
+                    ])[1] for i in panelidx[pidx[m]]
                 ]) / chord^2
         end
     end
@@ -281,7 +290,7 @@ function post_process(
     )
 end
 function post_process(
-    ::AxisymmetricProblem, problem, panels, mesh, solution; npanels=80, debug=false
+    ap::AxisymmetricProblem, problem, panels, mesh, solution; npanels=80, debug=false
 )
 
     # - Rename for Convenience - #
@@ -296,7 +305,7 @@ function post_process(
 
     for m in 1:nbodies
         # - Extract surface velocity - #
-        vti = solution.x[1:idx[end][end]]
+        vti = solution.x[idx[m]]
 
         # - Calculate surface pressure - #
         cpi = 1.0 .- (vti) .^ 2
@@ -304,10 +313,18 @@ function post_process(
         ### --- Smooth Distributions --- ###
         #smooth_distributions functions are found in utils.jl
         v_surf[m, :], xsmooth[m, :] = smooth_distributions(
-            Constant(), panels[m].panel_center, vti, npanels
+            Constant(),
+            panels[m].panel_center,
+            vti,
+            npanels;
+            body_of_revolution=ap.body_of_revolution[m],
         )
         p_surf[m, :], _ = smooth_distributions(
-            Constant(), panels[m].panel_center, cpi, npanels
+            Constant(),
+            panels[m].panel_center,
+            cpi,
+            npanels;
+            body_of_revolution=ap.body_of_revolution[m],
         )
     end
 

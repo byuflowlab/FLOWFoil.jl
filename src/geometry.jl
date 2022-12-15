@@ -58,8 +58,6 @@ function get_trailing_edge_info(panel_edges)
         # - Get trailing edge gap - #
         trailing_edge_gap = -dte[1] * ttehat[2] + dte[2] * ttehat[1]
 
-        # - Get other panel geometry - #
-
         return tdp, txp, trailing_edge_gap, gap_edges, dte, dtemag
     end
 end

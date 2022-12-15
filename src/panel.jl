@@ -74,7 +74,7 @@ The current implentation here is the Xfoil-like implementation.  Eventually, thi
 function generate_panels(p::PlanarProblem, coordinates)
 
     #broadcast for multiple airfoils
-    return generate_panels.(Ref(p), coordinates)
+    return reduce(vcat, generate_panels.(Ref(p), coordinates))
 end
 
 function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
@@ -101,7 +101,8 @@ function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
         # Calculate Panel Vectors
         panel_vectors[i, :] = [x[i + 1] - x[i] y[i + 1] - y[i]]
     end
-    return LinearFlatPanel(numpanels, panel_edges, panel_vectors, panel_lengths)
+
+    return [LinearFlatPanel(numpanels, panel_edges, panel_vectors, panel_lengths)]
 end
 
 ######################################################################

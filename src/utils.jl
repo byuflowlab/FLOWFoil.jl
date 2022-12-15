@@ -50,12 +50,19 @@ function smooth_distributions(::Linear, panel_edges, distribution, npanels)
     # - Split the 'x' values - #
 
     # find the minimum and index
-    minx, minidx = findmin(x)
+    minidx = findall(==(minimum(x)), x)
+    if length(minidx)>1
+        idxtop = minidx[end]
+        idxbot = minidx[1]
+    else
+        idxtop = minidx
+        idxbot = minidx
+    end
 
     # the bottom needs to be flipped to ascend monotonically
-    xbot = x[minidx:-1:1]
+    xbot = x[idxbot:-1:1]
     # the top is already in the right direction
-    xtop = x[minidx:end]
+    xtop = x[idxtop:end]
 
     # - Get smooth 'x' values from cosine spacing - #
     # Get cosine spaced values from zero to one.
@@ -63,13 +70,14 @@ function smooth_distributions(::Linear, panel_edges, distribution, npanels)
 
     # - Transform the cosine spaced values to the minimum and maximum points - #
     # Get the maximum x value
+    minx = minimum(x)
     maxx = maximum(x)
 
     xsmooth = linear_transform([0.0; 1.0], [minx; maxx], xcosine)
 
     # - Generate smooth distribution - #
-    distbot = FLOWMath.akima(xbot, distribution[minidx:-1:1], xsmooth)
-    disttop = FLOWMath.akima(xtop, distribution[minidx:end], xsmooth)
+    distbot = FLOWMath.akima(xbot, distribution[idxbot:-1:1], xsmooth)
+    disttop = FLOWMath.akima(xtop, distribution[idxtop:end], xsmooth)
 
     # - Combine distribution and x values - #
     xs = [reverse(xsmooth); xsmooth[2:end]]
@@ -79,7 +87,9 @@ function smooth_distributions(::Linear, panel_edges, distribution, npanels)
     return dist, xs
 end
 
-function smooth_distributions(::Constant, panel_center, distribution, npanels)
+function smooth_distributions(
+    ::Constant, panel_center, distribution, npanels; body_of_revolution=false
+)
 
     #= NOTE:
         Akima splines in FLOWMath require the 'x' values to be monotonically ascending.
@@ -92,30 +102,48 @@ function smooth_distributions(::Constant, panel_center, distribution, npanels)
     # - Split the 'x' values - #
 
     # find the minimum and index
-    minx, minidx = findmin(x)
+    minidx = findall(==(minimum(x)), x)
+    if length(minidx)>1
+        idxtop = minidx[end]
+        idxbot = minidx[1]
+    else
+        idxtop = minidx
+        idxbot = minidx
+    end
 
-    # the bottom needs to be flipped to ascend monotonically
-    xbot = x[minidx:-1:1]
     # the top is already in the right direction
-    xtop = x[minidx:end]
+    xtop = x[idxtop:end]
 
     # - Get smooth 'x' values from cosine spacing - #
     # Get cosine spaced values from zero to one.
-    xcosine = cosine_spacing(npanels)
+    if body_of_revolution
+        xcosine = cosine_spacing(2 * npanels - 1)
+    else
+        xcosine = cosine_spacing(npanels)
+    end
 
     # - Transform the cosine spaced values to the minimum and maximum points - #
     # Get the maximum x value
+    minx = minimum(x)
     maxx = maximum(x)
 
     xsmooth = linear_transform([0.0; 1.0], [minx; maxx], xcosine)
 
     # - Generate smooth distribution - #
-    distbot = FLOWMath.akima(xbot, distribution[minidx:-1:1], xsmooth)
-    disttop = FLOWMath.akima(xtop, distribution[minidx:end], xsmooth)
+    disttop = FLOWMath.akima(xtop, distribution[idxtop:end], xsmooth)
 
-    # - Combine distribution and x values - #
-    xs = [reverse(xsmooth); xsmooth[2:end]]
-    dist = [reverse(distbot); disttop[2:end]]
+    # - Get the bottom surface stuff if not a body of revolution - #
+    if !body_of_revolution
+        # the bottom needs to be flipped to ascend monotonically
+        xbot = x[idxbot:-1:1]
+        distbot = FLOWMath.akima(xbot, distribution[idxbot:-1:1], xsmooth)
+        # - Combine distribution and x values - #
+        xs = [reverse(xsmooth); xsmooth[2:end]]
+        dist = [reverse(distbot); disttop[2:end]]
+    else
+        xs = xsmooth
+        dist = disttop
+    end
 
     # - Return - #
     return dist, xs

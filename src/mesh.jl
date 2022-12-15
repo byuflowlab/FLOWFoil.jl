@@ -78,6 +78,7 @@ struct PlanarMesh{TF} <: Mesh
     nbodies::Int64
     panel_indices::Vector{UnitRange{Int64}}
     node_indices::Vector{UnitRange{Int64}}
+    mesh2panel::Vector{Int64}
     chord::TF
     panel_length::Vector{TF}
     r1::Matrix{TF}
@@ -146,13 +147,16 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
     csnodes = cumsum(nnodes)
     cspanels = cumsum(npanels)
 
-    # put together index ranges of panels for each body
+
     node_indices = [
-        (1 + (i == 1 ? 0 : csnodes[i - 1])):(csnodes[i]) for i in 1:length(nbodies)
+        (1 + (i == 1 ? 0 : csnodes[i - 1])):(csnodes[i]) for i in 1:nbodies
     ]
     panel_indices = [
-        (1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:length(nbodies)
+        (1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:nbodies
     ]
+
+    # - Map indices - #
+    mesh2panel = reduce(vcat,[[1:npanels[i];npanels[i]] for i in 1:nbodies])
 
     ### --- Initialize Vectors --- ###
     TF = typeof(sum([panels[i].panel_length[1] for i in 1:nbodies]))
@@ -263,7 +267,7 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
                 # Panel edges of panels being influenced (body m)
                 # NOTE: index i goes 1 beyond length of number of panels, so need to repeat over last panel twice
                 panidx = i == node_indices[m][end] ? i - 1 : i
-                field_panel_edge = panels[m].panel_edges[panidx, :, :]
+                field_panel_edge = panels[m].panel_edges[mesh2panel[panidx], :, :]
 
                 # Get vector and magnitude from first edge of the panel of influence to the field point (edge of panel being influenced)
                 # NOTE: index i goes 1 beyond length of number of panels, so need to repeat over last panel twice, using the second panel edge on the repeat
@@ -277,7 +281,7 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
                 r1_TE[i, m], r2_TE[i, m], r1normal_TE[i, m], r1tangent_TE[i, m], theta1_TE[i, m], theta2_TE[i, m], lnr1_TE[i, m], lnr2_TE[i, m] = calculate_influence_geometry(
                     TE_panel_edges,
                     TE_panel_vector,
-                    TE_panel_length[m],
+                    trailing_edge_gap[m],
                     field_panel_edge[edgeidx, :];
                     gap_tolerance=gap_tolerance,
                 )
@@ -287,17 +291,17 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
 
                     # - Rename For Convenience - #
                     # Panel edges of influencing panels (body n)
-                    influence_panel_edge = panels[n].panel_edges[j, :, :]
+                    influence_panel_edge = panels[n].panel_edges[mesh2panel[j], :, :]
 
                     # Panel Vector and Length
-                    influence_panel_vector = panels[n].panel_vector[j, :]
+                    influence_panel_vector = panels[n].panel_vector[mesh2panel[j], :]
 
                     # - Calculate Influence Geometry - #
 
                     r1[i, j], r2[i, j], r1normal[i, j], r1tangent[i, j], theta1[i, j], theta2[i, j], lnr1[i, j], lnr2[i, j] = calculate_influence_geometry(
                         influence_panel_edge,
                         influence_panel_vector,
-                        panel_length[j],
+                        panel_length[mesh2panel[j]],
                         field_panel_edge[edgeidx, :];
                         gap_tolerance=gap_tolerance,
                     )
@@ -322,6 +326,7 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
         nbodies,
         panel_indices,
         node_indices,
+        mesh2panel,
         chord_length,
         panel_length,
         r1,
@@ -340,7 +345,7 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
         trailing_edge_gap,
         tdp,
         txp,
-        TE_panel_length,
+        trailing_edge_gap,
         r1_TE,
         lnr1_TE,
         r1normal_TE,

@@ -139,12 +139,12 @@ function assemble_vortex_matrix(::Linear, mesh, TEmesh)
 
                     # add coefficients to matrix at correct nodes
                     if j == 1
-                        amat[i, j] = aij
+                        amat[i, j + n - 1] = aij
                     else
-                        amat[i, j] += aij
+                        amat[i, j + n - 1] += aij
                     end
 
-                    amat[i, j + 1] = aijp1
+                    amat[i, j + n] = aijp1
                 end
             end
 
@@ -183,6 +183,19 @@ function assemble_vortex_matrix(::Linear, mesh, TEmesh)
                       to zero since that equation is replaced. =#
                     amat[idx_j1:(idx_j2 - 1), idx_i] .= -1.0
 
+                    ### --- Trailing Edge Treatment --- ###
+                    #= Replace last row of the submatrix with the extrapolation of the mean vortex strength to the trailing edge.
+                    =#
+                    # First zero out last row of submatrix
+                    amat[ni[m][end], :] .= 0.0
+                    # Then replace first and last elements in that row with extrapolation terms
+                    amat[ni[m][end], 1] = 1.0
+                    amat[ni[m][end], 2] = -2.0
+                    amat[ni[m][end], 3] = 1.0
+                    amat[ni[m][end], ni[n][end] - 2] = -1.0
+                    amat[ni[m][end], ni[n][end] - 1] = 2.0
+                    amat[ni[m][end], ni[n][end]] = -1.0
+
                 else
                     # otherwise keep everything at -1.0
                     amat[idx_j1:idx_j2, idx_i] .= -1.0
@@ -191,32 +204,29 @@ function assemble_vortex_matrix(::Linear, mesh, TEmesh)
                     for i in ni[m]
 
                         # Get panel influence coefficients
-                        sigmate = get_source_influence(Constant(), TEmesh, i, m)
-                        gammate = sum(get_vortex_influence(Constant(), TEmesh, i, m))
+                        sigmate = calculate_source_influence(Constant(), TEmesh, i, m)
+                        gammate = sum(calculate_vortex_influence(Linear(), TEmesh, i, m))
 
                         # Add/subtract from relevant matrix entries
-                        amat[i, 1] +=
+                        amat[i, ni[m][1]] +=
                             0.5 * (gammate * TEmesh.tdp[m] - sigmate * TEmesh.txp[m])
-                        amat[i, M] +=
+                        amat[i, ni[m][end]] +=
                             0.5 * (sigmate * TEmesh.txp[m] - gammate * TEmesh.tdp[m])
                     end
                 end
-
-                ### --- Trailing Edge Treatment --- ###
-                #= Replace last row of the submatrix with the extrapolation of the mean vortex strength to the trailing edge.
-                =#
-                # First zero out last row of submatrix
-                amat[ni[m][end], :] .= 0.0
-                # Then replace first and last elements in that row with extrapolation terms
-                amat[ni[m][end], 1] = 1.0
-                amat[ni[m][end], 2] = -2.0
-                amat[ni[m][end], 3] = 1.0
-                amat[ni[m][end], ni[n][end] - 2] = -1.0
-                amat[ni[m][end], ni[n][end] - 1] = 2.0
-                amat[ni[m][end], ni[n][end]] = -1.0
             end
         end
     end
+
+    # println(size(amat))
+    # display(amat[1:61, 1:61])
+    # display(amat[62:122, 62:122])
+    # display(amat[1:61, 62:122])
+    # display(amat[62:122, 1:61])
+    # display(amat[(end - 1):end, 1:61])
+    # display(amat[(end - 1):end, 62:122])
+    # display(amat[1:61, (end - 1):end])
+    # display(amat[62:122, (end - 1):end])
 
     return amat
 end
@@ -265,18 +275,22 @@ function assemble_boundary_conditions(::Dirichlet, panels, mesh, TEmesh)
           but rather keeps the rhs as [-z,x] in all cases:
         =#
         bmat[ni[m][1]:ni[m][end - 1], 1] = [
-            -panels.panel_edges[i, 1, 2] for i in ni[m][1]:ni[m][end - 1]
+            -panels[m].panel_edges[i, 1, 2] for
+            i in mesh.mesh2panel[ni[m][1]:ni[m][end - 1]]
         ]
         bmat[ni[m][1]:ni[m][end - 1], 2] = [
-            panels.panel_edges[i, 1, 1] for i in ni[m][1]:ni[m][end - 1]
+            panels[m].panel_edges[i, 1, 1] for i in mesh.mesh2panel[ni[m][1]:ni[m][end - 1]]
         ]
 
         # if blunt trailing edge, no need for adjustment to last equation in submatrix.
         if TEmesh.blunt_te[m]
-            bmat[ni[m][end], 1] = -panels.panel_edges[i, 2, 2]
-            bmat[ni[m][end], 2] = panels.panel_edges[i, 2, 1]
+            panelidx = mesh.mesh2panel[ni[m][end]]
+            bmat[ni[m][end], 1] = -panels[m].panel_edges[panelidx, 2, 2]
+            bmat[ni[m][end], 2] = panels[m].panel_edges[panelidx, 2, 1]
         end
     end
+
+    # display(bmat)
 
     return bmat
 end
@@ -550,12 +564,7 @@ function assemble_periodic_vortex_matrix(::Constant, panels, mesh)
                     s = j >= idx[m][end] - i ? -1.0 : 1.0
                     amat[i, j] =
                         s * calculate_periodic_vortex_influence(
-                            Constant(),
-                            panels[m],
-                            panels[n],
-                            mesh,
-                            i,
-                            j,
+                            Constant(), panels[m], panels[n], mesh, i, j
                         )
                 end
             end

@@ -55,7 +55,7 @@ include("airfoils/parameterizations/utils.jl")
 # - PARAMETERIZAIONS - #
 
 # Conformal Mapping
-# include("airfoils/parameterizations/conformal_mapping.jl")
+include("airfoils/parameterizations/conformal_mapping.jl")
 
 # NACA 4-Series
 include("airfoils/parameterizations/naca.jl")
