@@ -118,13 +118,13 @@ function assemble_vortex_matrix(::Order, mesh, TEmesh) end
 function assemble_vortex_matrix(::Linear, mesh, TEmesh)
 
     # - Rename For Convenience - #
-    pi = mesh.panel_indices
-    ni = mesh.node_indices
+    pidx = mesh.panel_indices
+    nidx = mesh.node_indices
     nb = mesh.nbodies
 
     # - Initialize Matrix - #
     TF = typeof(mesh.chord)
-    amat = zeros(TF, ni[end][end] + nb, ni[end][end] + nb)
+    amat = zeros(TF, nidx[end][end] + nb, nidx[end][end] + nb)
 
     ##### ----- Loop through the bodies being influenced ----- #####
     for m in 1:nb
@@ -133,8 +133,8 @@ function assemble_vortex_matrix(::Linear, mesh, TEmesh)
         for n in 1:nb
 
             ### --- Populate main body of influence matrix --- ###
-            for i in ni[m]
-                for j in pi[n]
+            for i in nidx[m]
+                for j in pidx[n]
                     aij, aijp1 = calculate_vortex_influence(Linear(), mesh, i, j)
 
                     # add coefficients to matrix at correct nodes
@@ -159,13 +159,13 @@ function assemble_vortex_matrix(::Linear, mesh, TEmesh)
                 # - Find appropriate indices for this body - #
 
                 # the ith row will be m after the nb row
-                idx_i = ni[end][end] + m
+                idx_i = nidx[end][end] + m
 
                 # the jth column for the first panel will be at the first index of the mth body
-                idx_j1 = ni[m][1]
+                idx_j1 = nidx[m][1]
 
                 # the jth column for the last panel will be at the last index of the mth body
-                idx_j2 = ni[m][end]
+                idx_j2 = nidx[m][end]
 
                 ### --- Apply Kutta Condition --- ###
                 amat[idx_i, idx_j1] = 1.0
@@ -187,30 +187,30 @@ function assemble_vortex_matrix(::Linear, mesh, TEmesh)
                     #= Replace last row of the submatrix with the extrapolation of the mean vortex strength to the trailing edge.
                     =#
                     # First zero out last row of submatrix
-                    amat[ni[m][end], ni[m]] .= 0.0
+                    amat[nidx[m][end], nidx[m]] .= 0.0
                     # Then replace first and last elements in that row with extrapolation terms
-                    amat[ni[m][end], ni[m][1]] = 1.0
-                    amat[ni[m][end], ni[m][2]] = -2.0
-                    amat[ni[m][end], ni[m][3]] = 1.0
-                    amat[ni[m][end], ni[m][end] - 2] = -1.0
-                    amat[ni[m][end], ni[m][end] - 1] = 2.0
-                    amat[ni[m][end], ni[m][end]] = -1.0
+                    amat[nidx[m][end], nidx[m][1]] = 1.0
+                    amat[nidx[m][end], nidx[m][2]] = -2.0
+                    amat[nidx[m][end], nidx[m][3]] = 1.0
+                    amat[nidx[m][end], nidx[m][end] - 2] = -1.0
+                    amat[nidx[m][end], nidx[m][end] - 1] = 2.0
+                    amat[nidx[m][end], nidx[m][end]] = -1.0
 
                 else
                     # otherwise keep everything at -1.0
                     amat[idx_j1:idx_j2, idx_i] .= -1.0
 
                     ### --- Add influence of trailing edge gap panel --- ###
-                    for i in ni[m]
+                    for i in nidx[m]
 
                         # Get panel influence coefficients
                         sigmate = calculate_source_influence(Constant(), TEmesh, i, m)
                         gammate = sum(calculate_vortex_influence(Linear(), TEmesh, i, m))
 
                         # Add/subtract from relevant matrix entries
-                        amat[i, ni[m][1]] +=
+                        amat[i, nidx[m][1]] +=
                             0.5 * (gammate * TEmesh.tdp[m] - sigmate * TEmesh.txp[m])
-                        amat[i, ni[m][end]] +=
+                        amat[i, nidx[m][end]] +=
                             0.5 * (sigmate * TEmesh.txp[m] - gammate * TEmesh.tdp[m])
                     end
                 end
@@ -257,12 +257,12 @@ This implementation doesn't precisely fit.  As stated in other places, this Xfoi
 function assemble_boundary_conditions(::Dirichlet, panels, mesh, TEmesh)
 
     # - Rename For Convenience - #
-    ni = mesh.node_indices
+    nidx = mesh.node_indices
     nb = mesh.nbodies
 
     # initialize boundary condition array
     TF = typeof(mesh.chord)
-    bmat = zeros(TF, ni[end][end] + nb, 2)
+    bmat = zeros(TF, nidx[end][end] + nb, 2)
 
     ##### ----- Loop through system ----- #####
     for m in 1:nb
@@ -274,18 +274,18 @@ function assemble_boundary_conditions(::Dirichlet, panels, mesh, TEmesh)
           NOTE: mfoil does not do the following,
           but rather keeps the rhs as [-z,x] in all cases:
         =#
-        bmat[ni[m][1]:ni[m][end - 1], 1] = [
-            -mesh.nodes[i, 2] for i in ni[m][1]:ni[m][end - 1]
+        bmat[nidx[m][1]:nidx[m][end - 1], 1] = [
+            -mesh.nodes[i, 2] for i in nidx[m][1]:nidx[m][end - 1]
         ]
 
-        bmat[ni[m][1]:ni[m][end - 1], 2] = [
-            mesh.nodes[i, 1] for i in ni[m][1]:ni[m][end - 1]
+        bmat[nidx[m][1]:nidx[m][end - 1], 2] = [
+            mesh.nodes[i, 1] for i in nidx[m][1]:nidx[m][end - 1]
         ]
 
         # if blunt trailing edge, no need for adjustment to last equation in submatrix.
         if TEmesh.blunt_te[m]
-            bmat[ni[m][end], 1] = -mesh.nodes[ni[m][end], 2]
-            bmat[ni[m][end], 2] = mesh.nodes[ni[m][end], 1]
+            bmat[nidx[m][end], 1] = -mesh.nodes[nidx[m][end], 2]
+            bmat[nidx[m][end], 2] = mesh.nodes[nidx[m][end], 1]
         end
     end
 

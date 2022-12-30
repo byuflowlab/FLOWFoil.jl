@@ -30,7 +30,7 @@
 
     # check that the stream function values are in the right places
     @test all(system.A[1:(end - 2), end] .== -1.0)
-    @test all(system.A[(end - 1):end, end] .== 0.0)
+    @test system.A[end, end] .== 0.0
 
     # TODO: need to test boundary condition matrix
 
@@ -41,17 +41,15 @@
     x2 = [1.0; 1.5; 2.0]
     z2 = zeros(3)
 
-    x1 = [1.0; 0.5; 0.0; 0.5; 1.0]
-    z1 = [-0.1; -0.5; 0.0; 0.5; 0.1]
-
-    x2 = 1.25 .+ [1.0; 0.5; 0.0; 0.5; 1.0]
-    z2 = [0.0; -0.5; 0.0; 0.5; 0.0]
-
     coordinates = ([x1 z1], [x2 z2])
     panels = generate_panels(PlanarProblem(Vortex(Linear()), Dirichlet()), coordinates)
     mesh, TEmesh = generate_mesh(PlanarProblem(Vortex(Linear()), Dirichlet()), panels)
     system = generate_inviscid_system(pt, panels, mesh, TEmesh)
 
+    @test all(
+        system.b .==
+        [0.5 0.0; 0.0 0.0; -0.5 0.0; 0.0 1.0; 0.0 1.5; 0.0 2.0; 0.0 0.0; 0.0 0.0],
+    )
 end
 
 @testset "Axisymmetric System Assembly Tests" begin

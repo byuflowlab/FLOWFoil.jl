@@ -32,19 +32,19 @@ function get_trailing_edge_info(panel_edges)
     # calculate vector that bisects the first and last panel vectors
     bisector = 0.5 * (d1 + dn)
 
-    # - Calculate tdp - #
-    # normalize to get the unit vector
-    ttehat = bisector / sqrt(bisector[1]^2 + bisector[2]^2)
-
     # gap edges
     gap_edges = [panel_edges[end, 2, :]'; panel_edges[1, 1, :]']
 
     # get panel vector
     dte, dtemag = get_d(panel_edges[1, 1, :], panel_edges[end, 2, :])
 
-    if dtemag == 0.0
+    if dtemag == 0.0 || bisector == zeros(2)
         return 1.0, 0.0, 0.0, gap_edges, dte, dtemag
     else
+        # - Calculate tdp - #
+        # normalize to get the unit vector
+        ttehat = bisector / sqrt(bisector[1]^2 + bisector[2]^2)
+
         # normalize panelvector
         dtehat = dte / dtemag
 

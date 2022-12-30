@@ -243,7 +243,7 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
         trailing_edges[m] = maximum(panels[m].panel_edges[:, :, 1])
 
         # Check if trailing edge is sharp or not
-        if abs(trailing_edge_gap[m]) >
+        if abs(TE_panel_length[m]) >
             gap_tolerance * (trailing_edges[m] - leading_edges[m])
 
             # set blunt_te to true

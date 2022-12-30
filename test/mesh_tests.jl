@@ -27,7 +27,9 @@
     @test TEmesh.tdp == [1.0]
     @test TEmesh.txp == [0.0]
 
-    # - Multi-body Test - #
+    #---------------------------------#
+    #         Multi Body Test         #
+    #---------------------------------#
     x1 = zeros(3)
     z1 = [-0.5; 0.0; 0.5]
 
@@ -128,7 +130,7 @@
         ),
     )
 
-    @test TEmesh.blunt_te == Bool[0; 0]
+    @test TEmesh.blunt_te == Bool[1; 1]
     @test TEmesh.trailing_edge_gap == [0.0; 0.0]
     @test TEmesh.tdp == [1.0; 1.0]
     @test TEmesh.txp == [0.0; 0.0]

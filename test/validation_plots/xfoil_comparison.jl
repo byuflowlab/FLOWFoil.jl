@@ -3,11 +3,12 @@ using Xfoil
 include("../../plots_default.jl")
 pyplot()
 
-x,z = FLOWFoil.naca4()
+x, z = FLOWFoil.naca4(; blunt_TE=true)
+# x, z = FLOWFoil.naca4()
 
 N = length(x)
 
-coordinates = [x z]
+coordinates = ([x z], [x .+ 1000.0 z])
 
 alpha = 0.0
 
@@ -19,8 +20,7 @@ xxf = g.x[1:N]
 cpxf = g.cpi[1:N]
 vxf = g.qinv[1:N]
 
-
-polar = FLOWFoil.solve([x z], [alpha], PlanarProblem(Vortex(Linear()), Dirichlet()))
+polar = FLOWFoil.solve(coordinates, [alpha], PlanarProblem(Vortex(Linear()), Dirichlet()))
 
 # PLOT
 plot(; yflip=true, xlabel=L"\frac{x}{c}", ylabel=L"c_p")
@@ -35,6 +35,14 @@ plot!(
     label="FLOWFoil",
 )
 
+# plot!(
+#     polar.xsmooth[2, :, 1],
+#     polar.surface_pressure[2, :, 1];
+#     linestyle=:dash,
+#     linewidth=2,
+#     label="FLOWFoil",
+# )
+
 savefig("xfoil_comparison_plot_cp.pdf")
 
 plot(; yflip=true, xlabel=L"\frac{x}{c}", ylabel=L"c_p")
@@ -48,6 +56,5 @@ plot!(
     linewidth=2,
     label="FLOWFoil",
 )
-
 
 savefig("xfoil_comparison_plot_vt.pdf")

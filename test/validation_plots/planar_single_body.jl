@@ -24,8 +24,8 @@ polar = FLOWFoil.solve([xj yj], [alpha], PlanarProblem(Vortex(Linear()), Dirichl
 # PLOT
 plot(; yflip=true, xlabel=L"\frac{x}{c}", ylabel=L"c_p")
 
-plot!(xj[2:end], cpsurf[2:end]; label="Joukowsky")
-# plot!(xj[1:end], cpsurf[1:end]; label="Joukowsky")
+# plot!(xj[2:end], cpsurf[2:end]; label="Joukowsky")
+plot!(xj[1:end], cpsurf[1:end]; label="Joukowsky")
 
 plot!(
     polar.xsmooth[1, :, 1],
