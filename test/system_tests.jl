@@ -1,4 +1,4 @@
-@testset "System Assembly Tests" begin
+@testset "Planar System Assembly Tests" begin
 
     #---------------------------------#
     #             PLANAR              #
@@ -33,7 +33,28 @@
     @test all(system.A[(end - 1):end, end] .== 0.0)
 
     # TODO: need to test boundary condition matrix
-    # TODO: multi-airfoil test
+
+    # - Multi-body Test - #
+    x1 = zeros(3)
+    z1 = [-0.5; 0.0; 0.5]
+
+    x2 = [1.0; 1.5; 2.0]
+    z2 = zeros(3)
+
+    x1 = [1.0; 0.5; 0.0; 0.5; 1.0]
+    z1 = [-0.1; -0.5; 0.0; 0.5; 0.1]
+
+    x2 = 1.25 .+ [1.0; 0.5; 0.0; 0.5; 1.0]
+    z2 = [0.0; -0.5; 0.0; 0.5; 0.0]
+
+    coordinates = ([x1 z1], [x2 z2])
+    panels = generate_panels(PlanarProblem(Vortex(Linear()), Dirichlet()), coordinates)
+    mesh, TEmesh = generate_mesh(PlanarProblem(Vortex(Linear()), Dirichlet()), panels)
+    system = generate_inviscid_system(pt, panels, mesh, TEmesh)
+
+end
+
+@testset "Axisymmetric System Assembly Tests" begin
 
     #---------------------------------#
     #           AXISYMMETRIC          #
@@ -69,6 +90,9 @@
 
     # TODO: need to test boundary condition matrix
     # TODO: multi-body test
+end
+
+@testset "Periodic System Assembly Tests" begin
 
     #---------------------------------#
     #             PERIODIC            #

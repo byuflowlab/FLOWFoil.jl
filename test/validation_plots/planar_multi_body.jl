@@ -6,11 +6,14 @@ pyplot()
 include("../data/planar_multi_body_data.jl")
 
 coordinates = ([ximain etamain], [xiflap etaflap])
+# coordinates = [ximain etamain]
+# coordinates = [xiflap etaflap]
 
 polar = FLOWFoil.solve(coordinates, PlanarProblem(Vortex(Linear()), Dirichlet()))
 
 ## -- PLOT
 plot(; yflip=true, xlabel=L"x", ylabel=L"c_p")
+
 plot!(
     ximain,
     cpmain;
@@ -19,6 +22,7 @@ plot!(
     markercolor=mycolors[1],
     label="Analytic Main Airfoil",
 )
+
 plot!(
     xiflap,
     cpflap;

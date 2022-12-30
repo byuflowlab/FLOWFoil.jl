@@ -78,6 +78,7 @@ struct PlanarMesh{TF} <: Mesh
     nbodies::Int64
     panel_indices::Vector{UnitRange{Int64}}
     node_indices::Vector{UnitRange{Int64}}
+    nodes::Matrix{TF}
     mesh2panel::Vector{Int64}
     chord::TF
     panel_length::Vector{TF}
@@ -138,8 +139,9 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
     nbodies = length(panels)
     npanels = [panels[i].npanels for i in 1:nbodies]
     total_panels = sum(npanels)
-    nnodes = [panels[i].npanels + 1 for i in 1:nbodies]
+    nnodes = npanels .+ 1
     total_nodes = sum(nnodes)
+    nodes = reduce(vcat, panels[i].node for i in 1:nbodies)
 
     # - Define Body Indexing - #
 
@@ -156,7 +158,7 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
     ]
 
     # - Map indices - #
-    mesh2panel = reduce(vcat,[[1:npanels[i];npanels[i]] for i in 1:nbodies])
+    mesh2panel = reduce(vcat,[1:npanels[i] for i in 1:nbodies])
 
     ### --- Initialize Vectors --- ###
     TF = typeof(sum([panels[i].panel_length[1] for i in 1:nbodies]))
@@ -264,14 +266,14 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
             ### --- Loop through each field node (panel edge) in body m --- ###
             for i in node_indices[m]
 
-                # Panel edges of panels being influenced (body m)
-                # NOTE: index i goes 1 beyond length of number of panels, so need to repeat over last panel twice
-                panidx = i == node_indices[m][end] ? i - 1 : i
-                field_panel_edge = panels[m].panel_edges[mesh2panel[panidx], :, :]
+                # # Panel edges of panels being influenced (body m)
+                # # NOTE: index i goes 1 beyond length of number of panels, so need to repeat over last panel twice
+                # panidx = i > node_indices[m][end] -m ? i - m : i
+                # field_panel_edge = panels[m].panel_edges[mesh2panel[panidx], :, :]
 
-                # Get vector and magnitude from first edge of the panel of influence to the field point (edge of panel being influenced)
-                # NOTE: index i goes 1 beyond length of number of panels, so need to repeat over last panel twice, using the second panel edge on the repeat
-                edgeidx = i == node_indices[m][end] ? 2 : 1
+                # # Get vector and magnitude from first edge of the panel of influence to the field point (edge of panel being influenced)
+                # # NOTE: index i goes 1 beyond length of number of panels, so need to repeat over last panel twice, using the second panel edge on the repeat
+                # edgeidx = i == node_indices[m][end] ? 2 : 1
 
                 ### --- Assemble Trailing Edge Gap Panel Infuences --- ###
 
@@ -282,7 +284,8 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
                     TE_panel_edges,
                     TE_panel_vector,
                     trailing_edge_gap[m],
-                    field_panel_edge[edgeidx, :];
+                    # field_panel_edge[edgeidx, :];
+                    nodes[i,:];
                     gap_tolerance=gap_tolerance,
                 )
 
@@ -302,7 +305,8 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
                         influence_panel_edge,
                         influence_panel_vector,
                         panel_length[mesh2panel[j]],
-                        field_panel_edge[edgeidx, :];
+                        # field_panel_edge[edgeidx, :];
+                        nodes[i,:];
                         gap_tolerance=gap_tolerance,
                     )
                 end #for panels being influenced
@@ -326,6 +330,7 @@ function generate_mesh(p::PlanarProblem, panels; gap_tolerance=1e-10)
         nbodies,
         panel_indices,
         node_indices,
+        nodes,
         mesh2panel,
         chord_length,
         panel_length,
@@ -474,6 +479,7 @@ Axisymmetric Mesh Object
 struct AxisymmetricMesh{TF} <: Mesh
     nbodies::Int
     panel_indices::Vector{UnitRange{Int64}}
+    mesh2panel::Vector{Int64}
     x::Matrix{TF}
     r::Matrix{TF}
     m::Matrix{TF}
@@ -502,8 +508,11 @@ function generate_mesh(axisym::AxisymmetricProblem, panels; ex=1e-5)
 
     # put together index ranges of panels for each body
     panel_indices = [
-        (1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:length(nbodies)
+        (1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:nbodies
     ]
+
+    # - Map indices - #
+    mesh2panel = reduce(vcat,[1:npanels[i] for i in 1:nbodies])
 
     ### --- Initialize Vectors --- ###
     TF = typeof(sum([panels[i].panel_length[1] for i in 1:nbodies]))
@@ -526,15 +535,15 @@ function generate_mesh(axisym::AxisymmetricProblem, panels; ex=1e-5)
         for n in 1:nbodies
             ### --- Loop through panels --- ###
             for i in panel_indices[m]
-                for j in panel_indices[m]
+                for j in panel_indices[n]
 
                     # Get x-locations of influencing and influenced panels
-                    xi = panels[m].panel_center[i, 1]
-                    xj = panels[n].panel_center[j, 1]
+                    xi = panels[m].panel_center[mesh2panel[i], 1]
+                    xj = panels[n].panel_center[mesh2panel[j], 1]
 
                     # Get r-locations of influencing and influenced panels
-                    ri = panels[m].panel_center[i, 2]
-                    rj = panels[n].panel_center[j, 2]
+                    ri = panels[m].panel_center[mesh2panel[i], 2]
+                    rj = panels[n].panel_center[mesh2panel[j], 2]
 
                     # Calculate normalized distance components for current set of panels
                     x[i, j] = (xi - xj) / rj
@@ -548,7 +557,7 @@ function generate_mesh(axisym::AxisymmetricProblem, panels; ex=1e-5)
     end #for mth influenced body
 
     # Return Mesh
-    return AxisymmetricMesh(nbodies, panel_indices, x, r, k2)
+    return AxisymmetricMesh(nbodies, panel_indices, mesh2panel,x, r, k2)
 end
 
 ######################################################################

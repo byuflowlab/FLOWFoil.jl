@@ -187,14 +187,14 @@ function assemble_vortex_matrix(::Linear, mesh, TEmesh)
                     #= Replace last row of the submatrix with the extrapolation of the mean vortex strength to the trailing edge.
                     =#
                     # First zero out last row of submatrix
-                    amat[ni[m][end], :] .= 0.0
+                    amat[ni[m][end], ni[m]] .= 0.0
                     # Then replace first and last elements in that row with extrapolation terms
-                    amat[ni[m][end], 1] = 1.0
-                    amat[ni[m][end], 2] = -2.0
-                    amat[ni[m][end], 3] = 1.0
-                    amat[ni[m][end], ni[n][end] - 2] = -1.0
-                    amat[ni[m][end], ni[n][end] - 1] = 2.0
-                    amat[ni[m][end], ni[n][end]] = -1.0
+                    amat[ni[m][end], ni[m][1]] = 1.0
+                    amat[ni[m][end], ni[m][2]] = -2.0
+                    amat[ni[m][end], ni[m][3]] = 1.0
+                    amat[ni[m][end], ni[m][end] - 2] = -1.0
+                    amat[ni[m][end], ni[m][end] - 1] = 2.0
+                    amat[ni[m][end], ni[m][end]] = -1.0
 
                 else
                     # otherwise keep everything at -1.0
@@ -275,18 +275,17 @@ function assemble_boundary_conditions(::Dirichlet, panels, mesh, TEmesh)
           but rather keeps the rhs as [-z,x] in all cases:
         =#
         bmat[ni[m][1]:ni[m][end - 1], 1] = [
-            -panels[m].panel_edges[i, 1, 2] for
-            i in mesh.mesh2panel[ni[m][1]:ni[m][end - 1]]
+            -mesh.nodes[i, 2] for i in ni[m][1]:ni[m][end - 1]
         ]
+
         bmat[ni[m][1]:ni[m][end - 1], 2] = [
-            panels[m].panel_edges[i, 1, 1] for i in mesh.mesh2panel[ni[m][1]:ni[m][end - 1]]
+            mesh.nodes[i, 1] for i in ni[m][1]:ni[m][end - 1]
         ]
 
         # if blunt trailing edge, no need for adjustment to last equation in submatrix.
         if TEmesh.blunt_te[m]
-            panelidx = mesh.mesh2panel[ni[m][end]]
-            bmat[ni[m][end], 1] = -panels[m].panel_edges[panelidx, 2, 2]
-            bmat[ni[m][end], 2] = panels[m].panel_edges[panelidx, 2, 1]
+            bmat[ni[m][end], 1] = -mesh.nodes[ni[m][end], 2]
+            bmat[ni[m][end], 2] = mesh.nodes[ni[m][end], 1]
         end
     end
 
@@ -363,11 +362,13 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
 
     # Count number of bodies requiring a Kutta Condition
     nk = count(br -> br == false, body_of_revolution)
+    kutta_count = 1
 
     # - Rename for Convenience - #
     idx = mesh.panel_indices
     N = idx[end][end]
     nbodies = mesh.nbodies
+    mesh2panel = mesh.mesh2panel
 
     # initialize coefficient matrix
     TF = eltype(mesh.m)
@@ -397,20 +398,22 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
                     jidx = idx[n][end] + 1 - i
                     for j in idx[m]
                         if j != jidx
-                            sum += amat[j, i] * panels[n].panel_length[j]
+                            sum += amat[j, i] * panels[n].panel_length[mesh2panel[j]]
                         end
                     end
-                    dmagj = panels[n].panel_length[jidx]
+                    dmagj = panels[n].panel_length[mesh2panel[jidx]]
                     amat[jidx, i] = -sum / dmagj
                 end
 
                 ### --- Apply Kutta Condition --- ###
                 # put in the kutta condition for each airfoil (end rows of the system matrix)
-                amat[N + m, idx[n][1]] = 1.0
-                amat[N + m, idx[n][end]] = 1.0
+                amat[N + kutta_count, idx[n][1]] = 1.0
+                amat[N + kutta_count, idx[n][end]] = 1.0
 
                 #put unit bound vortex value in each row
-                amat[idx[m], idx[n][end] + n] .= 1.0
+                amat[idx[m], idx[n][end] + kutta_count] .= 1.0
+
+                kutta_count += 1
             end
 
             # # NOTE: this doesn't seem to change anything...
@@ -460,6 +463,7 @@ function assemble_ring_boundary_conditions(::Neumann, body_of_revolution, panels
     idx = mesh.panel_indices
     N = idx[end][end]
     nbodies = mesh.nbodies
+    mesh2panel = mesh.mesh2panel
 
     # initialize boundary condition array
     TF = eltype(mesh.m)
@@ -470,9 +474,11 @@ function assemble_ring_boundary_conditions(::Neumann, body_of_revolution, panels
 
         # generate portion of boundary condition array associated with mth body
         if body_of_revolution[m]
-            bc[idx[m], 1] = [-cos(panels[m].panel_angle[i]) for i in idx[m]]
+            bc[idx[m], 1] = [-cos(panels[m].panel_angle[mesh2panel[i]]) for i in idx[m]]
         else
-            bc[idx[m], 1] = [1.0 - cos(panels[m].panel_angle[i]) for i in idx[m]]
+            bc[idx[m], 1] = [
+                1.0 - cos(panels[m].panel_angle[mesh2panel[i]]) for i in idx[m]
+            ]
         end
     end
 

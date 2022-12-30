@@ -22,7 +22,7 @@ function get_trailing_edge_info(panel_edges)
 
     # - get bisection vector - #
     # get vector along first panel
-    d1, d1mag = get_d(panel_edges[1, :, :])
+    d1, d1mag = get_d(panel_edges[1, 2, :], panel_edges[1, 1, :])
     d1 /= d1mag
 
     # get vector along second panel
@@ -40,7 +40,7 @@ function get_trailing_edge_info(panel_edges)
     gap_edges = [panel_edges[end, 2, :]'; panel_edges[1, 1, :]']
 
     # get panel vector
-    dte, dtemag = get_d([panel_edges[1, 1, :]'; panel_edges[end, 2, :]'])
+    dte, dtemag = get_d(panel_edges[1, 1, :], panel_edges[end, 2, :])
 
     if dtemag == 0.0
         return 1.0, 0.0, 0.0, gap_edges, dte, dtemag
@@ -114,6 +114,22 @@ function get_d(edges)
 
     # simply call get_r, since it`s exactly what is needed
     return get_r(edges[1, :], edges[2, :])
+end
+
+"""
+    get_d(node1, node2)
+Calculate panel length (between adjacent nodes).
+**Arguments:**
+ - `node1::Array{Float}(2)` : [x y] location of first node
+ - `node2::Array{Float}(2)` : [x y] location of second node
+**Returns**
+ - `d::Vector{Float}` : vector from node1 to node2
+ - `dmag::Float` : length of panel between node1 and node2
+"""
+function get_d(node1, node2)
+
+    # simply call get_r, since it`s exactly what is needed
+    return get_r(node1, node2)
 end
 
 """

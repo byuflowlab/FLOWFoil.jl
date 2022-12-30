@@ -51,12 +51,11 @@ function smooth_distributions(::Linear, panel_edges, distribution, npanels)
 
     # find the minimum and index
     minidx = findall(==(minimum(x)), x)
-    if length(minidx)>1
+    idxbot = minidx[1]
+    if length(minidx) > 1
         idxtop = minidx[end]
-        idxbot = minidx[1]
     else
-        idxtop = minidx
-        idxbot = minidx
+        idxtop = minidx[1]
     end
 
     # the bottom needs to be flipped to ascend monotonically
@@ -103,12 +102,11 @@ function smooth_distributions(
 
     # find the minimum and index
     minidx = findall(==(minimum(x)), x)
-    if length(minidx)>1
+    idxbot = minidx[1]
+    if length(minidx) > 1
         idxtop = minidx[end]
-        idxbot = minidx[1]
     else
-        idxtop = minidx
-        idxbot = minidx
+        idxtop = minidx[1]
     end
 
     # the top is already in the right direction

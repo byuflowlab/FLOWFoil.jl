@@ -238,7 +238,7 @@ function post_process(
             # Moment Coefficient Calculation
             cm[m, a] =
                 sum([
-                    ([cpi[i] cpi[panelidx[i + 1]]] * cmmat * [
+                    ([cpi[i] cpi[i + 1]] * cmmat * [
                         dxddmi[i]
                         dxddmip1[i]
                     ])[1] for i in panelidx[pidx[m]]

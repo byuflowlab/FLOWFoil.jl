@@ -201,36 +201,38 @@ Cacluate the influence of a ring vortex at panel j onto panel i.
 - `aij::Float` : Influence of vortex ring strength at panel j onto panel i.
 """
 function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
+    m2p = mesh.mesh2panel
 
     #calculate unit velocities
     u = get_u_ring(
         mesh.x[i, j],
         mesh.r[i, j],
-        panelj.panel_center[j, 2],
-        panelj.panel_length[j],
+        panelj.panel_center[m2p[j], 2],
+        panelj.panel_length[m2p[j]],
         mesh.m[i, j],
     )
 
-    v = get_v_ring(mesh.x[i, j], mesh.r[i, j], panelj.panel_center[j, 2], mesh.m[i, j])
+    v = get_v_ring(mesh.x[i, j], mesh.r[i, j], panelj.panel_center[m2p[j], 2], mesh.m[i, j])
 
     #return appropriate strength
     # if asin(sqrt(m)) != pi / 2
     if mesh.m[i, j] != 1.0
 
         #panels are different
-        return (-u * cos(paneli.panel_angle[i]) + v * sin(paneli.panel_angle[i])) *
-               panelj.panel_length[j]
+        return (
+            -u * cos(paneli.panel_angle[m2p[i]]) + v * sin(paneli.panel_angle[m2p[i]])
+        ) * panelj.panel_length[m2p[j]]
     else
         #same panel -> self induction equation
 
         #NOTE: this is not eqn 4.22 in Lewis.  Their code uses this expression which seems to avoid singularities better.  Not sure how they changed the second term (from dj/4piR to -R) though; perhaps the R in the text != the curvature in the code (radiusofcurvature vs curvature).
 
         # constant used in multiple places to clean things up
-        cons = 4.0 * pi * panelj.panel_center[j, 2] / panelj.panel_length[j]
+        cons = 4.0 * pi * panelj.panel_center[m2p[j], 2] / panelj.panel_length[m2p[j]]
 
         # return self inducement coefficient
-        return -0.5 - panelj.panel_curvature[j] -
-               (log(2.0 * cons) - 0.25) / cons * cos(panelj.panel_angle[j])
+        return -0.5 - panelj.panel_curvature[m2p[j]] -
+               (log(2.0 * cons) - 0.25) / cons * cos(panelj.panel_angle[m2p[j]])
     end
 end
 

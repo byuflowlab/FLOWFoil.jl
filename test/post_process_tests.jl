@@ -14,9 +14,9 @@
     cl5, cm5 = Xfoil.solve_alpha(5.0)
 
     @test isapprox(polar.lift[1], cl0, atol=1e-5)
-    @test isapprox(polar.moment[1], cm0, atol=1e-5)
+    @test isapprox(polar.moment[1], cm0, atol=1e-3)
     @test isapprox(polar.lift[2], cl5, atol=1e-5)
-    @test isapprox(polar.moment[2], cm5, atol=1e-5)
+    @test isapprox(polar.moment[2], cm5, atol=1e-3)
 
     #---------------------------------#
     #           AXISYMMETRIC          #

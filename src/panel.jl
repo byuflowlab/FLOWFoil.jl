@@ -62,6 +62,7 @@ struct LinearFlatPanel{TF} <: Panel
     panel_edges::Array{TF,3}
     panel_vector::Matrix{TF}
     panel_length::Vector{TF}
+    node::Matrix{TF}
 end
 
 #---------------------------------#
@@ -90,6 +91,9 @@ function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
     panel_edges = zeros(TF, numpanels, 2, 2)
     panel_lengths = zeros(TF, numpanels)
     panel_vectors = zeros(TF, numpanels, 2)
+    nodes = zeros(TF, numpanels+1, 2)
+    nodes[1, :] = [x[1] y[1]]
+    nodes[end, :] = [x[end] y[end]]
 
     for i in 1:numpanels
         # Get node locations from x,y coordinates
@@ -100,9 +104,12 @@ function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
 
         # Calculate Panel Vectors
         panel_vectors[i, :] = [x[i + 1] - x[i] y[i + 1] - y[i]]
+
+        # Set Node Values
+        nodes[i, :] = [x[i] y[i]]
     end
 
-    return [LinearFlatPanel(numpanels, panel_edges, panel_vectors, panel_lengths)]
+    return [LinearFlatPanel(numpanels, panel_edges, panel_vectors, panel_lengths, nodes)]
 end
 
 ######################################################################
