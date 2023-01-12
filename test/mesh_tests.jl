@@ -134,6 +134,8 @@
     @test TEmesh.trailing_edge_gap == [0.0; 0.0]
     @test TEmesh.tdp == [1.0; 1.0]
     @test TEmesh.txp == [0.0; 0.0]
+
+    #TODO need to put together better trailing edge mesh test with geometry that actually has a proper trailing edge gap.
 end
 
 @testset "Axisymmetric Mesh Tests" begin
@@ -172,7 +174,7 @@ end
 
     @test mesh.nbodies == 2
     @test mesh.panel_indices == [[1:2]; [3:6]]
-    @test mesh.mesh2panel == [1;2;1;2;3;4]
+    @test mesh.mesh2panel == [1; 2; 1; 2; 3; 4]
     @test mesh.x == [
         (0.0 / 2.0)/(1.0 / 4.0) (-1.0 / 2.0)/(1.0 / 4.0) (-1.0 / 2.0)/(5.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0) (-1.0 / 2.0)/(7.0 / 4.0)
         (1.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(7.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0)
@@ -192,7 +194,7 @@ end
         (1.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(7.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0)
     ]
     r = ri * (1.0 ./ ri')
-    @test isapprox(mesh.m , 4.0*r./(x.^2 .+ (r .+ 1.0).^2))
+    @test isapprox(mesh.m, 4.0 * r ./ (x .^ 2 .+ (r .+ 1.0) .^ 2))
 end
 
 @testset "Periodic Mesh Tests" begin
