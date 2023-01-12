@@ -395,23 +395,23 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
                 ### --- Apply Back Substitution --- ###
                 for i in idx[n]
                     sum = 0.0
-                    jidx = idx[n][end] + 1 - i
+                    jidx = idx[m][end] + 1 - i
                     for j in idx[m]
                         if j != jidx
-                            sum += amat[j, i] * panels[n].panel_length[mesh2panel[j]]
+                            sum += amat[j, i] * panels[m].panel_length[mesh2panel[j]]
                         end
                     end
-                    dmagj = panels[n].panel_length[mesh2panel[jidx]]
+                    dmagj = panels[m].panel_length[mesh2panel[jidx]]
                     amat[jidx, i] = -sum / dmagj
                 end
 
                 ### --- Apply Kutta Condition --- ###
                 # put in the kutta condition for each airfoil (end rows of the system matrix)
-                amat[N + kutta_count, idx[n][1]] = 1.0
-                amat[N + kutta_count, idx[n][end]] = 1.0
+                amat[N + kutta_count, idx[m][1]] = 1.0
+                amat[N + kutta_count, idx[m][end]] = 1.0
 
                 #put unit bound vortex value in each row
-                amat[idx[m], idx[n][end] + kutta_count] .= 1.0
+                amat[idx[m], idx[m][end] + kutta_count] .= 1.0
 
                 kutta_count += 1
             end
