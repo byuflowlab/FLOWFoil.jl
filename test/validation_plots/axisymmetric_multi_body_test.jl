@@ -6,9 +6,14 @@ include("../data/bodyofrevolutioncoords.jl")
 xhub = x
 rhub = r
 
+plot(x,r,label="hub geometry",aspectratio=:equal)
+
 include("../data/naca_662-015.jl")
 xduct = x
 rduct = r
+
+plot!(x,r,label="duct geometry")
+savefig("axisymmetric_multibody_geometry.pdf")
 
 method = AxisymmetricProblem(Vortex(Constant()), Neumann(), [true, false])
 flow_angle = [0.0]

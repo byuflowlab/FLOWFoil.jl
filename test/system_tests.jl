@@ -87,7 +87,36 @@ end
     @test all(system.A[end, end] .== 0.0)
 
     # TODO: need to test boundary condition matrix
-    # TODO: multi-body test
+
+    # - Multi Body Test - #
+
+    x1 = [0.0; 0.5; 1.0]
+    r1 = [0.0; 0.5; 0.0]
+
+    x2 = [1.0; 0.5; 0.0; 0.5; 1.0]
+    r2 = [1.5; 1.0; 1.5; 2.0; 1.5]
+
+    coordinates = ([x1 r1], [x2 r2])
+    pt = AxisymmetricProblem(Vortex(Constant()), Neumann(), [true, false])
+    panel_array = generate_panels(pt, coordinates)
+    mesh = generate_mesh(pt, panel_array)
+    system = generate_inviscid_system(pt, panel_array, mesh)
+
+    @test isapprox(
+        system.b,
+        [
+            -sqrt(2) / 2
+            -sqrt(2) / 2
+            1.0 + cos(pi / 4)
+            1.0 + cos(pi / 4)
+            1.0 - cos(pi / 4)
+            1.0 - cos(pi / 4)
+            0.0
+        ],
+    )
+
+    #TODO add back diagonal correction test.
+
 end
 
 @testset "Periodic System Assembly Tests" begin
