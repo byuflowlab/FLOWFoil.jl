@@ -102,6 +102,8 @@ end
     mesh = generate_mesh(pt, panel_array)
     system = generate_inviscid_system(pt, panel_array, mesh)
 
+    @test system.A[:, end] == [0; 0; 1; 1; 1; 1; 0.0]
+    @test system.A[end, :] == [0, 0, 1, 0, 0, 1, 0.0]
     @test isapprox(
         system.b,
         [

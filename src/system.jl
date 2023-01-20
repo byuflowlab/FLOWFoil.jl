@@ -387,13 +387,14 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
                     amat[i, j] = calculate_ring_vortex_influence(
                         Constant(), panels[m], panels[n], mesh, i, j
                     )
+
                 end
             end
 
             if m == n && !body_of_revolution[m]
 
                 ### --- Apply Back Substitution --- ###
-                for i in idx[n]
+                for i in idx[m]
                     sum = 0.0
                     jidx = idx[m][end] + 1 - i
                     for j in idx[m]
@@ -411,7 +412,7 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
                 amat[N + kutta_count, idx[m][end]] = 1.0
 
                 #put unit bound vortex value in each row
-                amat[idx[m], idx[m][end] + kutta_count] .= 1.0
+                amat[idx[m], idx[end][end] + kutta_count] .= 1.0
 
                 kutta_count += 1
             end

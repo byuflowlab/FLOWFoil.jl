@@ -91,7 +91,7 @@ function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
     panel_edges = zeros(TF, numpanels, 2, 2)
     panel_lengths = zeros(TF, numpanels)
     panel_vectors = zeros(TF, numpanels, 2)
-    nodes = zeros(TF, numpanels+1, 2)
+    nodes = zeros(TF, numpanels + 1, 2)
     nodes[1, :] = [x[1] y[1]]
     nodes[end, :] = [x[end] y[end]]
 
@@ -190,7 +190,11 @@ function generate_panels(::AxisymmetricProblem, coordinates::Matrix{TF}) where {
         _, minx = findmin(x)
 
         # NOTE: use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
-        beta = atan(panel_vector[2] / panel_vector[1])
+        if panel_vector[1] == 0.0
+            beta = pi / 2.0
+        else
+            beta = atan(panel_vector[2] / panel_vector[1])
+        end
 
         # Apply corrections as needed based on orientation of panel in coordinate frame.
         if (panel_vector[1] < 0.0) && (i > minx)

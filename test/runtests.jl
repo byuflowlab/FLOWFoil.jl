@@ -3,6 +3,7 @@ using Test
 using LinearAlgebra
 using Xfoil
 using ForwardDiff
+using ReverseDiff
 
 include("problem_tests.jl")
 include("panel_tests.jl")

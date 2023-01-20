@@ -21,12 +21,6 @@
     J = ForwardDiff.jacobian(planar_temp, x0)
     @test !any(isnan.(J))
 
-    # - ReverseDiff - #
-    # const f_tape = GradientTape(planar_temp, x0)
-
-    # # compile `f_tape` into a more optimized representation
-    # const compiled_f_tape = compile(f_tape)
-
     ######################################################################
     #                                                                    #
     #                            AXISYMMETRIC                            #
@@ -69,8 +63,6 @@
     # - ForwardDiff - #
     J = ForwardDiff.gradient(axisym_temp, x0)
     @test !any(isnan.(J))
-
-    # - ReverseDiff - #
 
     ######################################################################
     #                                                                    #

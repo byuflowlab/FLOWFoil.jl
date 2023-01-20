@@ -93,7 +93,7 @@ end
             sqrt(2)/2 sqrt(2)/2
         ],
     )
-    @test panel_array[2].panel_curvature == [0.0; -0.125; -0.125; 0.0]
+    @test panel_array[2].panel_curvature == [0.0; -1.0/8.0; -1.0/8.0; 0.0]
     @test panel_array[2].panel_angle ==
         [5.0 * pi / 4.0; 3.0 * pi / 4.0; pi / 4.0; -pi / 4.0]
 end
