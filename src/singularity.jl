@@ -189,13 +189,16 @@ end
 ######################################################################
 
 """
-    calculate_ring_vortex_influence(paneli, panelj)
+    calculate_ring_vortex_influence(paneli, panelj, mesh, i, j)
 
 Cacluate the influence of a ring vortex at panel j onto panel i.
 
 **Arguments:**
 - `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
 - `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
+- `mesh::FLOWFoil.AxisymmetricMesh` : relative geometry object.
+- `i::Int` : index for ith panel
+- `j::Int` : index for jth panel
 
 **Returns:**
 - `aij::Float` : Influence of vortex ring strength at panel j onto panel i.
@@ -204,7 +207,7 @@ function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
     m2p = mesh.mesh2panel
 
     #calculate unit velocities
-    u = get_u_ring(
+    u = get_u_ring_vortex(
         mesh.x[i, j],
         mesh.r[i, j],
         panelj.panel_center[m2p[j], 2],
@@ -212,7 +215,9 @@ function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
         mesh.m[i, j],
     )
 
-    v = get_v_ring(mesh.x[i, j], mesh.r[i, j], panelj.panel_center[m2p[j], 2], mesh.m[i, j])
+    v = get_v_ring_vortex(
+        mesh.x[i, j], mesh.r[i, j], panelj.panel_center[m2p[j], 2], mesh.m[i, j]
+    )
 
     #return appropriate strength
     # if asin(sqrt(m)) != pi / 2
@@ -237,7 +242,7 @@ function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
 end
 
 """
-    get_u_ring(x, r, rj, m)
+    get_u_ring_vortex(x, r, rj, m)
 
 Calculate x-component of velocity influence of vortex ring.
 
@@ -250,7 +255,7 @@ Calculate x-component of velocity influence of vortex ring.
 **Returns:**
 - `uij::Float` : x-component of velocity induced by panel j onto panel i
 """
-function get_u_ring(x, r, rj, dj, m; probe=false)
+function get_u_ring_vortex(x, r, rj, dj, m; probe=false)
 
     #get the first denominator
     den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
@@ -262,21 +267,11 @@ function get_u_ring(x, r, rj, dj, m; probe=false)
     #get values for elliptic integrals
     K, E = get_elliptics(m)
 
-    #phi = asin(sqrt(m))
-    #if probe && phi > 89.5 * pi / 180.0
-    #    println("K, E: ", K, ", ", E)
-    #end
-    ##return velocity
-    #if sqrt((x^2 + (r - 1.0)^2)) < 0.01 && probe
-    #    println("u sing: ", (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2)))
-    #    return (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
-    #else
     return 1.0 / den1 * (K - (1.0 + num2 / den2) * E)
-    # end
 end
 
 """
-    get_v_ring(x, r, rj, m)
+    get_v_ring_vortex(x, r, rj, m)
 
 Calculate r-component of velocity influence of vortex ring.
 
@@ -289,7 +284,7 @@ Calculate r-component of velocity influence of vortex ring.
 **Returns:**
 - `vij::Float` : r-component of velocity induced by panel j onto panel i
 """
-function get_v_ring(x, r, rj, m; probe=false)
+function get_v_ring_vortex(x, r, rj, m; probe=false)
 
     #get numerator and denominator of first fraction
     num1 = x / r
@@ -301,12 +296,7 @@ function get_v_ring(x, r, rj, m; probe=false)
     #get values for elliptic integrals
     K, E = get_elliptics(m)
 
-    #return velocity
-    # if sqrt((x^2 + (r - 1.0)^2)) < 0.01 && probe
-    #     return -x / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
-    # else
     return num1 / den1 * (K - (1.0 + num2 / den2) * E)
-    # end
 end
 
 """
@@ -341,6 +331,62 @@ function get_elliptics(m)
     # end
 end
 
+"""
+    get_u_ring_source(x, r, rj, m)
+
+Calculate x-component of velocity influence of source ring.
+
+**Arguments:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `uij::Float` : x-component of velocity induced by panel j onto panel i
+"""
+function get_u_ring_source(x, r, rj, dj, m; probe=false)
+
+    #get values for elliptic integrals
+    K, E = get_elliptics(m)
+
+    #get the first denominator
+    den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
+
+    #get numerator and denominator of second fraction
+    num2 = 2 * x * E
+    den2 = x^2 + (r - 1)^2
+
+    return 1.0 / den1 * (num2 / den2)
+end
+
+"""
+    get_v_ring_source(x, r, rj, m)
+
+Calculate r-component of velocity influence of source ring.
+
+**Arguments:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `vij::Float` : r-component of velocity induced by panel j onto panel i
+"""
+function get_v_ring_source(x, r, rj, m; probe=false)
+
+    #get values for elliptic integrals
+    K, E = get_elliptics(m)
+
+    #get numerator and denominator of first fraction
+    den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
+
+    num2 = 2 * r * (r - 1.0)
+    den2 = x^2 + (r - 1)^2
+
+    return 1.0 / den1 * (K - (1.0 - num2 / den2) * E)
+end
 ######################################################################
 #                                                                    #
 #                              PERIODIC                              #

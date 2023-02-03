@@ -49,8 +49,8 @@ FLOWFoil.get_psitildesigma
 FLOWFoil.assemble_ring_vortex_matrix
 FLOWFoil.assemble_ring_vortex_coefficients
 FLOWFoil.get_ring_vortex_influence
-FLOWFoil.get_v_ring
-FLOWFoil.get_u_ring
+FLOWFoil.get_v_ring_vortex
+FLOWFoil.get_u_ring_vortex
 FLOWFoil.get_elliptics
 FLOWFoil.get_offset
 ```
