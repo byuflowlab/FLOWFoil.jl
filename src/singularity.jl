@@ -225,7 +225,7 @@ function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
 
         #panels are different
         return (
-            -u * cos(paneli.panel_angle[m2p[i]]) + v * sin(paneli.panel_angle[m2p[i]])
+            u * cos(paneli.panel_angle[m2p[i]]) + v * sin(paneli.panel_angle[m2p[i]])
         ) * panelj.panel_length[m2p[j]]
     else
         #same panel -> self induction equation
@@ -267,7 +267,7 @@ function get_u_ring_vortex(x, r, rj, dj, m; probe=false)
     #get values for elliptic integrals
     K, E = get_elliptics(m)
 
-    return 1.0 / den1 * (K - (1.0 + num2 / den2) * E)
+    return -1.0 / den1 * (K - (1.0 + num2 / den2) * E)
 end
 
 """
