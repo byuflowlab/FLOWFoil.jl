@@ -363,6 +363,7 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
     # Count number of bodies requiring a Kutta Condition
     nk = count(br -> br == false, body_of_revolution)
     kutta_count = 1
+    kutta_idxs = zeros(Int, nk, 2)
 
     # - Rename for Convenience - #
     idx = mesh.panel_indices
@@ -372,7 +373,8 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
 
     # initialize coefficient matrix
     TF = eltype(mesh.m)
-    amat = zeros(TF, (N + nk, N + nk))
+    # amat = zeros(TF, (N + nk, N + nk))
+    amat = zeros(TF, (N, N))
 
     # Loop through system
 
@@ -387,13 +389,12 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
                     amat[i, j] = calculate_ring_vortex_influence(
                         Constant(), panels[m], panels[n], mesh, i, j
                     )
-
                 end
             end
 
             if m == n && !body_of_revolution[m]
 
-                ### --- Apply Back Substitution --- ###
+                ### --- Apply Back Diagonal Correction --- ###
                 for i in idx[m]
                     sum = 0.0
                     jidx = idx[m][end] + 1 - i
@@ -408,12 +409,16 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
 
                 ### --- Apply Kutta Condition --- ###
                 # put in the kutta condition for each airfoil (end rows of the system matrix)
-                amat[N + kutta_count, idx[m][1]] = 1.0
-                amat[N + kutta_count, idx[m][end]] = 1.0
+                # amat[N + kutta_count, idx[m][1]] = 1.0
+                # amat[N + kutta_count, idx[m][end]] = 1.0
 
                 #put unit bound vortex value in each row
-                amat[idx[m], idx[end][end] + kutta_count] .= 1.0
+                #TODO: why does this work?  this isn't in the book.
+                # amat[idx[m], idx[end][end] + kutta_count] .= 1.0
 
+                # amat[1,:] .-= amat[end,:]
+                # amat[:,1] .-= amat[:,end]
+                kutta_idxs[kutta_count, :] = [idx[m][1]; idx[m][end]]
                 kutta_count += 1
             end
 
@@ -428,7 +433,13 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
         end
     end
 
-    return amat
+    ## -- Apply Kutta Condition Subtractions -- ##
+    for i in 1:nk
+        amat[kutta_idxs[i, 1], :] .-= amat[kutta_idxs[i, 2], :]
+        amat[:, kutta_idxs[i, 1]] .-= amat[:, kutta_idxs[i, 2]]
+    end
+
+    return amat[1:end .∉ [kutta_idxs[:, 2]], 1:end .∉ [kutta_idxs[:, 2]]]
 end
 
 #---------------------------------#
@@ -459,6 +470,8 @@ function assemble_ring_boundary_conditions(::Neumann, body_of_revolution, panels
 
     # Count number of bodies requiring a Kutta Condition
     nk = count(br -> br == false, body_of_revolution)
+    kutta_idxs = zeros(Int, nk, 2)
+    kutta_count = 1
 
     # - Rename for Convenience - #
     idx = mesh.panel_indices
@@ -468,22 +481,26 @@ function assemble_ring_boundary_conditions(::Neumann, body_of_revolution, panels
 
     # initialize boundary condition array
     TF = eltype(mesh.m)
-    bc = zeros(TF, N + nk)
+    # bc = zeros(TF, N + nk)
+    bc = zeros(TF, N)
 
     ### --- Loop through bodies --- ###
     for m in 1:nbodies
 
         # generate portion of boundary condition array associated with mth body
-        if body_of_revolution[m]
-            bc[idx[m], 1] = [-cos(panels[m].panel_angle[mesh2panel[i]]) for i in idx[m]]
-        else
-            bc[idx[m], 1] = [
-                1.0 - cos(panels[m].panel_angle[mesh2panel[i]]) for i in idx[m]
-            ]
+        bc[idx[m], 1] = [-cos(panels[m].panel_angle[mesh2panel[i]]) for i in idx[m]]
+        if !body_of_revolution[m]
+            kutta_idxs[kutta_count, :] = [idx[m][1]; idx[m][end]]
+            kutta_count += 1
         end
     end
 
-    return bc
+    ## -- Apply Kutta Condition Subtractions -- ##
+    for i in 1:nk
+        bc[kutta_idxs[i, 1]] -= bc[kutta_idxs[i, 2]]
+    end
+
+    return bc[1:end .∉ [kutta_idxs[:, 2]]]
 end
 
 ######################################################################

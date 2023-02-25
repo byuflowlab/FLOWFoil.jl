@@ -305,7 +305,9 @@ function post_process(
 
     for m in 1:nbodies
         # - Extract surface velocity - #
-        vti = solution.x[idx[m]]
+        #= Note that we here assume that we are using the subtractive method for the kutta conditions, requiring us to recover the solution value for the last panel (trailing edge upper side).  We also assume here that the indexing starts at the lower side trailing edge and proceeds clockwise back to the upper side trailing edge.  Otherwise, not only will the solver not have worked, there will also be an indexing error here
+        =#
+        vti = [solution.x[idx[m][1:(end - 1)]]; -solution.x[idx[m][1]]]
 
         # - Calculate surface pressure - #
         cpi = 1.0 .- (vti) .^ 2
