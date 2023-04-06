@@ -381,7 +381,7 @@ function calculate_duct_thrust(polar::AxisymmetricPolar, panels, mesh; Vinf=1.0,
 end
 ######################################################################
 #                                                                    #
-#                    AXISYMMETRIC POST PROCESSING                    #
+#                     PERIODIC POST PROCESSING                       #
 #                                                                    #
 ######################################################################
 

@@ -62,7 +62,7 @@ end
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
     y = [-0.01; -0.5; 0.0; 0.5; 0.01] .+ 1.0
     coordinates = [x y]
-    pt = AxisymmetricProblem(Vortex(Constant()), Neumann(), [false])
+    pt = AxisymmetricProblem(Vortex(Constant()), Dirichlet(), [false])
 
     # Generate Panel Geometry
     panels = generate_panels(pt, coordinates)
@@ -94,7 +94,7 @@ end
     r2 = [1.5; 1.0; 1.5; 2.0; 1.5]
 
     coordinates = ([x1 r1], [x2 r2])
-    pt = AxisymmetricProblem(Vortex(Constant()), Neumann(), [true, false])
+    pt = AxisymmetricProblem(Vortex(Constant()), Dirichlet(), [true, false])
     panel_array = generate_panels(pt, coordinates)
     mesh = generate_mesh(pt, panel_array)
     system = generate_inviscid_system(pt, panel_array, mesh)

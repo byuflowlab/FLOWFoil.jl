@@ -30,7 +30,7 @@
     function axisym_temp(x0)
         x, z = FLOWFoil.naca4(x0[1], x0[2], x0[3])
         coordinates = [x z .+ 1.0]
-        method = AxisymmetricProblem(Vortex(Constant()), Neumann(), [false])
+        method = AxisymmetricProblem(Vortex(Constant()), Dirichlet(), [false])
 
         #TODO: consider putting this in the convenience functions file...
         function solve_axisymmetric(method, coordinates)
@@ -73,7 +73,7 @@
     function periodic_temp(x0)
         x, z = FLOWFoil.naca4(x0[1], x0[2], x0[3])
         coordinates = [x z .+ 1.0]
-        method = PeriodicProblem(Vortex(Constant()), Neumann(), 1.0, 0.0)
+        method = PeriodicProblem(Vortex(Constant()), Dirichlet(), 1.0, 0.0)
 
         #TODO: consider putting this in the convenience functions file...
         function solve_periodic(method, coordinates)
