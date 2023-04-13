@@ -504,10 +504,10 @@ function assemble_ring_boundary_conditions_raw(
 
     ### --- SETUP --- ###
 
-    # Count number of bodies requiring a Kutta Condition
-    nk = count(br -> br == false, body_of_revolution)
-    kutta_idxs = zeros(Int, nk, 2)
-    kutta_count = 1
+    # # Count number of bodies requiring a Kutta Condition
+    # nk = count(br -> br == false, body_of_revolution)
+    # kutta_idxs = zeros(Int, nk, 2)
+    # kutta_count = 1
 
     # - Rename for Convenience - #
     idx = mesh.panel_indices

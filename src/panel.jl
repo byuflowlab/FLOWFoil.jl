@@ -292,6 +292,7 @@ function generate_panels(::AxisymmetricProblem, coordinates::Matrix{TF}) where {
         npanels, panel_center, panel_length, panel_normal, panel_angle, panel_curvature
     )
 end
+
 function generate_panels!(::AxisymmetricProblem, panels, coordinates::Matrix{TF}) where {TF}
 
     ### --- SETUP --- ###
