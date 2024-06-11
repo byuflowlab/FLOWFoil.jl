@@ -104,3 +104,29 @@ function naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_TE=false, split=fal
     end
 end
 
+"""
+    getnaca4(x,y)
+
+Calculate NACA 4-series parameters based on input x,y coordinates.
+"""
+function getnaca4(x::AbstractArray{<:Number, 1}, yu::AbstractArray{<:Number, 1},
+    yl::AbstractArray{<:Number, 1}; bluntTE::Bool=false)
+
+    # model to fit
+    function model(x, param)
+        x, yu, yl = naca4(param[1], param[2], param[3], length(x), x=x, bluntTE=bluntTE)
+        return vcat(yu,yl)
+    end
+
+    # initial guess
+    param = [2.0, 4.0, 12.0]
+
+    # solve for coefficients
+    ufit = LsqFit.curve_fit(model, x, vcat(yu,yl), param)
+
+    # unpack
+    c = ufit.param[1]
+    p = ufit.param[2]
+    t = ufit.param[3]
+    return c, p, t
+end
