@@ -1,12 +1,27 @@
-#=
-B-spline Parameterization Methods
-NOTE: Requires Splines.jl package (unregistered)
+"""
+"""
+@kwdef struct GBS{T1,T2,T3,T4,T5,T6,T7,T8}
+    leading_edge_radius::T1
+    trailing_edge_camber_angle::T2
+    wedge_angle::T3
+    perturbations::T4
+    trailing_edge_gap::T5 = 0.0
+    spline_degree::T6 = 3
+    second_ctrlpt_position::T7 = 1.0 / 3.0
+    weights::T8 = nothing
+end
 
-Authors: Judd Mehr, Adam Cardoza
-=#
-
-using Splines
-
+# TODO: need to switch over to NURBS
+# TODO: also switch over to using struct
+#########################################################
+##########################     ##########################
+#####################     LOOK!    ######################
+###########                                   ###########
+#####     -----    TODO: YOU ARE HERE     -----     #####
+###########                                   ###########
+#####################     LOOK!    ######################
+##########################     ##########################
+#########################################################
 """
     gbs(leradius, tecamberangle, wedgeangle; perturbations=nothing, tedz=0, degree=3, xpos=1/3, weights=nothing, split=false, debug=false)
 
@@ -307,4 +322,26 @@ function getcoordinates(nurbs; N=160)
     end
 
     return getindex.(Cw, 1), getindex.(Cw, 2)
+end
+
+"""
+    determine_gbs(x,z)
+
+Uses LsqFit to go from xy to modified parsec without calculating each parameter.
+Depending on the initial guess and subsequent iterations, it may throw an error
+involving complex numbers. If so, alter the initial guess.
+"""
+function determine_gbs(x, z)
+    function model(x, p)
+        _, z = gbs(p[1], p[2], p[3]; N=ceil(Int, length(x) / 2))
+        return z
+    end
+
+    #initial guess
+    guess = [0.015, 0.0, 14.0]
+
+    fit = LsqFit.curve_fit(model, x, z, guess)
+    p = fit.param'
+
+    return p
 end

@@ -1,73 +1,169 @@
-#=
-Class-Shape Transformation (CST) Airfoil Parameterization
+"""
+"""
+@kwdef struct CST{Tu,Tl}
+    upper_coefficients::Tu
+    lower_coefficients::Tl
+end
 
-Authors: Judd Mehr,
+#TODO: switch to using struct
+#########################################################
+##########################     ##########################
+#####################     LOOK!    ######################
+###########                                   ###########
+#####     -----    TODO: YOU ARE HERE     -----     #####
+###########                                   ###########
+#####################     LOOK!    ######################
+##########################     ##########################
+#########################################################
 
-=#
+"""
+    bernstein(r, n, x)
 
-
+Bernstein Basis Function: `binomial(n, r) .* x .^ r .* (1 .- x) .^ (n .- r)`
+"""
 function bernstein(r, n, x)
-    return binomial(n, r) .* x.^r .* (1 .- x).^(n.-r)
+    return binomial(n, r) .* x .^ r .* (1 .- x) .^ (n .- r)
 end
 
-function cst(coeffs::AbstractArray{<:Number,1}, N::Integer=80,
-    x::AbstractArray{<:Number,1}=cosine_spacing(N), dzu::Number=0.0, dzl::Number=0.0,
-    N1::Number=0.5, N2::Number=1.0)
+"""
+    cst(
+        coefficients,
+        N::Integer=80,
+        x=split_cosine_spacing(N),
+        dzu=0.0,
+        dzl=0.0,
+        N1=0.5,
+        N2=1.0,
+        split=false,
+    )
 
-    if length(coeffs)%2 != 0
-        error("CST: Must have even number of coefficients (half upper, half lower)")
+Obtain airfoil coordiantes (clockwise from trailing edge) from the class shape transformation (CST) parameterization.
+
+# Arguments:
+- `upper_coefficients::Vector{Float}` : Vector of CST coefficients for upper side of airfoil.
+- `lower_coefficients::Vector{Float}` : Vector of CST coefficients for lower side of airfoil.
+
+# Keyword Arguments:
+- `N::Integer=80` : number of points to use for each side
+- `x::Vector{Float}=split_cosine_spacing(N)` : x-coordinates to use.
+- `dzu::Float=0.0` : upper side trailing edge gap
+- `dzl::Float=0.0` : lower side trailing edge gap
+- `N1::Float=0.5` : Class shape parameter 1
+- `N2::Float=1.0` : Class shape parameter 2
+- `split::Bool=false` : if true, returns upper and lower coordinates separately as xl, xu, zl, zu rather than just x, z.
+
+# Returns:
+- `x::Vector{Float}` : vector of x-coordinates.
+- `z::Vector{Float}` : vector of z-coordinates.
+"""
+function cst(
+    upper_coefficients,
+    lower_coefficients,
+    N::Integer=80,
+    x=split_cosine_spacing(N),
+    dzu=0.0,
+    dzl=0.0,
+    N1=0.5,
+    N2=1.0,
+    split=false,
+)
+    zu = half_cst(upper_coefficients, x, dzu, N1, N2)
+    zl = half_cst(lower_coefficients, x, dzl, N1, N2)
+
+    if split
+        return reverse(x), x, reverse(zl), zu
     else
-        n = Int(length(coeffs)/2)
+        return [reverse(x); x[2:end]], [reverse(zl); zu[2:end]]
     end
-
-    coeffU = coeffs[1:n]
-    coeffL = coeffs[n+1:end]
-
-    zu = halfcst(coeffU, x, dzu, N1, N2)
-    zl = halfcst(coeffL, x, dzl, N1, N2)
-
-    return x, zu, zl
-
 end
 
-function halfcst(coeffs::AbstractArray{<:Number,1}, x::AbstractArray{<:Number,1}=cosine_spacing(N),
-    dz::Number=0.0, N1::Number=0.5, N2::Number=1.0)
+"""
+    half_cst(coefficients, x=cosine_spacing(N), dz=0.0, N1=0.5, N2=1.0)
 
-    n = length(coeffs)
+Define upper or lower side of airfoil using CST parameterization.
 
-    C = x.^N1.*(1 .- x).^N2
+# Arguments:
+- `coefficients::Vector{Float}` : Vector of CST coefficients.
 
-    nb = length(coeffs)-1
+# Keyword Arguments:
+- `dz::Float=0.0` : trailing edge gap
+- `N1::Float=0.5` : Class shape parameter 1
+- `N2::Float=1.0` : Class shape parameter 2
+"""
+function half_cst(coefficients, x=cosine_spacing(N), dz=0.0, N1=0.5, N2=1.0)
+    n = length(coefficients)
 
-    nx = length(x)
+    C = @. x^N1 * (1.0 - x)^N2
 
-    S = zeros(eltype(coeffs), nx)
+    nb = length(coefficients) - 1
 
-    for i=1:nb+1
-        S += coeffs[i]*bernstein(i-1, nb, x)
+    S = similar(x) .= 0
+
+    for (i, c) in enumerate(coefficients)
+        S += c * bernstein(i - 1, nb, x)
     end
 
-    z = C .* S + x*dz
-
-    return z
-
+    return @. C * S + x * dz
 end
 
-function getcst(x::AbstractArray{<:Number, 1}, zu::AbstractArray{<:Number, 1},
-    zl::AbstractArray{<:Number, 1}, n::Integer, dzu::Number=0.0, dzl::Number=0.0,
-    N1::Number=0.5, N2::Number=1.0)
+"""
+    determine_cst(
+        xl,
+        xu,
+        zl,
+        zu;
+        n_upper_coefficients::Integer=8,
+        n_lower_coefficients::Integer=8,
+        dzu=0.0,
+        dzl=0.0,
+        N1=0.5,
+        N2=1.0,
+    )
+
+Determine best-fit CST parameters for upper and lower sides of airfoil using a least squares solve.
+
+# Arguments:
+- `xl::Vector{Float}` : vector of lower side x-coordinates.
+- `xu::Vector{Float}` : vector of upper side x-coordinates.
+- `zl::Vector{Float}` : vector of lower side z-coordinates.
+- `zu::Vector{Float}` : vector of upper side z-coordinates.
+
+# Keyword Arguments:
+- `n_upper_coefficients::Integer=8` : number of upper side coefficients to fit
+- `n_lower_coefficients::Integer=8` : number of lower side coefficients to fit
+- `dzu::Float=0.0` : upper side trailing edge gap
+- `dzl::Float=0.0` : lower side trailing edge gap
+- `N1::Float=0.5` : Class shape parameter 1
+- `N2::Float=1.0` : Class shape parameter 2
+
+# Returns:
+- `upper_coefficients::Vector{Float}` : Vector of best-fit CST coefficients for upper side of airfoil.
+- `lower_coefficients::Vector{Float}` : Vector of best-fit CST coefficients for lower side of airfoil.
+"""
+function determine_cst(
+    xl,
+    xu,
+    zl,
+    zu;
+    n_upper_coefficients::Integer=8,
+    n_lower_coefficients::Integer=8,
+    dzu=0.0,
+    dzl=0.0,
+    N1=0.5,
+    N2=1.0,
+)
 
     # models to fit
-    cstU(x, coeffU) = halfcst(coeffU, x, dzu, N1, N2)
-    cstL(x, coeffL) = halfcst(coeffL, x, dzl, N1, N2)
+    cstU(x, upper_coefficients) = half_cst(upper_coefficients, xu, dzu, N1, N2)
+    cstL(x, lower_coefficients) = half_cst(lower_coefficients, xl, dzl, N1, N2)
 
     # initial guesses
-    coeffU = ones(n)
-    coeffL = -ones(n)
+    upper_coefficients = ones(n_coefficients)
+    lower_coefficients = -ones(n_coefficients)
 
     # solve for coefficients
-    ufit = LsqFit.curve_fit(cstU, x, zu, coeffU)
-    lfit = LsqFit.curve_fit(cstL, x, zl, coeffL)
+    ufit = LsqFit.curve_fit(cstU, xu, zu, upper_coefficients)
+    lfit = LsqFit.curve_fit(cstL, xl, zl, lower_coefficients)
 
-    return vcat(ufit.param, lfit.param)
+    return ufit.param, lfit.param
 end

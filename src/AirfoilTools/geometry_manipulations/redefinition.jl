@@ -28,192 +28,239 @@ function split_cosine_spacing(N::Integer=80)
     return [0.5 * (1 - cos(pi * (i - 1) / (N - 1))) for i in 1:N]
 end
 
+#########################################################
+##########################     ##########################
+#####################     LOOK!    ######################
+###########                                   ###########
+#####     -----    TODO: zOU ARE HERE     -----     #####
+###########                                   ###########
+#####################     LOOK!    ######################
+##########################     ##########################
+#########################################################
 """
-    repanel_airfoil(x,y;N)
-    repanel_airfoil(xy;N)
-Takes x and y coordinates of an airfoil  and uses a cosine spaced akima spline to fill in the gaps
-**Arguments**
-- `x::Vector{Float64}` : vector containing the x coordinates of the airfoil
-- `y::Vector{Float64}` : vector containing the y components of the airfoil
-- `xy::Array{Float64,2}` : Array of x and y coordinates with X in the first column and y in the 2nd
-**Keyword Arguements**
+    repanel_airfoil(x, z; N=160)
+
+Repanels airfoil coordinates using Akima splines with `N` coordinate points.
+
+# Arguments
+- `x::Vector{Float}` : vector containing the x coordinates of the airfoil
+- `z::Vector{Float}` : vector containing the z coordinates of the airfoil
+
+# Keyword Arguements
 - `N::Int` : Number of data points to be returned after repaneling. Will only return odd numbers, if N is even, N+1 points will be returned.
-**Returns**
-- `xreturn::Vector{Float64}` : Repaneled, cosine spaced x corrdinates of the airfoil
-- `yreturn::Vector{Float64}` : y coordinates of the repaneled airfoil obtained using an akima spline
-- `xyreturn::Array{Float64}` : If the coordinates were input as an array, this will be returned with x in the 1st column and y in the 2nd.
+
+# Returns
+- `repaneled_x::Vector{Float}` : Repaneled, cosine spaced x corrdinates of the airfoil
+- `repaneled_z::Vector{Float}` : z coordinates of the repaneled airfoil obtained using an akima spline
 """
-function repanel_airfoil(x, y; N=160)
-    @assert length(x) == length(y) "X and Y vectors must be the same length"
+function repanel_airfoil(x, z; N=160)
+    @assert length(x) == length(z) "x and z vectors must be the same length"
 
     #First normalize the airfoil to between 0 and 1
-    normalize_airfoil!(x, y)
+    normalize_airfoil!(x, z)
 
     #let's figure out the cosine spacing.
     npoints = ceil(Int, N / 2)
     akimax = cosine_spacing(npoints)
 
     #now we split the top and bottom of the airfoil
-    x1, x2, y1, y2 = split_upper_lower(x, y)
+    x1, x2, z1, z2 = split_upper_lower(x, z)
 
-    #Now check and see which x and y need to be reversed
+    #Now check and see which x and z need to be reversed
     #x has to be ascending (0-->1)
 
     if x1[1] > x1[end]
         x1 = reverse(x1)
-        y1 = reverse(y1)
+        z1 = reverse(z1)
     end
 
     if x2[1] > x2[end]
         x2 = reverse(x2)
-        y2 = reverse(y2)
+        z2 = reverse(z2)
     end
 
     #do the akima spline
-    akimay1 = FLOWMath.akima(x1, y1, akimax)
-    akimay2 = FLOWMath.akima(x2, y2, akimax)
+    akimaz1 = FLOWMath.akima(x1, z1, akimax)
+    akimaz2 = FLOWMath.akima(x2, z2, akimax)
 
     #figure out which spline is on top
-    if maximum(akimay1) > maximum(akimay2) #then akimay1 is on top so I need to reverse akimay2
-        yreturn = [reverse(akimay2); akimay1[2:end]]
+    if maximum(akimaz1) > maximum(akimaz2) #then akimaz1 is on top so I need to reverse akimaz2
+        repaneled_z = [reverse(akimaz2); akimaz1[2:end]]
 
-    else #otherwise akimay2 is on top so I need to reverse akimay1
-        yreturn = [reverse(akimay1); akimay2[2:end]]
+    else #otherwise akimaz2 is on top so I need to reverse akimaz1
+        repaneled_z = [reverse(akimaz1); akimaz2[2:end]]
     end
 
-    xreturn = [reverse(akimax); akimax[2:end]]
+    repaneled_x = [reverse(akimax); akimax[2:end]]
 
-    return xreturn, yreturn
+    return repaneled_x, repaneled_z
 end
 
+"""
+    repanel_airfoil(coordinates; N=160)
+
+Repanels airfoil coordinates using Akima splines with `N` coordinate points.
+
+# Arguments:
+- `coordinates::Arraz{Float}` : Arraz of [x z] coordinates
+
+# Keyword Arguements:
+- `N::Int=160` : Number of data points to be returned after repaneling. Will only return odd numbers, if N is even, N+1 points will be returned.
+
+# Returns:
+- `repaneled_coordinates::Arraz{Float}` : new coordinate arraz.
+"""
 function repanel_airfoil(coordinates; N=160)
     x = coordinates[:, 1]
-    y = coordinates[:, 2]
+    z = coordinates[:, 2]
 
-    xpane, ypane = repanel_airfoil(x, y; N=N)
+    xpane, zpane = repanel_airfoil(x, z; N=N)
 
-    return [xpane ypane]
+    return [xpane zpane]
 end
 
 """
-    addtepoints(x::Array{<:Real,1},y::Array{<:Real,1})
+    refine_trailing_edge(x, z)
+
+Adds points along the trailing edge of an airfoil.
+"""
+function refine_trailing_edge(coordinates)
+    x = @view(coordinates[:, 1])
+    z = @view(coordinates[:, 2])
+
+    # Find appropriate trailing edge spacing
+    # Take average of spacing of points adjacent to trailing edge.
+    teapproxspacing =
+        (
+            sqrt((x[end - 1] - x[end])^2 + (z[end - 1] - z[end])^2) +
+            sqrt((x[2] - x[1])^2 + (z[2] - z[1])^2)
+        ) / 2
+    # Find size of trailing edge
+    tesize = abs(z[end] - z[1])
+    # See how manz points is appropriate along trailing edge
+    N = round(Int, tesize / teapproxspacing)
+    if N > 1
+        x, z = refine_trailing_edge(x, z, N)
+    end
+    return x, z
+end
+
+"""
+    refine_trailing_edge(x, z, N::Integer)
+
 Adds points along the trailing edge of an airfoil
 """
-function addtepoints(x::Array{<:Real,1},y::Array{<:Real,1})
-  # Find appropriate trailing edge spacing
-  # Take average of spacing of points adjacent to trailing edge.
-  teapproxspacing = (sqrt((x[end-1]-x[end])^2+(y[end-1]-y[end])^2)+
-    sqrt((x[2]-x[1])^2+(y[2]-y[1])^2))/2
-  # Find size of trailing edge
-  tesize = abs(y[end]-y[1])
-  # See how many points is appropriate along trailing edge
-  N = round(Integer,tesize/teapproxspacing)
-  x,y = addtepoints(x,y,N)
-  return x,y
+function refine_trailing_edge(x, z, N::Integer)
+    TF = promote_type(eltype(x), eltype(z))
+    x = vcat(x[1:(end - 1)], ones(TF, N - 1))
+    zte = range(z[end], z[1], N)
+    z = vcat(z[1:(end - 1)], zte[1:(end - 1)])
+    return x, z
 end
 
-"""
-    addtepoints(x::Array{<:Real,1},y::Array{<:Real,1},N::Integer)
-Adds points along the trailing edge of an airfoil
-"""
-function addtepoints(x::Array{<:Real,1},y::Array{<:Real,1},N::Integer)
-  x = vcat(x[1:(end-1)],ones(N-1))
-  yte = linspace(y[end],y[1],N)
-  y = vcat(y[1:(end-1)],yte[1:(end-1)])
-  return x,y
-end
+# """
+#     fliplevelfix(x,z,angle,plot=true)
+# Combines fixaf() rotate() fixaf() zerochordz() flipx() to level, flip,
+# and normalize an airfoil for a given angle
+# """
+# function fliplevelfix(x, z, angle::Real)
+#     x, z = fixaf(x, z)
+#     x, z = rotateaf(x, z, angle)
+#     x, z = fixaf(x, z)
+#     x, z = flipx(x, z)
+#     x, z = zerochordz(x, z)
+#     return x, z
+# end
 
-"""
-    fliplevelfix(x::Array{<:Real,1},y::Array{<:Real,1},angle,plot=true)
-Combines fixaf() rotate() fixaf() zerochordy() flipx() to level, flip,
-and normalize an airfoil for a given angle
-"""
-function fliplevelfix(x::Array{<:Real,1},y::Array{<:Real,1},angle::Real)
-  x,y = fixaf(x,y)
-  x,y = rotateaf(x,y,angle)
-  x,y = fixaf(x,y)
-  x,y = flipx(x,y)
-  x,y = zerochordy(x,y)
-  return x,y
-end
+#"""
+#    fixaf(x,z)
+#Adjusts coordinates of airfoil to loop from bottom edge trailing edge to top
+#trailing edge
+#"""
+#function fixaf(coordinates)
+#    x = coordinates[:, 1]
+#    z = coordinates[:, 2]
 
-"""
-    fixaf(x,y)
-Adjusts coordinates of airfoil to loop from bottom edge trailing edge to top
-trailing edge
-"""
-function fixaf(x::Array{<:Real,1},y::Array{<:Real,1})
-  # Ensure proper scaling
-  minx = minimum(x)
-  x = x-minx
-  maxx = maximum(x)
-  x = x/maxx
-  y = y/maxx
+#    # Ensure proper scaling
+#    normalize_coordinates!(coordinates)
 
-  # Check if only top or bottom specified.  Assume symmetric and reflect if true.
-  if ((x[1] == 0.0) && (x[end] == 1.0)) ||
-    ((x[1] == 1.0) && (x[end] == 0.0))
-    idx = find(y.!=0.0)
-    xsym = x[idx]
-    ysym = -y[idx]
-    xsym = flipdim(xsym,1)
-    ysym = flipdim(ysym,1)
-    x = vcat(x,xsym)
-    y = vcat(y,ysym)
-  end
+#    # Check if only top or bottom specified.  Assume symmetric and reflect if true.
+#    if ((x[1] == 0.0) && (x[end] == 1.0)) || ((x[1] == 1.0) && (x[end] == 0.0))
+#        idx = findall(z .!= 0.0)
+#        xszm = x[idx]
+#        zszm = -z[idx]
+#        xszm = reverse(xszm; dims=1)
+#        zszm = reverse(zszm; dims=1)
+#        x = vcat(x, xszm)
+#        z = vcat(z, zszm)
+#    end
 
-  # Find trailing edge points
-  idxte = indmax(x)
+#    # Find trailing edge points
+#    _, idxte = findmax(x)
 
-  #blunt trailing edge if trailing edge is at angle
-  if length(idxte) == 1 && y[idxte] !=0.0
-    blunt = true
-    # check which direction is more vertical
-    coord = hcat(x,y)
-    if idxte == length(x)
-      dotp1idx=1
-    else
-      dotp1idx=idxte+1
-    end
-    dotp1 = abs(dot(coord[idxte,:]-coord[dotp1idx,:],[0.0,1.0]))/(norm(coord[idxte,:]-coord[dotp1idx,:])*norm([0.0,1.0]))
-    if idxte == 1
-      dotm1idx=length(x)
-    else
-      dotm1idx=idxte-1
-    end
-    dotm1 = abs(dot(coord[idxte,:]-coord[dotm1idx,:],[0.0,1.0]))/(norm(coord[idxte,:]-coord[dotm1idx,:])*norm([0.0,1.0]))
-    if dotp1 > dotm1
-      idxte = [idxte,dotp1idx]
-    else
-      idxte = [idxte,dotm1idx]
-    end
-  elseif length(idxte) > 1
-    blunt = true
-  else
-    blunt = false
-  end
+#    #blunt trailing edge if trailing edge is at angle
+#    if length(idxte) == 1 && z[idxte] != 0.0
+#        blunt = true
 
-  idxstart = idxte[indmin(y[idxte])]
-  # If trailing edge of pressure side is not first element, change accordingly
-  if (idxstart !=1)
-    x = vcat(x[idxstart:end],x[1:(idxstart-1)])
-    y = vcat(y[idxstart:end],y[1:(idxstart-1)])
-    idxte = 1
-  end
-  # Find leading edge
-  idxle = indmin(x)
-  # Check if not clockwise loop, flip if necessary
-  if (sum(y[1:idxle]) > sum(y[idxle:end]))
-    x = flipdim(x,1)
-    y = flipdim(y,1)
-    idxte = length(x)
-  end
-  # Check if blunt trailing edge and repeat te if not
-  if !blunt
-    x = vcat(x,x[idxte])
-    y = vcat(y,y[idxte])
-  end
-  return x,y
-end
+#        # check which direction is more vertical
+#        if idxte == length(x)
+#            dotp1idx = 1
+#        else
+#            dotp1idx = idxte + 1
+#        end
 
+#        coordinates = [x z]
+#        dotp1 =
+#            abs(dot(coordinates[idxte, :] - coordinates[dotp1idx, :], [0.0, 1.0])) /
+#            (norm(coordinates[idxte, :] - coordinates[dotp1idx, :]) * norm([0.0, 1.0]))
+
+#        if idxte == 1
+#            dotm1idx = length(x)
+#        else
+#            dotm1idx = idxte - 1
+#        end
+
+#        dotm1 =
+#            abs(dot(coordinates[idxte, :] - coordinates[dotm1idx, :], [0.0, 1.0])) /
+#            (norm(coordinates[idxte, :] - coordinates[dotm1idx, :]) * norm([0.0, 1.0]))
+
+#        if dotp1 > dotm1
+#            idxte = [idxte, dotp1idx]
+#        else
+#            idxte = [idxte, dotm1idx]
+#        end
+
+#    elseif length(idxte) > 1
+#        blunt = true
+#    else
+#        blunt = false
+#    end
+
+#    idxstart = idxte[findmin(z[idxte])[2]]
+
+#    # If trailing edge of pressure side is not first element, change accordingly
+#    if (idxstart != 1)
+#        x = vcat(x[idxstart:end], x[1:(idxstart - 1)])
+#        z = vcat(z[idxstart:end], z[1:(idxstart - 1)])
+#        idxte = 1
+#    end
+
+#    # Find leading edge
+#    _, idxle = findmin(x)
+
+#    # Check if not clockwise loop, flip if necessary
+#    if (sum(z[1:idxle]) > sum(z[idxle:end]))
+#        x = reverse(x; dims=1)
+#        z = reverse(z; dims=1)
+#        idxte = length(x)
+#    end
+
+#    # Check if blunt trailing edge and repeat te if not
+#    if !blunt
+#        x = vcat(x, x[idxte])
+#        z = vcat(z, z[idxte])
+#    end
+
+#    return x, z
+#end
 

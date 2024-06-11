@@ -1,138 +1,170 @@
 """
-    flipx(x::Array{<:Real,1})
-Flips airfoil x coordinates about y axis
+    flip!(x)
+
+Flips one dimension of airfoil coordinates.
+
+Moves airfoil left (x) or down (z) by maximum x or z coordinate then flips about the z or x axis, respectively.
 """
-function flipx(x::Array{<:Real,1},y::Array{<:Real,1})
-  maxx = maximum(x)
-  x-=maxx
-  x=-x
-  return x,y
+function flip!(x)
+    maxx = maximum(x)
+    x .-= maxx
+    x .*= -1.0
+    return x
 end
 
 """
-    zerochordy(x::Array{<:Real,1},y::Array{<:Real,1})
-Zeros chord line after rotation
+    zero_z_te!(x,y)
+
+Places trailing edge on the x-axis.
+
+# Arguements:
+- `coordinates::Array{Float}` : Array of [x z] coordinates to be updated in place.
 """
-function zerochordy(x::Array{<:Real,1},y::Array{<:Real,1})
-  idxmaxx = indmax(x)
-  y-=y[idxmaxx]
-  return x,y
+function zero_z_te!(coordinates)
+    idxmaxx = indmax(coordinates[:, 1])
+    coordiantes[:, 2] .-= coordaintes[idxmaxx, 2]
+    return coordinates
 end
 
 """
-    rotateaf(x::Array{<:Real,1},y::Array{<:Real,1},angle)
-Rotates airfoil ccw about origin
+    rotate_coordinates!(coordinates, angle; rotation_point=[0.0; 0.0])
+
+Rotate coordiantes clockwise about `rotation_point` by `angle` in degrees.
+
+# Arguements:
+- `coordinates::Array{Float}` : Array of [x z] coordinates to be updated in place.
+- `angle::Float=0.0` : Angles, in degrees, by which to rotate the coordinates clockwise (positive angle will pitch airfoil up).
+
+# Keyword Arguements:
+- `rotation_point::Vector{Float}=[0.0; 0.0]` : Array of [x z] position of point about which to perform rotation.
 """
-function rotateaf(x::Array{<:Real,1},y::Array{<:Real,1},angle)
-  x = cos(angle)*x-sin(angle)*y
-  y = cos(angle)*y+sin(angle)*x
-  return x,y
+function rotate_coordinates!(coordinates, angle; rotation_point=[0.0; 0.0])
+    # get rotation matrix
+    R = [cosd(-angle) -sind(-angle); sind(-angle) cosd(-angle)]
+
+    # rotate and translate
+    for c in eachrow(coordinates)
+        c[:] .-= rotation_point
+        c[:] = R * c
+        c[:] .+= rotation_point
+    end
+
+    return coordinates
 end
 
-
 """
-    normalize_airfoil!(x, z)
+    normalize_coordinates!(x, z)
 
 Normalize airfoil to unit chord and shift leading edge to zero. Adjusts coordinates in place.
 
-**Arguments:**
- - `x::Array{Float}` : Array of x coordinates
- - `z::Array{Float}` : Array of z coordinates
-
+# Arguments:
+- `coordinates::Array{Float}` : Array of [x z] coordinates
 """
-function normalize_airfoil!(x, z)
-    chord = maximum(x) - minimum(x) #get current chord length
-    x .-= minimum(x) #shift to zero
-    x ./= chord #normalize chord
-    z ./= chord #scale z coordinates to match
+function normalize_coordinates!(coordinates)
+    x = @view(coordinates[:, 1])
+    z = @view(coordinates[:, 2])
 
-    return nothing
+    # get current chord length
+    chord = maximum(x) - minimum(x)
+
+    # shift to zero
+    x[:] .-= minimum(x)
+
+    # normalize chord
+    x[:] ./= chord
+
+    # scale z coordinates to match
+    z[:] ./= chord
+
+    return coordinates
 end
-"""
-    position_coordinates!(meshes, scales, angles, locations)
-
-Take in meshes and adjust scale, leading edge location, and angle of attack of the individual meshes in the system.  Updates mesh objects in place.
-
-**Arguments:**
- - `meshes::Array{PlanarMesh}` : Array of mesh objects.
- - `scales::Array{Float}` : Array of numbers by which to scale respective meshes.
- - `angles::Array{Float}` : Array of angles, in degrees, by which to rotate respective meshes (positive = pitch up).
- - `locations::Array{Array{Float}}` : Array of [x y] positions of leading edges for respective meshes.
-
-**Keyword Arguments:**
-- `flipped::Bool` : flag whether to flip airfoil upside down
-
-**Returns:**
-- `xcoordinates::Array{Float}` : array of x-coordinates
-- `zcoordinates::Array{Float}` : array of z-coordinates
 
 """
-function position_coordinates(
-    coordinates, scale, angle, location; flipped=false, constant_point=[0.0 0.0]
+    position_coordinates!(coordinates, scale, angle, location)
+
+Scale, Rotate, and Transform (in that order) airfoil coordinates.
+
+# Arguments:
+- `coordinates::Array{Float}` : Array of [x z] coordinates to be updated in place.
+
+# Keyword Arguments:
+- `scale::Float=1.0` : Value by which to scale coordinates.
+- `angle::Float=0.0` : Angles, in degrees, by which to rotate the coordinates clockwise (positive angle will pitch airfoil up).
+- `location::Vector{Float}=[0.0; 0.0]` : Array of [x z] position of leading edge location.
+- `rotation_point::Vector{Float}=[0.0; 0.0]` : Array of [x z] position of point about which to perform rotation.
+- `flipped::Bool` : flag whether to flip airfoil upside down.
+
+# Returns:
+- `x::Array{Float}` : array of x-coordinates
+- `z::Array{Float}` : array of z-coordinates
+"""
+function position_coordinates!(
+    coordinates;
+    scale=1.0,
+    angle=0.0,
+    location=[0.0; 0.0],
+    rotation_point=[0.0; 0.0],
+    flipped=false,
 )
-
+    display(coordinates)
     #flip if needed
     if flipped
         coordinates[:, 2] .*= -1.0
-        reverse!(coordinates; dims=1)
     end
 
     # scale
     coordinates .*= scale
 
-    coordinates .-= constant_point
-
     # get rotation matrix
     R = [cosd(-angle) -sind(-angle); sind(-angle) cosd(-angle)]
 
     # rotate and translate
-    for j in 1:length(coordinates[:, 1])
-        coordinates[j, :] = R * coordinates[j, :]
-        coordinates[j, :] .+= location
+    for c in eachrow(coordinates)
+        c[:] .-= rotation_point
+        c[:] = R * c
+        c[:] .+= rotation_point
+        c[:] .+= location
     end
-    coordinates .+= constant_point
 
-    return coordinates[:, 1], coordinates[:, 2]
+    return coordinates
 end
 
 """
-    transformaf(x::Array{<:Real,1},y::Array{<:Real,1},scale::Real,
-    twist::Real,loc::Array{<:Real,1})
-Scales, rotates, and translates an airfoil.
-"""
-function transformaf(x::Array{<:Real,1},y::Array{<:Real,1},scale::Real,twist::Real,loc::Array{<:Real,1})
-  # Rotation matrix
-  R = [[cos(twist) 0 sin(twist)]
-      [0 1 0]
-      [-sin(twist) 0 cos(twist)]]
+    position_coordinates!(
+        coordinates::Vector{Matrix{TF}};
+        scales=1.0,
+        angles=0.0,
+        locations=[0.0; 0.0],
+        rotation_points=[0.0; 0.0],
+        flipped=false,
+    ) where {TF}
 
-  airfoil = zeros(Real,length(x),3)
-  for i = 1:length(x)
-    airfoil[i,1] = x*scale
-    airfoil[i,2] = 0.0
-    airfoil[i,3] = y*scale
-    airfoil[i,:] = R*airfoil[i,:] + loc
-  end
-  return airfoil
-end
+Multi-airfoil version of position_coordinates!
+"""
+function position_coordinates!(
+    coordinates::Vector{Matrix{TF}};
+    scales=1.0,
+    angles=0.0,
+    locations=[0.0; 0.0],
+    rotation_points=[0.0; 0.0],
+    flipped=false,
+) where {TF}
 
-"""
-    transformaf(afdata::Array{<:Real,3},scale::Array{<:Real,1},
-    twist::Array{<:Real,1},loc::Array{<:Real,2})
-Multi-airfoil implementation of transformairfoil. First dimension of each
-input/output corresponds to specific airfoil.
-"""
-function transformaf(afdata::Array{<:Real,3},scale::Array{<:Real,1},twist::Array{<:Real,1},loc::Array{<:Real,2})
-  airfoils = zeros(Real,size(afdata,1),size(afdata,2),3)
-  for i = 1:size(afdata,1)
-    airfoil = transformairfoil(afdata[i,:,1],afdata[i,:,2],scale[i],twist[i],loc[i,:])
-    for j = 1:size(afdata,2)
-      for k = 1:size(afdata,3)
-        airfoils[i,j,k] = airfoil[j,k]
-      end
+    # Loop through coordinates
+    for (i, c) in enumerate(coordinates)
+        position_coordinates!(
+            @view(c[:, :]);
+            scale=length(scales) > 1 ? scales[i] : scales,
+            angle=length(angles) > 1 ? angles[i] : angles,
+            location=length(locations) > 1 ? locations[i] : locations,
+            rotation_point=if length(rotation_points) > 1
+                rotation_points[i]
+            else
+                rotation_points
+            end,
+            flipped=length(flipped) > 1 ? flipped[i] : flipped,
+        )
     end
-  end
-  return airfoils
+
+    return coordinates
 end
-
-

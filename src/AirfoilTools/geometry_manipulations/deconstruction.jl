@@ -1,47 +1,31 @@
 """
-    split_upper_lower(x, z)
+    split_upper_lower(x, z; idx::Integer=nothing)
 
-Split the upper and lower halves of the airfoil coordinates. Assumes odd number of coordinates (leading edge repeated).
+Split the upper and lower halves of the airfoil coordinates.
 
-**Arguments:**
- - `x::Array{Float}` : Array of x coordinates
- - `z::Array{Float}` : Array of z coordinates
+Assumes leading edge point is at first minimum x value if `idx` is not provided.
+Returns the upper and lower coordinates each with the leading edge point.
 
-**Returns:**
- - `xu::Array{Float}` : Array of upper half of x coordinates
- - `xl::Array{Float}` : Array of lower half of x coordinates
- - `zu::Array{Float}` : Array of upper half of z coordinates
- - `zl::Array{Float}` : Array of lower half of z coordinates
+# Arguments:
+ - `x::Vector{Float}` : Vector of x coordinates
+ - `z::Vector{Float}` : Vector of z coordinates
+
+# Keyword Arguments:
+ - `idx::Integer` : optional index at which to split the coordinates
+
+# Returns:
+ - `xu::Vector{Float}` : Vector of upper half of x coordinates
+ - `xl::Vector{Float}` : Vector of lower half of x coordinates
+ - `zu::Vector{Float}` : Vector of upper half of z coordinates
+ - `zl::Vector{Float}` : Vector of lower half of z coordinates
 
 """
-function split_upper_lower(x, z)
+function split_upper_lower(x, z; idx=nothing)
 
     # get half length of geometry coordinates
-    _, N = findmin(x)
+    if isnothing(idx)
+        _, idx = findmin(x)
+    end
 
-    return x[1:N], x[N:end], z[1:N], z[N:end]
+    return x[1:idx], x[idx:end], z[1:idx], z[idx:end]
 end
-
-"""
-    splitaf(x,y)
-Splits airfoil into x and y coordinates of pressure side and suction side
-"""
-function splitaf(x::Array{<:Real,1},y::Array{<:Real,1})
-  lei = indmin(abs(x))
-  xps,xss,yps,yss = splitairfoil(x,y,lei)
-  return xps,xss,yps,yss
-end
-
-"""
-    splitaf(x,y,idx)
-Splits airfoil into x and y coordinates at index location idx
-"""
-function splitaf(x::Array{<:Real,1},y::Array{<:Real,1},idx::Integer)
-  x1 = x[1:idx]
-  y1 = y[1:idx]
-  x2 = x[idx:end]
-  y2 = y[idx:end]
-  return x1,x2,y1,y2
-end
-
-

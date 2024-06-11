@@ -1,27 +1,63 @@
-#=
-Conformal Mapping Airfoil Parameterizations, including Joukowsky and Karman-Trefftz Airfoils.
 
-Also some functions for convenience in getting standardized geometries.
+# TODO: update to use structs
+# TODO: also make sure coordinate outputs are in standard format/order
+##########################################################
+##########################     ##########################
+#####################     LOOK!    ######################
+###########                                   ###########
+#####     -----    TODO: YOU ARE HERE     -----     #####
+###########                                   ###########
+#####################     LOOK!    ######################
+##########################     ##########################
+#########################################################
 
-Also functions used in tests/examples for inviscid solutions.
-=#
+######################################################################
+#                                                                    #
+#                           KARMAN TREFFTZ                           #
+#                                                                    #
+######################################################################
+
+"""
+"""
+@kwdef struct KarmanTrefftz{Tb,Tr,Tw} <: AirfoilGeometry
+    beta::Tb
+    radius::Tr
+    wedge_angle::Tw
+end
+
+"""
+"""
+function KarmanTrefftz(center, wedge_angle)
+    return KarmanTrefftz(;
+        radius=sqrt((1 - center[1])^2 + center[2]^2),
+        beta=asin(center[2] / radius),
+        wedge_angle=wedge_angle,
+    )
+end
+
+"""
+"""
+@kwdef struct Joukowsky{Tc,Tr} <: AirfoilGeometry
+    center::Tb
+    radius::Tr
+end
 
 """
     karman_trefftz(beta, radius, wedge; N=360, normalize=true, split=false)
 
 Karman-Trefftz airfoil parameterization based on angle beta, raidus, and wedge angle.
 
-**Arguments:**
+# Arguments:
  - `beta::Float` : angle, in radians indicating center of circle relative to origin
  - `radius::Float` : radius of circle
  - `wedge::Float` : angle, in radians, of airfoil wedge angle
 
-**Keyword Arguments:**
+# Keyword Arguments:
  - `N::Int` : number of coordinates (for entire airfoil)
  - normalize::Bool` : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
  - split::Bool` : Flag wheter to split into upper and lower halves.
 
-**Returns:**
+# Returns:
 IF split == False:
  - `x::Array{Float}` : Array of x coordinates
  - `z::Array{Float}` : Array of z coordinates
@@ -33,19 +69,19 @@ IF split == True:
 """
 function karman_trefftz(beta, radius, wedge; N=360, normalize=true, split=false)
 
-    # convert wedge
+    #  convert wedge
     lambda = 2.0 - wedge / pi
 
-    #if splitting, check that N is even
+    # if splitting, check that N is even
     if split && (N % 2 == 0.0)
         N += 1
         @warn("Number of desired points is not odd, adding one point for even split")
     end
 
-    #initialize
+    # initialize
     theta = range(-beta; stop=2 * pi - beta, length=N)
 
-    #solve for geometry
+    # solve for geometry
     xi(theta) = 1.0 .+ radius * (exp(im * theta) - exp(-im * beta))
     inp(theta) = (1.0 .+ 1.0 / xi(theta))^(lambda)
     inm(theta) = (1.0 .- 1.0 / xi(theta))^(lambda)
@@ -54,7 +90,7 @@ function karman_trefftz(beta, radius, wedge; N=360, normalize=true, split=false)
         i in 1:N
     ]
 
-    #separate x and z coordinates
+    # separate x and z coordinates
     x = real(w)
     z = imag(w)
 
@@ -74,16 +110,16 @@ end
 
 Identical to `karman_trefftz(beta, radius, wedge)` but using center-based version.
 
-**Arguments:**
+# Arguments:
  - `center::Array{Float}` : [x z] location of circle center relative to origin
  - `wedge::Float` : angle, in radians, of airfoil wedge angle
 
-**Keyword Arguments:**
+# Keyword Arguments:
  - `N::Int` : number of coordinates (for entire airfoil)
  - `normalize::Bool` : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
  - `split::Bool` : Flag wheter to split into upper and lower halves.
 
-**Returns:**
+# Returns:
 IF split == False:
  - `x::Array{Float}` : Array of x coordinates
  - `z::Array{Float}` : Array of z coordinates
@@ -94,30 +130,36 @@ IF split == True:
  - `zl::Array{Float}` : Array of lower half of z coordinates
 """
 function karman_trefftz(center=[-0.1 0.1], wedge=0.0; N=360, normalize=true, split=false)
-    radius = sqrt((1 - center[1])^2 + center[2]^2) #radius
+    radius = sqrt((1 - center[1])^2 + center[2]^2) # radius
 
-    beta = asin(center[2] / radius) #solve for beta
+    beta = asin(center[2] / radius) # solve for beta
 
     return karman_trefftz(radius, beta, wedge; N=N, normalize=normalize, split=split)
 end
+
+######################################################################
+#                                                                    #
+#                             JOUKOWSKY                              #
+#                                                                    #
+######################################################################
 
 """
     joukowsky(center, radius; N, fortest=false, normalize=true, split=false)
 
 Joukowsky airfoil parameterization.
 
-**Arguments:**
+# Arguments:
  - `center::Array{Float}` : [x z] location of center of circle relative to origin
  - `radius::Float` : radius of circle
 
-**Keyword Arguments:**
+# Keyword Arguments:
  - `N::Int` : Number of coordinates to use
- - `fortest::Bool` : Flag to output non-coordinate paramters used in 'joukowskyflow()'
+ - `fortest::Bool` : Flag to output non-coordinate paramters used in 'joukowsky_flow()'
  - `normalize::Bool` : Flag whether to normalize to unit chord and translate the leading edge to zero.
  - `split::Bool` : Flag wheter to split output into upper and lower surfaces.
 """
 function joukowsky(center, radius; N=360, fortest=false, normalize=true, split=false)
-    beta = asin(center[2] / radius) #solve for beta
+    beta = asin(center[2] / radius) # solve for beta
 
     theta = reverse(range(-beta; stop=2 * pi - beta, length=N))
 
@@ -147,25 +189,25 @@ function joukowsky(center, radius; N=360, fortest=false, normalize=true, split=f
 end
 
 """
-    joukowskyflow(center, radius, alpha, vinf; N=360)
+    joukowsky_flow(center, radius, alpha, vinf; N=360)
 
 Calculate the analytic surface velocities and pressures as well as lift coefficient for a joukowsky airfoil.
 
-**Arguments:**
+# Arguments:
  - `center::Array{Float}` : [x z] location of circle center relative to origin
  - `radius::Float` : Radius of circle
  - `alpha::Float` : Angle of attack in degrees
  - `vinf::Float` : Freestream velocity
 
-**Keyword Arguments:**
+# Keyword Arguments:
  - `N::Int` : Number of coordinates to use
 
-**Returns:**
+# Returns:
  - `vsurf::Array{Float}` : Magnitude of surface velocities at the nodes
  - `cpsurf::Array{Float}` : Surface pressures at the nodes
  - `cl::Float` : Lift coefficient
 """
-function joukowskyflow(center, radius, alpha, vinf; N=360)
+function joukowsky_flow(center, radius, alpha, vinf; N=360)
     alpha_rad = alpha * pi / 180.0
 
     theta, beta, a, chord = joukowsky(center, radius; N=N, fortest=true)
