@@ -51,7 +51,23 @@ This function only assembles the NxM portion of the system influence coefficient
  - `meshj::PlanarMesh` : mesh doing the influencing.
  - `trailing_edge_treatment::Bool` : flag for whether to treat trailing edge or not (is meshi==meshj?)
 """
-function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
+function assemble_vortex_coefficients(meshi, meshj, args...)
+
+    # get nodes for convenience
+    nodesi = meshi.nodes
+    nodesj = meshj.nodes
+
+    # get system size
+    N = length(nodesi)
+    M = length(nodesj)
+
+    rtype = promote_type(eltype(nodesi[1]), eltype(nodesj[1]))
+
+    amat = zeros(rtype, N, M)
+
+    return assemble_vortex_coefficients!(amat, meshi, meshj, args...)
+end
+function assemble_vortex_coefficients!(amat, meshi, meshj, trailing_edge_treatment)
 
     # get nodes for convenience
     nodesi = meshi.nodes
@@ -62,23 +78,29 @@ function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
     M = length(nodesj)
 
     #initialize NxN coefficient matrix
-    amat = [0.0 for i in 1:N, j in 1:M]
+    # amat = [0.0 for i in 1:N, j in 1:M]
 
     # loop through setting up influence coefficients
     for i in 1:N
         for j in 1:(M - 1)
 
-            # obtain influence coefficient for ith evaluation point and j and j+1 panel
-            aij, aijp1 = get_vortex_influence(nodesj[j], nodesj[j + 1], nodesi[i])
+                # obtain influence coefficient for ith evaluation point and j and j+1 panel
+                # aij, aijp1 = get_vortex_influence(nodesj[j], nodesj[j + 1], nodesi[i])
 
-            # add coefficients to matrix at correct nodes
-            if j == 1
-                amat[i, j] = aij
-            else
-                amat[i, j] += aij
-            end
+                # NOTE: Here we add a little offset to keep ForwardDiff from
+                #   returning NaN on the self-influence (case sqrt(0) when
+                #   the target is one of the nodes)
+                aij, aijp1 = get_vortex_influence(nodesj[j], nodesj[j + 1], nodesi[i] .+ 1e-9)
 
-            amat[i, j + 1] = aijp1
+                # add coefficients to matrix at correct nodes
+                if j == 1
+                    amat[i, j] = aij
+                else
+                    amat[i, j] += aij
+                end
+
+                amat[i, j + 1] = aijp1
+
         end
     end
 
@@ -90,11 +112,18 @@ function assemble_vortex_coefficients(meshi, meshj, trailing_edge_treatment)
 
                 # Get panel influence coefficients
                 sigmate = get_source_influence(nodesj[M], nodesj[1], nodesi[i])
-                gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i]))
+
+                # gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i]))
+
+                # NOTE: Here we add a little offset to keep ForwardDiff from
+                #   returning NaN on the self-influence (case sqrt(0) when
+                #   the target is one of the nodes)
+                gammate = sum(get_vortex_influence(nodesj[M], nodesj[1], nodesi[i] .+ 1e-9))
 
                 # Add/subtract from relevant matrix entries
                 amat[i, 1] += 0.5 * (gammate * meshj.tdp - sigmate * meshj.txp)
                 amat[i, M] += 0.5 * (sigmate * meshj.txp - gammate * meshj.tdp)
+
             end
 
         else
@@ -125,10 +154,23 @@ function assemble_vortex_matrix(meshes)
     # size sysetm
     N, Ns = size_system(meshes)
     n = length(Ns)
-    offset = get_offset(Ns)
+
+    rtype = promote_type(eltype.(mesh.nodes[1] for mesh in meshes)...)
 
     # initialize coefficient matrix
-    amat = [0.0 for i in 1:(N + n), j in 1:(N + n)]
+    amat = zeros(rtype, N + n, N + n)
+
+    return assemble_vortex_matrix!(amat, meshes)
+end
+function assemble_vortex_matrix!(amat, meshes)
+
+    # size sysetm
+    N, Ns = size_system(meshes)
+    n = length(Ns)
+    offset = get_offset(Ns)
+
+    # # initialize coefficient matrix
+    # amat = [0.0 for i in 1:(N + n), j in 1:(N + n)]
 
     # Loop through system
     for x in 1:n
@@ -177,10 +219,23 @@ function assemble_boundary_conditions(meshes)
 
     # size the system
     N, Ns = size_system(meshes)
-    offset = get_offset(Ns)
+
+    rtype = promote_type(eltype.(mesh.nodes[1] for mesh in meshes)...)
 
     # initialize boundary condition array
-    bc = [0.0 for i in 1:(N + length(Ns)), j in 1:2]
+    bc = zeros(rtype, N + length(Ns), 1:2)
+
+    return assemble_boundary_conditions!(bc, meshes)
+end
+
+function assemble_boundary_conditions!(bc, meshes)
+
+    # size the system
+    N, Ns = size_system(meshes)
+    offset = get_offset(Ns)
+
+    # # initialize boundary condition array
+    # bc = [0.0 for i in 1:(N + length(Ns)), j in 1:2]
 
     # Loop through system
     for m in 1:length(Ns)

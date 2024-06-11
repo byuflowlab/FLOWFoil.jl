@@ -116,6 +116,7 @@ function get_vortex_influence(node1, node2, point)
     psitildegamma = get_psitildegamma(
         psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a
     )
+
     # put psi`s together
     return (psibargamma - psitildegamma), psitildegamma
 end
