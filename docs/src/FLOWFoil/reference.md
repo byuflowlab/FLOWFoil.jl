@@ -1,22 +1,7 @@
 # API Reference
 
-Additional Types and Functions not already shown in other parts of the documentation.
-
 # Public
 
-## Geometry
-
-```@docs
-FLOWFoil.position_coordinates
-FLOWFoil.position_coordinates!
-```
-
-## Common Airfoil Parameterizations
-```@docs
-FLOWFoil.karman_trefftz
-FLOWFoil.joukowsky
-FLOWFoil.naca4
-```
 
 --------------------------------------------
 
@@ -88,14 +73,4 @@ FLOWFoil.get_gamma_magnitudes
 FLOWFoil.get_relative_geometry_axisym
 FLOWFoil.get_mesh_gammas
 FLOWFoil.calculate_duct_thrust
-```
-
-## Common Airfoil Parameterizations
-```@docs
-FLOWFoil.thickness
-FLOWFoil.camber
-FLOWFoil.cosine_spacing
-FLOWFoil.split_upper_lower
-FLOWFoil.joukowskyflow
-FLOWFoil.normalize_airfoil!
 ```

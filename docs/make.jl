@@ -1,25 +1,32 @@
-using FLOWFoil
 using Documenter
-
-DocMeta.setdocmeta!(FLOWFoil, :DocTestSetup, :(using FLOWFoil); recursive=true)
+using FLOWFoil
 
 makedocs(;
-    modules=[FLOWFoil],
+    modules=[FLOWFoil, FLOWFoil.AirfoilTools],
     authors="Judd Mehr",
     repo="https://github.com/byuflowlab/FLOWFoil.jl/blob/{commit}{path}#{line}",
-    sitename="FLOWFoil.jl",
     format=Documenter.HTML(;
-        prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://flow.byu.edu/FLOWFoil.jl",
-        assets=String[],
+        repolink="https://github.com/byuflowlab/FLOWFoil.jl/blob/{commit}{path}#L{line}",
+        edit_link="main",
     ),
     pages=[
-        "Intro" => "index.md",
-        "Quick Start" => "tutorial.md",
-        "Guided Examples" => "examples.md",
-        "API Reference" => "reference.md",
-        "Theory" => "theory.md",
+        "Home" => "index.md",
+        "FLOWFoil" => [
+            "Getting Started" => "FLOWFoil/tutorial.md",
+            "Examples" => "FLOWFoil/examples.md",
+            "API Index" => "FLOWFoil/reference.md",
+            "Theory" => "FLOWFoil/theory.md",
+        ],
+        "AirfoilTools" => [
+            "Intro" => "AirfoilTools/intro.md",
+            "Airfoil Generation" => "AirfoilTools/parameterizations.md",
+            "Airfoil Manipulation" => "AirfoilTools/geometry_manipulations.md",
+            "API Reference" => "AirfoilTools/api.md",
+        ],
     ],
+    sitename="FLOWFoil.jl",
+    authors="Judd Mehr <juddmehr@byu.edu>",
+    checkdocs=:exports,
 )
 
-deploydocs(; repo="github.com/byuflowlab/FLOWFoil.jl", devbranch="main")
+deploydocs(; repo="github.com/byuflowlab/FLOWFoil.jl", devbranch="dev")

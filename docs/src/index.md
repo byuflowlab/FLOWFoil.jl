@@ -1,8 +1,6 @@
-```@meta
-CurrentModule = FLOWFoil
-```
-
 # FLOWFoil
+
+Authors: Judd Mehr,
 
 FLOWFoil is a two dimensional potential flow solver (panel method) for airfoils, airfoil systems, and axisymmetric sections/systems.
 
