@@ -261,6 +261,9 @@ end
     determine_modified_parsec(x,z)
 
 Uses LsqFit to go from x-z coordinates to modified ModifiedPARSEC parameters.
+
+# Returns:
+- `parameters::ModifiedPARSEC` : an parameter object of type ModifiedPARSEC
 """
 function determine_modified_parsec(x, z)
     function model(x, p)
@@ -529,6 +532,9 @@ end
     determine_parsec(x,z)
 
 Uses LsqFit to go from x-z coordinates to standard PARSEC parameters.
+
+# Returns:
+- `parameters::PARSEC` : an parameter object of type PARSEC
 """
 function determine_parsec(x, z)
     function model(x, p)

@@ -31,6 +31,12 @@ A NACA 4-series airfoil can be defined with either of the `naca4` methods.
 AirfoilTools.naca4
 ```
 
+For a given set of x,z coordinates a best-fit NACA 4-series airfoil can be found using
+
+```@docs
+AirfoilTools.determine_naca4
+```
+
 ------------------------------------------------------------------------------------------
 
 ## Conformal Mapping
@@ -82,6 +88,12 @@ A CST airfoil can be generated with
 AirfoilTools.cst
 ```
 
+For a given set of x,z coordinates a best-fit CST airfoil can be found using
+
+```@docs
+AirfoilTools.determine_cst
+```
+
 ------------------------------------------------------------------------------------------
 
 ## Basic B-Spline
@@ -117,6 +129,12 @@ A PARSEC airfoil can be generated with
 AirfoilTools.parsec
 ```
 
+For a given set of x,z coordinates a best-fit PARSEC airfoil can be found using
+
+```@docs
+AirfoilTools.determine_parsec
+```
+
 ### Modified
 
 Also implemented in AirfoilTools is a modified PARSEC parameterization that give direct control to the trailing edge surfaces of the upper and lower sides.  The `ModifiedPARSEC` type is defined as
@@ -129,6 +147,12 @@ A Modified PARSEC airfoil can be generated with
 
 ```@docs
 AirfoilTools.modified_parsec
+```
+
+For a given set of x,z coordinates a best-fit Modified PARSEC airfoil can be found using
+
+```@docs
+AirfoilTools.determine_modified_parsec
 ```
 
 ## Contributing

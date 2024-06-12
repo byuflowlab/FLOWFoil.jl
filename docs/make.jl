@@ -26,8 +26,8 @@ makedocs(;
     ],
     sitename="FLOWFoil.jl",
     authors="Judd Mehr <juddmehr@byu.edu>",
-    # checkdocs=:exports,
-    checkdocs=:none,
+    checkdocs=:exports,
+    # checkdocs=:none,
 )
 
 deploydocs(; repo="github.com/byuflowlab/FLOWFoil.jl", devbranch="dev")

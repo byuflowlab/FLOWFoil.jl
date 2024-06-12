@@ -36,7 +36,7 @@ Rotate coordiantes clockwise about `rotation_point` by `angle` in degrees.
 - `angle::Float=0.0` : Angles, in degrees, by which to rotate the coordinates clockwise (positive angle will pitch airfoil up).
 
 # Keyword Arguements:
-- `rotation_point::Vector{Float}=[0.0; 0.0]` : Array of [x z] position of point about which to perform rotation.
+- `rotation_point::AbstractArray{Float}=[0.0; 0.0]` : Array of [x z] position of point about which to perform rotation.
 """
 function rotate_coordinates!(coordinates, angle; rotation_point=[0.0; 0.0])
     # get rotation matrix
@@ -116,8 +116,8 @@ Scale, Rotate, and Transform (in that order) airfoil coordinates.
 # Keyword Arguments:
 - `scale::Float=1.0` : Value by which to scale coordinates.
 - `angle::Float=0.0` : Angles, in degrees, by which to rotate the coordinates clockwise (positive angle will pitch airfoil up).
-- `location::Vector{Float}=[0.0; 0.0]` : Array of [x z] position of leading edge location.
-- `rotation_point::Vector{Float}=[0.0; 0.0]` : Array of [x z] position of point about which to perform rotation.
+- `location::AbstractArray{Float}=[0.0; 0.0]` : Array of [x z] position of leading edge location.
+- `rotation_point::AbstractArray{Float}=[0.0; 0.0]` : Array of [x z] position of point about which to perform rotation.
 - `flipped::Bool` : flag whether to flip airfoil upside down.
 
 # Returns:
@@ -157,24 +157,50 @@ end
 
 """
     position_coordinates!(
-        coordinates::Vector{Matrix{TF}};
-        scales=1.0,
-        angles=0.0,
-        locations=[0.0; 0.0],
-        rotation_points=[0.0; 0.0],
-        flipped=false,
+        coordinates::Vector{AbstractArray{TF}};
+        scales=[1.0],
+        angles=[0.0],
+        locations=[[0.0; 0.0],],
+        rotation_points=[[0.0; 0.0],],
+        flipped=[false],
     ) where {TF}
 
-Multi-airfoil version of position_coordinates!
+Multi-airfoil version of position_coordinates!.
+
+If keyword arguments are give as single valued vectors, the same values are used for all coordinate sets.
+If keyword arguments are provided as vectors of length greater than 1, they must have the same length as the set of coordinates.
+For example, if scaling 3 airfoils, there will be a vector of 3 airfoil coordinate sets input and `scales` must either be a one element vector or a vector of length 3.
 """
 function position_coordinates!(
-    coordinates::Vector{Matrix{TF}};
-    scales=1.0,
-    angles=0.0,
-    locations=[0.0; 0.0],
-    rotation_points=[0.0; 0.0],
-    flipped=false,
+    coordinates::Vector{AbstractArray{TF}};
+    scales=[1.0],
+    angles=[0.0],
+    locations=[[0.0; 0.0]],
+    rotation_points=[[0.0; 0.0]],
+    flipped=[false],
 ) where {TF}
+
+    # check that things are the right lengths
+
+    if length(scales) > 1
+        @assert length(scales) == length(coordinates) "scales must either be length 1 or of the same length as coordinates"
+    end
+
+    if length(angles) > 1
+        @assert length(angles) == length(coordinates) "angles must either be length 1 or of the same length as coordinates"
+    end
+
+    if length(locations) > 1
+        @assert length(locations) == length(coordinates) "locations must either be length 1 or of the same length as coordinates"
+    end
+
+    if length(rotation_points) > 1
+        @assert length(rotation_points) == length(coordinates) "rotation_points must either be length 1 or of the same length as coordinates"
+    end
+
+    if length(flipped) > 1
+        @assert length(flipped) == length(coordinates) "flipped must either be length 1 or of the same length as coordinates"
+    end
 
     # Loop through coordinates
     for (i, c) in enumerate(coordinates)

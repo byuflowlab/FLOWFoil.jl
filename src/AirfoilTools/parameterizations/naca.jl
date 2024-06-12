@@ -161,6 +161,9 @@ end
     determine_naca4(x,z)
 
 Calculate NACA 4-series parameters based on input x,z coordinates.
+
+# Returns:
+- `parameters::NACA4` : a parameter object of type NACA4.
 """
 function determine_naca4(x, z; blunt_te=false)
 

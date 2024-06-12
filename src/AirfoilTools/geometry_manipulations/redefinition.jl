@@ -7,7 +7,7 @@ Returns cosine spaced x coordinates from 1 to 0 back to 1.
 - `N::Integer` : Total number of points is N+1.
 
 # Returns:
-- `x::Vector{Float}` : cosine spaced x-coordinates, starting at 1.0, going to 0.0, then back to 1.0.
+- `x::AbstractArray{Float}` : cosine spaced x-coordinates, starting at 1.0, going to 0.0, then back to 1.0.
 """
 function whole_cosine_spacing(N::Integer=160)
     return [0.5 * (cos(2.0 * pi / (N) * (i - 1)) + 1) for i in 1:(N + 1)]
@@ -22,36 +22,27 @@ Returns cosine spaced x coordinates from 0 to 1.
 - `N::Integer` : Number of points.
 
 # Returns:
-- `x::Vector{Float}` : cosine spaced x-coordinates, starting at 0.0 ending at 1.0.
+- `x::AbstractArray{Float}` : cosine spaced x-coordinates, starting at 0.0 ending at 1.0.
 """
 function split_cosine_spacing(N::Integer=80)
     return [0.5 * (1 - cos(pi * (i - 1) / (N - 1))) for i in 1:N]
 end
 
-#########################################################
-##########################     ##########################
-#####################     LOOK!    ######################
-###########                                   ###########
-#####     -----    TODO: zOU ARE HERE     -----     #####
-###########                                   ###########
-#####################     LOOK!    ######################
-##########################     ##########################
-#########################################################
 """
     repanel_airfoil(x, z; N=160)
 
 Repanels airfoil coordinates using Akima splines with `N` coordinate points.
 
 # Arguments
-- `x::Vector{Float}` : vector containing the x coordinates of the airfoil
-- `z::Vector{Float}` : vector containing the z coordinates of the airfoil
+- `x::AbstractArray{Float}` : vector containing the x coordinates of the airfoil
+- `z::AbstractArray{Float}` : vector containing the z coordinates of the airfoil
 
 # Keyword Arguements
 - `N::Int` : Number of data points to be returned after repaneling. Will only return odd numbers, if N is even, N+1 points will be returned.
 
 # Returns
-- `repaneled_x::Vector{Float}` : Repaneled, cosine spaced x corrdinates of the airfoil
-- `repaneled_z::Vector{Float}` : z coordinates of the repaneled airfoil obtained using an akima spline
+- `repaneled_x::AbstractArray{Float}` : Repaneled, cosine spaced x corrdinates of the airfoil
+- `repaneled_z::AbstractArray{Float}` : z coordinates of the repaneled airfoil obtained using an akima spline
 """
 function repanel_airfoil(x, z; N=160)
     @assert length(x) == length(z) "x and z vectors must be the same length"
