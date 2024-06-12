@@ -53,28 +53,6 @@ include("convenience_functions.jl")
 # Utility Functions
 include("utils.jl")
 
-##### ----- AIRFOIL PARAMETERIZATIONS AND MANIPULATIONS ----- #####
-
-# - MANIPULATIONS - #
-include("airfoils/parameterizations/utils.jl")
-
-# - PARAMETERIZAIONS - #
-
-# Conformal Mapping
-include("airfoils/parameterizations/conformal_mapping.jl")
-
-# NACA 4-Series
-include("airfoils/parameterizations/naca.jl")
-
-# Class-Shape Transformation
-# include("airfoils/parameterizations/cst.jl")
-
-# PARSEC
-# include("airfoils/parameterizations/parsec.jl")
-
-# B-Spline
-# include("airfoils/parameterizations/bspline.jl") #REQUIRES UNREGISTERED PACKAGE
-
 #---------------------------------#
 #             EXPORTS             #
 #---------------------------------#

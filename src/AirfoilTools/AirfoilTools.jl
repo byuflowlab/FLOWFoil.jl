@@ -32,7 +32,7 @@ export KarmanTrefftz, karman_trefftz#, determine_karman_trefftz
 export Joukowsky, joukowsky#, determine_joukowsky
 export CST, cst, determine_cst
 export PARSEC, parsec, determine_parsec
-export PARSECStandard, parsec_standard, determine_parsec_standard
+export ModifiedPARSEC, modified_parsec, determine_modified_parsec
 
 # - Manipulations - #
 export whole_cosine_spacing, split_cosine_spacing, repanel_airfoil, refine_trailing_edge

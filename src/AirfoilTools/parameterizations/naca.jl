@@ -1,52 +1,58 @@
 """
+# Fields:
+- `max_camber::Float=2.0` : maximum camber in % chord
+- `max_camber_pos::Float=4.0` : x-position of maximum camber point in 1/10 chord
+- `max_thickness::Float=12.0` : maximum thickness in % chord
+- `blunt_te::Bool=false` : flag for whether to use the blunt trailing edge NACA 4-series definition or not.
 """
-@kwdef struct NACA4{Tc,Tp,Tt} <: AirfoilGeometry
+@kwdef struct NACA4{Tc,Tp,Tt,Tb} <: AirfoilGeometry
     max_camber::Tc = 2.0
     max_camber_pos::Tp = 4.0
     max_thickness::Tt = 12.0
+    blunt_te::Tb = false
 end
 
 """
-    thickness4(x, maxthick; blunt_TE=false)
+    naca4_thickness(x, maxthick; blunt_te=false)
 
-Compute thickness at a given chord-normalized x-position by NACA 4-series thickness4 equations.
+Compute thickness at a given chord-normalized x-position by NACA 4-series thickness equations.
 
 # Arguments:
 - `x::Float` : x position along chordlin, markersize=3, markershape=:squaree
 - `maxthick::Float` : Maximum thickness value
 
 # Keyword Arguments:
-- `blunt_TE::Bool` : Flag whether trailing edge is blunt or not
+- `blunt_te::Bool` : Flag whether trailing edge is blunt or not
 """
-function thickness4(x, maxthick; blunt_TE=false)
+function naca4_thickness(x, maxthick; blunt_te=false)
 
     # change c2 coefficient base on whether trailing edge is to be blunt or not.
-    c2 = blunt_TE ? 0.3516 : 0.3537
+    c2 = blunt_te ? 0.3516 : 0.3537
 
-    # return thickness4 value
+    # return naca4_thickness value
     return 10.0 *
            maxthick *
            (0.2969 * sqrt(x) - 0.1260 * x - c2 * x^2 + 0.2843 * x^3 - 0.1015 * x^4)
 end
 
 """
-    camber4(x, maxcamber, camberpose)
+    naca4_camber(x, max_camber, max_camber_pos)
 
 Compute camber at a given chord-normalized x-position by NACA 4-series camber equations.
 
 # Arguments:
 - `x::Float` : x position along chordline
-- `maxcamber::Float64` : Maximum camber value
-- `camberpose::Float64` : Position of maximum camber
+- `max_camber::Float64` : Maximum camber value
+- `max_camber_pos::Float64` : Position of maximum camber
 """
-function camber4(x, maxcamber, camberpose)
-    if real(maxcamber) != 0.0 && real(camberpose) != 0.0
-        if x <= real(camberpose)
-            zbar = maxcamber * (2 * camberpose * x - x^2) / camberpose^2
+function naca4_camber(x, max_camber, max_camber_pos)
+    if real(max_camber) != 0.0 && real(max_camber_pos) != 0.0
+        if x <= real(max_camber_pos)
+            zbar = max_camber * (2 * max_camber_pos * x - x^2) / max_camber_pos^2
         else
             zbar =
-                maxcamber * (1 - 2 * camberpose + 2 * camberpose * x - x^2) /
-                (1 - camberpose)^2
+                max_camber * (1 - 2 * max_camber_pos + 2 * max_camber_pos * x - x^2) /
+                (1 - max_camber_pos)^2
         end
     else
         zbar = 0.0
@@ -55,56 +61,77 @@ function camber4(x, maxcamber, camberpose)
 end
 
 """
-    naca4(parameters::NACA4; N=161, x=nothing, blunt_TE=false, split=false)
-    naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_TE=false, split=false)
+    naca4(parameters::NACA4; N=161, x=nothing, split=false)
 
 Compute x, z airfoil coordinates for N nodes, based on NACA 4-Series Parameterization.
 
 # Arguments:
 - `parameters::NACA4` : NACA 4-series parameters
-- `c::Float` : Maximum camber value (percent of chord)
-- `p::Float` : Position along chord (in 10ths of chord) where maximum camber4 lies
-- `t::Float` : Maximum thickness of airfoil in percent chord
 
 # Keyword Arguments:
-- `N::Int` : Total number of coordinates to use (should be odd)
-- `x::Array{Float}` : x coordinates (cosine spaced coordinates used by default)
-- `blunt_TE::Bool` : Flag whether trailing edge is blunt or not
+- `N::Int` : Total number of coordinates to use.  This values should be odd, but if not, the number of points returned will be N-1.
+- `x::AbstractArray{Float}` : x coordinates (cosine spaced coordinates used by default)
 - `split::Bool` : Flag wheter to split into upper and lower halves.
 
 # Returns:
-IF split == False:
- - `x::Array{Float}` : Array of x coordinates
- - `z::Array{Float}` : Array of z coordinates
-IF split == True:
- - `xl::Array{Float}` : Array of lower half of x coordinates
- - `xu::Array{Float}` : Array of upper half of x coordinates
- - `zl::Array{Float}` : Array of lower half of z coordinates
- - `zu::Array{Float}` : Array of upper half of z coordinates
+If `split` == false:
+ - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
+ - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+If `split` == true:
+ - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
+ - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
+ - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
+ - `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
 """
-function naca4(parameters::NACA4; N=161, x=nothing, blunt_TE=false, split=false)
+function naca4(parameters::NACA4; N=161, x=nothing, split=false)
     return naca4(
         parameters.max_camber,
         parameters.max_camber_pos,
         parameters.max_thickness;
         N=N,
         x=x,
-        blunt_TE=blunt_TE,
+        blunt_te=parameters.blunt_te,
         split=split,
     )
 end
 
-function naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_TE=false, split=false)
+"""
+    naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_te=false, split=false)
+
+Compute x, z airfoil coordinates for N nodes, based on NACA 4-Series Parameterization.
+
+# Arguments:
+- `c::Float` : Maximum camber value (percent of chord)
+- `p::Float` : Position along chord (in 10ths of chord) where maximum naca4_camber lies
+- `t::Float` : Maximum thickness of airfoil in percent chord
+
+# Keyword Arguments:
+- `N::Int` : Total number of coordinates to use.  This values should be odd, but if not, the number of points returned will be N-1.
+- `x::AbstractArray{Float}` : x-coordinates (cosine spaced coordinates used by default)
+- `blunt_te::Bool` : Flag whether trailing edge is blunt or not
+- `split::Bool` : Flag wheter to split into upper and lower halves.
+
+# Returns:
+If `split` == false:
+ - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
+ - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+If `split` == true:
+ - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
+ - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
+ - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
+ - `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
+"""
+function naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_te=false, split=false)
 
     # get x coordinates
-    N = Int(ceil(N / 2))
+    N = ceil(Int, N / 2)
     if isnothing(x)
         x = split_cosine_spacing(N)
     end
 
     #naca digits
-    maxcamber = c / 100.0
-    camberpose = p / 10.0
+    max_camber = c / 100.0
+    max_camber_pos = p / 10.0
     maxthick = t / 100.0
 
     #initialize arrays
@@ -113,17 +140,15 @@ function naca4(c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_TE=false, split=fal
     zl = zeros(TF, N) #lower z values
 
     #--Calculate z-values--#
-    for i in 1:N
-        #thickness4 distribution
-        T = thickness4(x[i], maxthick; blunt_TE=blunt_TE)
+    #naca4_thickness distribution
+    T = naca4_thickness.(x, Ref(maxthick); blunt_te=blunt_te)
 
-        #camber4 distribution
-        zbar = camber4(x[i], maxcamber, camberpose)
+    #naca4_camber distribution
+    zbar = naca4_camber.(x, Ref(max_camber), Ref(max_camber_pos))
 
-        #z-positions at chordwise stations
-        zl[i] = zbar - T / 2
-        zu[i] = zbar + T / 2
-    end
+    #z-positions at chordwise stations
+    zl = @. zbar - T / 2
+    zu = @. zbar + T / 2
 
     if split
         return reverse(x), x, reverse(zl), zu
@@ -137,11 +162,11 @@ end
 
 Calculate NACA 4-series parameters based on input x,z coordinates.
 """
-function determine_naca4(x, z; blunt_TE=false)
+function determine_naca4(x, z; blunt_te=false)
 
     # model to fit
     function model(x, param)
-        x, z = naca4(param[1], param[2], param[3]; x=x, blunt_TE=blunt_TE)
+        x, z = naca4(param[1], param[2], param[3]; x=x, blunt_te=blunt_te)
         return z
     end
 

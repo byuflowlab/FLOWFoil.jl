@@ -1,32 +1,10 @@
-######################################################################
-#                                                                    #
-#                   MODIFIED PARSEC PARAMETERIZATION                 #
-#                                                                    #
-######################################################################
-
-"""
-"""
-@kwdef struct PARSEC{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11} <: AirfoilGeometry
-    leading_edge_radius::T1
-    maximum_thickness_xu::T2
-    maximum_thickness_xl::T3
-    maximum_thickness_zu::T4
-    maximum_thickness_zl::T5
-    curvature_u::T6
-    curvature_l::T7
-    trailing_edge_tangent_u::T8
-    trailing_edge_tangent_l::T9
-    trailing_edge_zu::T10 = 0.0
-    trailing_edge_zl::T11 = 0.0
-end
-
 """
     z_from_parsec_coefficients(a, N::Int=80)
 
 Calculate the x,z airfoil coordinates using the PARSEC polynomial.
 
 # Arguments:
-- `a::Vector{Float}` : the PARSEC coefficients.
+- `a::AbstractArray{Float}` : the PARSEC coefficients.
 """
 function z_from_parsec_coefficients(a, N::Integer=80)
     x = split_cosine_spacing(N)
@@ -46,13 +24,47 @@ function z_from_parsec_coefficients(a, N::Integer=80)
     return z
 end
 
+######################################################################
+#                                                                    #
+#                   MODIFIED PARSEC PARAMETERIZATION                 #
+#                                                                    #
+######################################################################
+
 """
-    calculate_parsec_coefficients(p, uppper_side)
+# Fields:
+- `leading_edge_radius::Float` : leading edge radius
+- `maximum_thickness_xu::Float` : x-position of maximum thickness for upper side.
+- `maximum_thickness_xl::Float` : x-position of maximum thickness for lower side.
+- `maximum_thickness_zu::Float` : value of maximum thickness (from zero) for upper side.
+- `maximum_thickness_zl::Float` : value of maximum thickness (from zero) for lower side.
+- `curvature_u::Float` : curvature at point of maximum thickness on upper side.
+- `curvature_l::Float` : curvature at point of maximum thickness on lower side.
+- `trailing_edge_tangent_u::Float` : angle of surface at upper side trailing edge.
+- `trailing_edge_tangent_l::Float` : angle of surface at lower side trailing edge.
+- `trailing_edge_zu::Float=0.0` : z-position of upper side trailing edge.
+- `trailing_edge_zl::Float=0.0` : z-position of lower side trailing edge.
+"""
+@kwdef struct ModifiedPARSEC{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11} <: AirfoilGeometry
+    leading_edge_radius::T1
+    maximum_thickness_xu::T2
+    maximum_thickness_xl::T3
+    maximum_thickness_zu::T4
+    maximum_thickness_zl::T5
+    curvature_u::T6
+    curvature_l::T7
+    trailing_edge_tangent_u::T8
+    trailing_edge_tangent_l::T9
+    trailing_edge_zu::T10 = 0.0
+    trailing_edge_zl::T11 = 0.0
+end
+
+"""
+    calculate_modified_parsec_coefficients(p, uppper_side)
 
 Calculate the PARSEC coefficients using modified parameters (see parsec() docstring) for either the top or bottom curve.
 
 # Arguments:
-- `p::NamedTuple` : Named tuple of PARSEC paramters including:
+- `p::NamedTuple` : Named tuple of ModifiedPARSEC paramters including:
   - `leading_edge_radius::Float` : Leading edge radius
   - `maximum_thickness_x::Float` : chordwise position of maximum thickness
   - `maximum_thikcness_z::Float` : z-coordinate at maximum thickness
@@ -61,7 +73,7 @@ Calculate the PARSEC coefficients using modified parameters (see parsec() docstr
   - `trailing_edge_z::Float` : z-position of trailing edge
 - `side::Number` : +1 for upper side, -1 for lower side
 """
-function calculate_parsec_coefficients(p, side=1)
+function calculate_modified_parsec_coefficients(p, side=1)
     TF = eltype(p)
 
     #---define b in Ax=b
@@ -116,15 +128,14 @@ function calculate_parsec_coefficients(p, side=1)
 end
 
 """
-    parsec(p::PARSEC; N::Int=80, split=false)
-    parsec(p::Vector{Float}; N::Int=80, split=false)
+    parsec(p::ModifiedPARSEC; N::Int=80, split=false)
 
 Calculate the x,y airfoil coordinates for both top and bottom surfaces using modified PARSEC Parameterization method.
 
-Use parsec_standard() for standard PARSEC implementation.  This modified version employs direct values for trailing edge position and angles for each surface.
+Use parsec() for standard PARSEC implementation.  This modified version employs direct values for trailing edge position and angles for each surface.
 
 # Arguments:
-- `p::PARSEC` : PARSEC paramters including:
+- `p::ModifiedPARSEC` : ModifiedPARSEC paramters including:
   - `leading_edge_radius` : Leading edge radius
   - `maximum_thickness_xu` : chordwise position of maximum thickness of upper side
   - `maximum_thickness_xl` : chordwise position of maximum thickness of lower side
@@ -142,17 +153,17 @@ Use parsec_standard() for standard PARSEC implementation.  This modified version
 - `split::Bool` : Flag wheter to split into upper and lower halves.
 
 # Returns:
-IF split == False:
- - `x::Array{Float}` : Array of x coordinates
- - `z::Array{Float}` : Array of z coordinates
-IF split == True:
- - `xl::Array{Float}` : Array of lower half of x coordinates
- - `xu::Array{Float}` : Array of upper half of x coordinates
- - `zl::Array{Float}` : Array of lower half of z coordinates
- - `zu::Array{Float}` : Array of upper half of z coordinates
+If `split` == false:
+ - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
+ - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+If `split` == true:
+ - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
+ - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
+ - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
+ - `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
 """
-function parsec(p::PARSEC; N::Integer=80, split=false)
-    return parsec(
+function modified_parsec(p::ModifiedPARSEC; N::Integer=80, split=false)
+    return modified_parsec(
         [
             p.leading_edge_radius
             p.maximum_thickness_xu
@@ -171,13 +182,48 @@ function parsec(p::PARSEC; N::Integer=80, split=false)
     )
 end
 
-function parsec(p; N::Integer=80, split=false)
+"""
+    parsec(p::AbstractArray{Float}; N::Int=80, split=false)
+
+Calculate the x,y airfoil coordinates for both top and bottom surfaces using modified PARSEC Parameterization method.
+
+Use parsec() for standard PARSEC implementation.  This modified version employs direct values for trailing edge position and angles for each surface.
+
+# Arguments:
+- `p::AbstractArray{Float}` : ModifiedPARSEC paramters including:
+  - `leading_edge_radius` : Leading edge radius
+  - `maximum_thickness_xu` : chordwise position of maximum thickness of upper side
+  - `maximum_thickness_xl` : chordwise position of maximum thickness of lower side
+  - `maximum_thickness_zu` : z-coordinate at maximum thickness of upper side
+  - `maximum_thickness_zl` : z-coordinate at maximum thickness of lower side
+  - `curvature_u` : second derivative of surface geometry at maximum thickness of upper side
+  - `curvature_l` : second derivative of surface geometry at maximum thickness of lower side
+  - `trailing_edge_tangent_u` : trailing edge tangent angle of upper side
+  - `trailing_edge_tangent_l` : trailing edge tangent angle of lower side
+  - `trailing_edge_zu` : z-position of trailing edge of upper side
+  - `trailing_edge_zl` : z-position of trailing edge of lower side
+
+# Keyword Arguments:
+- `N::Integer=80` : Number of x stations along chord
+- `split::Bool` : Flag wheter to split into upper and lower halves.
+
+# Returns:
+If `split` == false:
+ - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
+ - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+If `split` == true:
+ - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
+ - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
+ - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
+ - `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
+"""
+function modified_parsec(p; N::Integer=80, split=false)
 
     #--- Get x-values ---#
     x = split_cosine_spacing(N)
 
     #--- Upper Curve ---#
-    au = calculate_parsec_coefficients(
+    au = calculate_modified_parsec_coefficients(
         (;
             leading_edge_radius=p[1],
             maximum_thickness_x=p[2],
@@ -191,7 +237,7 @@ function parsec(p; N::Integer=80, split=false)
     zu = z_from_parsec_coefficients(au, N)
 
     #--- Lower Curve ---#
-    al = calculate_parsec_coefficients(
+    al = calculate_modified_parsec_coefficients(
         (;
             leading_edge_radius=p[1],
             maximum_thickness_x=p[3],
@@ -212,13 +258,13 @@ function parsec(p; N::Integer=80, split=false)
 end
 
 """
-    determine_parsec(x,z)
+    determine_modified_parsec(x,z)
 
-Uses LsqFit to go from x-z coordinates to modified PARSEC parameters.
+Uses LsqFit to go from x-z coordinates to modified ModifiedPARSEC parameters.
 """
-function determine_parsec(x, z)
+function determine_modified_parsec(x, z)
     function model(x, p)
-        _, z = parsec(p; N=ceil(Int, length(x) / 2))
+        _, z = modified_parsec(p; N=ceil(Int, length(x) / 2))
         return z
     end
 
@@ -227,7 +273,7 @@ function determine_parsec(x, z)
 
     fit = LsqFit.curve_fit(model, x, z, guess)
 
-    return PARSEC(;
+    return ModifiedPARSEC(;
         leading_edge_radius=fit.param[1],
         maximum_thickness_xu=fit.param[2],
         maximum_thickness_xl=fit.param[3],
@@ -249,8 +295,20 @@ end
 ######################################################################
 
 """
+# Fields:
+- `leading_edge_radius::Float` : leading edge radius
+- `maximum_thickness_xu::Float` : x-position of maximum thickness for upper side.
+- `maximum_thickness_xl::Float` : x-position of maximum thickness for lower side.
+- `maximum_thickness_zu::Float` : value of maximum thickness (from zero) for upper side.
+- `maximum_thickness_zl::Float` : value of maximum thickness (from zero) for lower side.
+- `curvature_u::Float` : curvature at point of maximum thickness on upper side.
+- `curvature_l::Float` : curvature at point of maximum thickness on lower side.
+- `trailing_edge_angle::Float` : angle from chordline to horizontal at trailing edge.
+- `boattail_angle::Float` : angle from chordline to upper/lower surfaces (half of wedge angle).
+- `trailing_edge_gap::Float=0.0` : total gap distance between upper and lower surfaces at treailing edge.
+- `trailing_edge_z::Float=0.0` : z-position of midpoint between upper and lower surfaces at trailing edge.
 """
-@kwdef struct PARSECStandard{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11} <: AirfoilGeometry
+@kwdef struct PARSEC{T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11} <: AirfoilGeometry
     leading_edge_radius::T1
     maximum_thickness_xu::T2
     maximum_thickness_xl::T3
@@ -265,7 +323,7 @@ end
 end
 
 """
-    calculate_parsec_coefficients_standard(p, side=1)
+    calculate_parsec_coefficients(p, side=1)
 
 Calculate the PARSEC coefficients using standard parameters (see parsec() docstring) for either the top or bottom curve.
 
@@ -280,7 +338,7 @@ Calculate the PARSEC coefficients using standard parameters (see parsec() docstr
   - [7]: `trailing_edge_gap` : z-distance between upper and lower surface trailing edge points
   - [8]: `trailing_edge_z` : z-position of center of trailing edge
 """
-function calculate_parsec_coefficients_standard(p, side=1)
+function calculate_parsec_coefficients(p, side=1)
     TF = eltype(p)
 
     #rename for convenience
@@ -334,15 +392,14 @@ function calculate_parsec_coefficients_standard(p, side=1)
 end
 
 """
-    parsec_standard(p::PARSECStandard; N::Integer=80, split=false)
-    parsec_standard(p::Vector{Float}; N::Integer=80, split=false)
+    parsec(p::PARSEC; N::Integer=80, split=false)
 
 Calculate the x,z airfoil coordinates for both top and bottom surfaces using standard PARSEC Parameterization method.
 
 Use parsec() for modified PARSEC implementation.
 
 # Arguments:
-- `p::PARSECStandard` : PARSECStandard paramters including:
+- `p::PARSEC` : PARSEC paramters including:
   - `leading_edge_radius` : Leading edge radius
   - `maximum_thickness_xu` : chordwise position of maximum thickness of upper side
   - `maximum_thickness_xl` : chordwise position of maximum thickness of lower side
@@ -360,17 +417,17 @@ Use parsec() for modified PARSEC implementation.
 - `split::Bool` : Flag wheter to split into upper and lower halves.
 
 # Returns:
-IF split == False:
- - `x::Array{Float}` : Array of x coordinates
- - `z::Array{Float}` : Array of z coordinates
-IF split == True:
- - `xl::Array{Float}` : Array of lower half of x coordinates
- - `xu::Array{Float}` : Array of upper half of x coordinates
- - `zl::Array{Float}` : Array of lower half of z coordinates
- - `zu::Array{Float}` : Array of upper half of z coordinates
+If `split` == false:
+ - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
+ - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+If `split` == true:
+ - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
+ - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
+ - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
+ - `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
 """
-function parsec_standard(p::PARSECStandard; N::Integer=80, split=false)
-    return parsec_standard(
+function parsec(p::PARSEC; N::Integer=80, split=false)
+    return parsec(
         [
             p.leading_edge_radius
             p.maximum_thickness_xu
@@ -389,13 +446,48 @@ function parsec_standard(p::PARSECStandard; N::Integer=80, split=false)
     )
 end
 
-function parsec_standard(p; N::Integer=80, split=false)
+"""
+    parsec(p::AbstractArray{Float}; N::Integer=80, split=false)
+
+Calculate the x,z airfoil coordinates for both top and bottom surfaces using standard PARSEC Parameterization method.
+
+Use parsec() for modified PARSEC implementation.
+
+# Arguments:
+- `p::AbstractArray{Float}` : PARSEC paramters including:
+  - `leading_edge_radius` : Leading edge radius
+  - `maximum_thickness_xu` : chordwise position of maximum thickness of upper side
+  - `maximum_thickness_xl` : chordwise position of maximum thickness of lower side
+  - `maximum_thickness_zu` : z-coordinate at maximum thickness of upper side
+  - `maximum_thickness_zl` : z-coordinate at maximum thickness of lower side
+  - `curvature_u` : second derivative of surface geometry at maximum thickness of upper side
+  - `curvature_l` : second derivative of surface geometry at maximum thickness of lower side
+  - `trailing_edge_angle` : trailing edge angle
+  - `boattail_angle` : boat-tail angle
+  - `trailing_edge_gap` : z-position of center of trailing edge
+  - `trailing_edge_z` : z-distance between upper and lower surface trailing edge points
+
+# Keyword Arguments:
+- `N::Integer=80` : Number of x stations along chord
+- `split::Bool` : Flag wheter to split into upper and lower halves.
+
+# Returns:
+If `split` == false:
+ - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
+ - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+If `split` == true:
+ - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
+ - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
+ - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
+ - `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
+"""
+function parsec(p; N::Integer=80, split=false)
 
     #--- Get x-values ---#
     x = split_cosine_spacing(N)
 
     #--- Upper Curve ---#
-    au = calculate_parsec_coefficients_standard(
+    au = calculate_parsec_coefficients(
         (;
             leading_edge_radius=p[1],
             maximum_thickness_x=p[2],
@@ -411,7 +503,7 @@ function parsec_standard(p; N::Integer=80, split=false)
     zu = z_from_parsec_coefficients(au, N)
 
     #--- Lower Curve ---#
-    al = calculate_parsec_coefficients_standard(
+    al = calculate_parsec_coefficients(
         (;
             leading_edge_radius=p[1],
             maximum_thickness_x=p[3],
@@ -434,13 +526,13 @@ function parsec_standard(p; N::Integer=80, split=false)
 end
 
 """
-    determine_parsec_standard(x,z)
+    determine_parsec(x,z)
 
 Uses LsqFit to go from x-z coordinates to standard PARSEC parameters.
 """
-function determine_parsec_standard(x, z)
+function determine_parsec(x, z)
     function model(x, p)
-        _, z = parsec_standard(p; N=ceil(Int, length(x) / 2))
+        _, z = parsec(p; N=ceil(Int, length(x) / 2))
         return z
     end
 
@@ -449,7 +541,7 @@ function determine_parsec_standard(x, z)
 
     fit = LsqFit.curve_fit(model, x, z, guess)
 
-    return PARSECStandard(;
+    return PARSEC(;
         leading_edge_radius=fit.param[1],
         maximum_thickness_xu=fit.param[2],
         maximum_thickness_xl=fit.param[3],

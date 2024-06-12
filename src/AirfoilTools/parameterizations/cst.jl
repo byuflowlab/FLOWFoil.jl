@@ -1,12 +1,19 @@
 """
+# Fields:
+- `upper_coefficients::AbstractArray{Float}` : Vector of coefficients defining the upper side.
+- `lower_coefficients::AbstractArray{Float}` : Vector of coefficients defining the lower side.
+- `trailing_edge_zu::Float=0.0` : z-position of the upper side trailing edge.
+- `trailing_edge_zl::Float=0.0` : z-position of the lower side trailing edge.
+- `N1::Float=0.5` : inherent parameter for round-nosed airfoils.
+- `N2::Float=1.0` : inherent parameter for sharp trailing edge (with optional blunt trailing edge) airfoils.
 """
 @kwdef struct CST{T1,T2,T3,T4,T5,T6}
     upper_coefficients::T1
     lower_coefficients::T2
-    N1::T3 = 0.5
-    N2::T4 = 1.0
     trailing_edge_zu::T5 = 0.0
     trailing_edge_zl::T6 = 0.0
+    N1::T3 = 0.5
+    N2::T4 = 1.0
 end
 
 """
@@ -25,6 +32,46 @@ end
         x=split_cosine_spacing(N),
         split=false,
     )
+
+Obtain airfoil coordiantes (clockwise from trailing edge) from the class shape transformation (CST) parameterization.
+
+# Arguments:
+- `parameters::CST` : CST parameters for airfoil.
+
+# Keyword Arguments:
+- `N::Integer=80` : number of points to use for each side
+- `x::AbstractArray{Float}=split_cosine_spacing(N)` : x-coordinates to use.
+- `trailing_edge_zu::Float=0.0` : upper side trailing edge gap
+- `trailing_edge_zl::Float=0.0` : lower side trailing edge gap
+- `N1::Float=0.5` : Class shape parameter 1
+- `N2::Float=1.0` : Class shape parameter 2
+- `split::Bool=false` : if true, returns upper and lower coordinates separately as xl, xu, zl, zu rather than just x, z.
+
+# Returns:
+If `split` == false:
+ - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
+ - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+If `split` == true:
+ - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
+ - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
+ - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
+ - `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
+"""
+function cst(p::CST; N::Integer=80, x=split_cosine_spacing(N), split=false)
+    return cst(
+        p.upper_coefficients,
+        p.lower_coefficients;
+        trailing_edge_zu=p.trailing_edge_zu,
+        trailing_edge_zl=p.trailing_edge_zl,
+        N1=p.N1,
+        N2=p.N2,
+        N=N,
+        x=x,
+        split=split,
+    )
+end
+
+"""
     cst(
         upper_coefficients,
         lower_coefficients;
@@ -40,13 +87,12 @@ end
 Obtain airfoil coordiantes (clockwise from trailing edge) from the class shape transformation (CST) parameterization.
 
 # Arguments:
-- `parameters::CST` : CST parameters for airfoil.
-- `upper_coefficients::Vector{Float}` : Vector of CST coefficients for upper side of airfoil.
-- `lower_coefficients::Vector{Float}` : Vector of CST coefficients for lower side of airfoil.
+- `upper_coefficients::AbstractArray{Float}` : Vector of CST coefficients for upper side of airfoil.
+- `lower_coefficients::AbstractArray{Float}` : Vector of CST coefficients for lower side of airfoil.
 
 # Keyword Arguments:
 - `N::Integer=80` : number of points to use for each side
-- `x::Vector{Float}=split_cosine_spacing(N)` : x-coordinates to use.
+- `x::AbstractArray{Float}=split_cosine_spacing(N)` : x-coordinates to use.
 - `trailing_edge_zu::Float=0.0` : upper side trailing edge gap
 - `trailing_edge_zl::Float=0.0` : lower side trailing edge gap
 - `N1::Float=0.5` : Class shape parameter 1
@@ -54,29 +100,15 @@ Obtain airfoil coordiantes (clockwise from trailing edge) from the class shape t
 - `split::Bool=false` : if true, returns upper and lower coordinates separately as xl, xu, zl, zu rather than just x, z.
 
 # Returns:
-IF split == False:
- - `x::Array{Float}` : Array of x coordinates
- - `z::Array{Float}` : Array of z coordinates
-IF split == True:
- - `xl::Array{Float}` : Array of lower half of x coordinates
- - `xu::Array{Float}` : Array of upper half of x coordinates
- - `zl::Array{Float}` : Array of lower half of z coordinates
- - `zu::Array{Float}` : Array of upper half of z coordinates
+If `split` == false:
+ - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
+ - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+If `split` == true:
+ - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
+ - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
+ - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
+ - `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
 """
-function cst(p::CST; N::Integer=80, x=split_cosine_spacing(N), split=false)
-    return cst(
-        p.upper_coefficients,
-        p.lower_coefficients;
-        trailing_edge_zu=p.trailing_edge_zu,
-        trailing_edge_zl=p.trailing_edge_zl,
-        N1=p.N1,
-        N2=p.N2,
-        N=N,
-        x=x,
-        split=split
-    )
-end
-
 function cst(
     upper_coefficients,
     lower_coefficients;
@@ -104,7 +136,7 @@ end
 Define upper or lower side of airfoil using CST parameterization.
 
 # Arguments:
-- `coefficients::Vector{Float}` : Vector of CST coefficients.
+- `coefficients::AbstractArray{Float}` : Vector of CST coefficients.
 
 # Keyword Arguments:
 - `dz::Float=0.0` : trailing edge gap
@@ -142,8 +174,8 @@ end
 Determine best-fit CST parameters using a least squares solve.
 
 # Arguments:
-- `x::Vector{Float}` : vector of x-coordinates.
-- `z::Vector{Float}` : vector of z-coordinates.
+- `x::AbstractArray{Float}` : vector of x-coordinates.
+- `z::AbstractArray{Float}` : vector of z-coordinates.
 
 # Keyword Arguments:
 - `n_upper_coefficients::Integer=8` : number of upper side coefficients to fit
@@ -198,10 +230,10 @@ end
 Determine best-fit CST parameters for upper and lower sides of airfoil using a least squares solve.
 
 # Arguments:
-- `xl::Vector{Float}` : vector of lower side x-coordinates.
-- `xu::Vector{Float}` : vector of upper side x-coordinates.
-- `zl::Vector{Float}` : vector of lower side z-coordinates.
-- `zu::Vector{Float}` : vector of upper side z-coordinates.
+- `xl::AbstractArray{Float}` : vector of lower side x-coordinates.
+- `xu::AbstractArray{Float}` : vector of upper side x-coordinates.
+- `zl::AbstractArray{Float}` : vector of lower side z-coordinates.
+- `zu::AbstractArray{Float}` : vector of upper side z-coordinates.
 
 # Keyword Arguments:
 - `n_upper_coefficients::Integer=8` : number of upper side coefficients to fit

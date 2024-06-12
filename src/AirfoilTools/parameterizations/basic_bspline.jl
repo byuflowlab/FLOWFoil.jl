@@ -1,4 +1,10 @@
 """
+# Fields:
+- `leading_edge_radius::Float` : leading edge radius
+- `trailing_edge_camber_angle::Float` : trailing edge camber angle (angle of chordline from horizontal at trailing edge).
+- `wedge_angle::Float` : Wedge angle (angle between upper and lower surfaces at trailing edge).
+- `trailing_edge_gap::Float=0.0` : distance between upper and lower surfaces at trailing edge. A value of zero indicates a sharp trailing edge.
+- `third_ctrlpt_position::Float=1.0/3.0` : the position of the third control point.  This is an inherent value in the parameterization and if changed, the other parameters will not behave as they are defined here.
 """
 @kwdef struct BasicBSpline{T1,T2,T3,T4,T5}
     leading_edge_radius::T1
@@ -22,19 +28,20 @@ Obtain airfoil coordinates from a B-Spline parameterization method.
 - `return_nurbs::Bool` : flag whether to output spline knots and control points as well
 
 # Returns:
-default:
-- `x::Array{Float}` : x-coordinates from lower TE clockwise to upper TE
-- `z::Array{Float}` : z-coordinates from lower TE clockwise to upper TE
+
+if split=false
+- `x::AbstractArray{Float}` : x-coordinates from lower TE clockwise to upper TE
+- `z::AbstractArray{Float}` : z-coordinates from lower TE clockwise to upper TE
 
 if split=true
-- `xu::Array{Float}` : array of x-coordinates for the upper half of the airfoil (LE to TE)
-- `zu::Array{Float}` : array of z-coordinates for the upper half of the airfoil (LE to TE)
-- `xl::Array{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
-- `zl::Array{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
+- `xu::AbstractArray{Float}` : array of x-coordinates for the upper half of the airfoil (LE to TE)
+- `zu::AbstractArray{Float}` : array of z-coordinates for the upper half of the airfoil (LE to TE)
+- `xl::AbstractArray{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
+- `zl::AbstractArray{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
 
-if return_nurbs keyword argument, also output
-- `NURBSu::NURB` : upper spline object
-- `NURBSl::NURB` : lower spline object
+if return_nurbs=true, also return:
+- `NURBSu::NURBS.NURBScurve` : upper spline object
+- `NURBSl::NURBS.NURBScurve` : lower spline object
 """
 function basic_bspline(p::BasicBSpline; N=160, split=false, return_nurbs=false)
     return basic_bspline(
@@ -66,19 +73,20 @@ Obtain airfoil coordinates from a B-Spline parameterization method.
 - `return_nurbs::Bool` : flag whether to output spline object
 
 # Returns:
-default:
-- `x::Array{Float}` : x-coordinates from lower TE clockwise to upper TE
-- `z::Array{Float}` : z-coordinates from lower TE clockwise to upper TE
+
+if split=false
+- `x::AbstractArray{Float}` : x-coordinates from lower TE clockwise to upper TE
+- `z::AbstractArray{Float}` : z-coordinates from lower TE clockwise to upper TE
 
 if split=true
-- `xu::Array{Float}` : array of x-coordinates for the upper half of the airfoil (LE to TE)
-- `zu::Array{Float}` : array of z-coordinates for the upper half of the airfoil (LE to TE)
-- `xl::Array{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
-- `zl::Array{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
+- `xu::AbstractArray{Float}` : array of x-coordinates for the upper half of the airfoil (LE to TE)
+- `zu::AbstractArray{Float}` : array of z-coordinates for the upper half of the airfoil (LE to TE)
+- `xl::AbstractArray{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
+- `zl::AbstractArray{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
 
-if return_nurbs keyword argument, also output
-- `NURBSu::NURB` : upper spline object
-- `NURBSl::NURB` : lower spline object
+if return_nurbs=true, also return:
+- `NURBSu::NURBS.NURBScurve` : upper spline object
+- `NURBSl::NURBS.NURBScurve` : lower spline object
 """
 function basic_bspline(
     leading_edge_radius,
@@ -195,16 +203,16 @@ end
 Get plotable coordinates from the weighted control points.
 
 # Arguments:
-- `knots::Array{Float}` : knot vector
-- `controlpoints::Array{Float,2} `: Control Point matrix
+- `knots::AbstractArray{Float}` : knot vector
+- `controlpoints::AbstractArray{Float,2} `: Control Point matrix
 - `degree::Int` : degree of the NURBS curve
 
 # Keyword Arguments:
 - `N::Int` : number of coordinates, or panels that will be generated
 
 # Returns:
-- `x::Array{Float}` : x Airfoil coordinates
-- `z::Array{Float}` : z Airfoil coordinates
+- `x::AbstractArray{Float}` : x Airfoil coordinates
+- `z::AbstractArray{Float}` : z Airfoil coordinates
 """
 function get_spline_coordinates(nurbs; N=80)
 
