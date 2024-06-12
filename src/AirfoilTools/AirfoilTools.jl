@@ -17,6 +17,7 @@ abstract type AirfoilGeometry end
 #          DEPENDENCIES           #
 #---------------------------------#
 using LsqFit
+using FLOWMath
 using NURBS
 using StaticArrays
 
