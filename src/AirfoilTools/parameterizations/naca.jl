@@ -2,7 +2,7 @@
 """
 @kwdef struct NACA4{Tc,Tp,Tt} <: AirfoilGeometry
     max_camber::Tc = 2.0
-    max_campber_pos::Tp = 4.0
+    max_camber_pos::Tp = 4.0
     max_thickness::Tt = 12.0
 end
 
@@ -71,11 +71,21 @@ Compute x, z airfoil coordinates for N nodes, based on NACA 4-Series Parameteriz
 - `x::Array{Float}` : x coordinates (cosine spaced coordinates used by default)
 - `blunt_TE::Bool` : Flag whether trailing edge is blunt or not
 - `split::Bool` : Flag wheter to split into upper and lower halves.
+
+# Returns:
+IF split == False:
+ - `x::Array{Float}` : Array of x coordinates
+ - `z::Array{Float}` : Array of z coordinates
+IF split == True:
+ - `xl::Array{Float}` : Array of lower half of x coordinates
+ - `xu::Array{Float}` : Array of upper half of x coordinates
+ - `zl::Array{Float}` : Array of lower half of z coordinates
+ - `zu::Array{Float}` : Array of upper half of z coordinates
 """
 function naca4(parameters::NACA4; N=161, x=nothing, blunt_TE=false, split=false)
     return naca4(
         parameters.max_camber,
-        parameters.max_campber_pos,
+        parameters.max_camber_pos,
         parameters.max_thickness;
         N=N,
         x=x,
@@ -139,5 +149,7 @@ function determine_naca4(x, z; blunt_TE=false)
     ufit = LsqFit.curve_fit(model, x, z, [2.0, 4.0, 12.0])
 
     # unpack
-    return ufit.param[1], ufit.param[2], ufit.param[3]
+    return NACA4(;
+        max_camber=ufit.param[1], max_camber_pos=ufit.param[2], max_thickness=ufit.param[3]
+    )
 end

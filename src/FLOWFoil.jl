@@ -12,6 +12,12 @@ using SpecialFunctions
 #             INCLUDES            #
 #---------------------------------#
 
+##### ----- AirfoilTools ----- #####
+
+include("AirfoilTools/AirfoilTools.jl")
+const at = AirfoilTools
+export AirfoilTools
+
 ##### ----- CORE FUNCTIONALITY ----- #####
 
 # Dispatch Types

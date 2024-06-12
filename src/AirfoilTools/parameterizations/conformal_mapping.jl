@@ -36,10 +36,32 @@ function KarmanTrefftz(center, wedge_angle)
 end
 
 """
+    karman_trefftz(paramters::KarmanTrefftz; N=360, normalize=true, split=false)
+
+Karman-Trefftz airfoil parameterization based on angle beta, raidus, and wedge angle.
+
+# Arguments:
+ - `paramters::KarmanTrefftz` : KarmanTrefftz parameters
+
+# Keyword Arguments:
+ - `N::Int` : number of coordinates (for entire airfoil)
+ - normalize::Bool` : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
+ - split::Bool` : Flag wheter to split into upper and lower halves.
+
+# Returns:
+IF split == False:
+ - `x::Array{Float}` : Array of x coordinates
+ - `z::Array{Float}` : Array of z coordinates
+IF split == True:
+ - `xl::Array{Float}` : Array of lower half of x coordinates
+ - `xu::Array{Float}` : Array of upper half of x coordinates
+ - `zl::Array{Float}` : Array of lower half of z coordinates
+ - `zu::Array{Float}` : Array of upper half of z coordinates
 """
-@kwdef struct Joukowsky{Tc,Tr} <: AirfoilGeometry
-    center::Tb
-    radius::Tr
+function karman_trefftz(p::KarmanTrefftz; N=360, normalize=true, split=false)
+    return karman_trefftz(
+        p.beta, p.radius, p.wedge_angle; N=N, normalize=normalize, split=split
+    )
 end
 
 """
@@ -62,10 +84,10 @@ IF split == False:
  - `x::Array{Float}` : Array of x coordinates
  - `z::Array{Float}` : Array of z coordinates
 IF split == True:
- - `xu::Array{Float}` : Array of upper half of x coordinates
  - `xl::Array{Float}` : Array of lower half of x coordinates
- - `zu::Array{Float}` : Array of upper half of z coordinates
+ - `xu::Array{Float}` : Array of upper half of x coordinates
  - `zl::Array{Float}` : Array of lower half of z coordinates
+ - `zu::Array{Float}` : Array of upper half of z coordinates
 """
 function karman_trefftz(beta, radius, wedge; N=360, normalize=true, split=false)
 
@@ -95,7 +117,7 @@ function karman_trefftz(beta, radius, wedge; N=360, normalize=true, split=false)
     z = imag(w)
 
     if normalize
-        normalize_airfoil!(x, z)
+        normalize_coordinates!(x, z)
     end
 
     if split
@@ -106,7 +128,7 @@ function karman_trefftz(beta, radius, wedge; N=360, normalize=true, split=false)
 end
 
 """
-    karman_trefftz(center=[-0.1 0.1], wedge=0.0; N=360, normalize=true, split=false)
+    karman_trefftz(center, wedge; N=360, normalize=true, split=false)
 
 Identical to `karman_trefftz(beta, radius, wedge)` but using center-based version.
 
@@ -129,12 +151,12 @@ IF split == True:
  - `zu::Array{Float}` : Array of upper half of z coordinates
  - `zl::Array{Float}` : Array of lower half of z coordinates
 """
-function karman_trefftz(center=[-0.1 0.1], wedge=0.0; N=360, normalize=true, split=false)
+function karman_trefftz(center, wedge; N=360, normalize=true, split=false)
     radius = sqrt((1 - center[1])^2 + center[2]^2) # radius
 
     beta = asin(center[2] / radius) # solve for beta
 
-    return karman_trefftz(radius, beta, wedge; N=N, normalize=normalize, split=split)
+    return karman_trefftz(beta, radius, wedge; N=N, normalize=normalize, split=split)
 end
 
 ######################################################################
@@ -142,6 +164,43 @@ end
 #                             JOUKOWSKY                              #
 #                                                                    #
 ######################################################################
+
+"""
+"""
+@kwdef struct Joukowsky{Tc,Tr} <: AirfoilGeometry
+    center::Tc
+    radius::Tr
+end
+
+"""
+    joukowsky(parameters::Joukowsky; N, fortest=false, normalize=true, split=false)
+
+Joukowsky airfoil parameterization.
+
+# Arguments:
+ - `parameters::Joukowsky` : Joukowsky parameters
+
+# Keyword Arguments:
+ - `N::Int` : Number of coordinates to use
+ - `fortest::Bool` : Flag to output non-coordinate paramters used in 'joukowsky_flow()'
+ - `normalize::Bool` : Flag whether to normalize to unit chord and translate the leading edge to zero.
+ - `split::Bool` : Flag wheter to split output into upper and lower surfaces.
+
+# Returns:
+IF split == False:
+ - `x::Array{Float}` : Array of x coordinates
+ - `z::Array{Float}` : Array of z coordinates
+IF split == True:
+ - `xu::Array{Float}` : Array of upper half of x coordinates
+ - `xl::Array{Float}` : Array of lower half of x coordinates
+ - `zu::Array{Float}` : Array of upper half of z coordinates
+ - `zl::Array{Float}` : Array of lower half of z coordinates
+"""
+function joukowsky(p::Joukowsky; N=360, fortest=false, normalize=true, split=false)
+    return joukowsky(
+        p.center, p.radius; N=N, fortest=fortest, normalize=normalize, split=split
+    )
+end
 
 """
     joukowsky(center, radius; N, fortest=false, normalize=true, split=false)
@@ -157,6 +216,16 @@ Joukowsky airfoil parameterization.
  - `fortest::Bool` : Flag to output non-coordinate paramters used in 'joukowsky_flow()'
  - `normalize::Bool` : Flag whether to normalize to unit chord and translate the leading edge to zero.
  - `split::Bool` : Flag wheter to split output into upper and lower surfaces.
+
+# Returns:
+IF split == False:
+ - `x::Array{Float}` : Array of x coordinates
+ - `z::Array{Float}` : Array of z coordinates
+IF split == True:
+ - `xu::Array{Float}` : Array of upper half of x coordinates
+ - `xl::Array{Float}` : Array of lower half of x coordinates
+ - `zu::Array{Float}` : Array of upper half of z coordinates
+ - `zl::Array{Float}` : Array of lower half of z coordinates
 """
 function joukowsky(center, radius; N=360, fortest=false, normalize=true, split=false)
     beta = asin(center[2] / radius) # solve for beta
@@ -174,7 +243,7 @@ function joukowsky(center, radius; N=360, fortest=false, normalize=true, split=f
     z = imag(xi)
 
     if normalize
-        normalize_airfoil!(x, z)
+        normalize_coordinates!(x, z)
     end
 
     if fortest

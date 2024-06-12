@@ -53,7 +53,7 @@ function rotate_coordinates!(coordinates, angle; rotation_point=[0.0; 0.0])
 end
 
 """
-    normalize_coordinates!(x, z)
+    normalize_coordinates!(coordinates)
 
 Normalize airfoil to unit chord and shift leading edge to zero. Adjusts coordinates in place.
 
@@ -77,6 +77,32 @@ function normalize_coordinates!(coordinates)
     z[:] ./= chord
 
     return coordinates
+end
+
+"""
+    normalize_coordinates!(x, z)
+
+Normalize airfoil to unit chord and shift leading edge to zero. Adjusts coordinates in place.
+
+# Arguments:
+- `x::Array{Float}` : Array of x coordinates
+- `z::Array{Float}` : Array of z coordinates
+"""
+function normalize_coordinates!(x, z)
+
+    # get current chord length
+    chord = maximum(x) - minimum(x)
+
+    # shift to zero
+    x[:] .-= minimum(x)
+
+    # normalize chord
+    x[:] ./= chord
+
+    # scale z coordinates to match
+    z[:] ./= chord
+
+    return x, z
 end
 
 """
