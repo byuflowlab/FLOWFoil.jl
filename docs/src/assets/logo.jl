@@ -15,7 +15,7 @@ m3 = FLOWFoil.generate_mesh(x .- 0.9, y .- 0.75)
 
 inviscid_problem = FLOWFoil.Problem([m1; m3; m2], 4.0, 0.0; viscous=false)
 inviscid_solution = FLOWFoil.solve(inviscid_problem)
-polar = FLOWFoil.inviscid_polar(inviscid_solution, 0.0)
+polar = FLOWFoil.get_planar_polar(inviscid_solution, 0.0)
 x, z, stream = FLOWFoil.calculate_stream_grid(
     inviscid_problem, inviscid_solution, [-1.0; 1.9], [-1.15; 0.65]
 )
