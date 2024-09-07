@@ -120,7 +120,6 @@ function get_planar_polar(inviscid_solution, angleofattack::T;
     return planar_polar
 end
 
-"Deprecated name of `get_planar_polar`"
 const inviscid_polar = get_planar_polar
 
 """

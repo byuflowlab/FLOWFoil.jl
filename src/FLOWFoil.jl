@@ -1,58 +1,113 @@
 module FLOWFoil
 
-# - DEPENDENCIES
+#---------------------------------#
+#           DEPENDENCIES          #
+#---------------------------------#
 using LinearAlgebra
 using FLOWMath
+using ImplicitAD
 using SpecialFunctions
 
-# - EXPORTS
+#---------------------------------#
+#             INCLUDES            #
+#---------------------------------#
 
-#TYPES
-# geometry types
-export PlanarMesh, PlanarMeshSystem, AxiSymMesh, AxiSymPanel
-# problem types
-export Problem, InviscidSolution
-# output types
-export PlanarPolar, AxiSymPolar
+##### ----- AirfoilTools ----- #####
 
-#FUNCTIONS
-# geometry functions
-export generate_mesh, generate_axisym_mesh, position_coordinates, position_coordinates!
-# inviscid solver functions
-export solve
-# post processing functions
-export get_planar_polar, get_axisymmetric_polar
-# common airfoil parameterizations
-export karman_trefftz, joukowsky, naca4#, gbs
+include("AirfoilTools/AirfoilTools.jl")
+const at = AirfoilTools
+export AirfoilTools
 
-# - INCLUDED FILES
+##### ----- CORE FUNCTIONALITY ----- #####
 
-# Types
-include("types.jl")
+# Dispatch Types
+include("dispatch_types.jl")
 
-# Geometry Generation and Modification
+# Problem Object Definition
+include("problem.jl")
+
+# Panel Definition
+include("panel.jl")
+
+# Mesh Generation
+include("mesh.jl")
+
+# Geometry Utilities
 include("geometry.jl")
 
-# Singularity Distributions
-include("singularities.jl")
+# Singularity Functions
+include("singularity.jl")
 
-# Inviscid Solver
-include("inviscid_system.jl")
+# Linear System Generation
+include("system.jl")
 
-# Boundary Layer Integration
-# include("viscous_system.jl")
-
-# Solver
+# Linear System Solve
 include("solve.jl")
 
-# Post Processing
-include("planar_post_process.jl")
-include("axisymmetric_post_process.jl")
+# Solution Post Processing
+include("post_process.jl")
 
-# Common Airfoil Parameterizations
-include("../common_parameterizations/convenience_functions.jl")
-include("../common_parameterizations/conformal_mapping.jl")
-include("../common_parameterizations/naca.jl")
-# include("../common_parameterizations/bspline.jl") #REQUIRES UNREGISTERED PACKAGE
+# Convenience Functions
+include("convenience_functions.jl")
+
+# Utility Functions
+include("utils.jl")
+
+#---------------------------------#
+#             EXPORTS             #
+#---------------------------------#
+
+##### ----- TYPES ----- #####
+
+# Singularities
+export Source, Doublet, Vortex
+export Constant, Linear, Quadratic, Spline
+
+# Boundary Conditions
+export Neumann, Dirichlet, Robin, Mixed
+
+# Problem
+export Problem, PlanarProblem, AxisymmetricProblem, PeriodicProblem
+
+# Panels
+export PlanarFlatPanel, AxisymmetricFlatPanel
+
+# System
+export InviscidSystem
+
+##### ----- FUNCTIONS ----- #####
+
+# Convenience Functions
+export solve
+
+# Problem
+export define_problem
+
+# Panels
+export generate_panels
+
+# Mesh
+export generate_mesh
+
+# System
+export generate_inviscid_system
+
+# Post Process
+export post_process
+
+# Airfoil Parameterizations
+export naca4
+
+#---------------------------------#
+#       OVERLOADED FUNCTIONS      #
+#---------------------------------#
+
+#= NOTE:
+    Used in problem definition function to help count number of bodies, the coordinates of which are a tuple of vectors if multiple bodies are being analyzed together.
+=#
+import Base.size
+function size(t::Tuple)
+    return length(t)
+end
 
 end

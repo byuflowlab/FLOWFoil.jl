@@ -9,6 +9,12 @@ Change Log:
 10/22 - Add axisymmetric ring vortex and related functions
 =#
 
+######################################################################
+#                                                                    #
+#               XFOIL METHODS (linear vortex for now)                #
+#                                                                    #
+######################################################################
+
 """
     get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
 
@@ -91,7 +97,7 @@ function get_psitildesigma(psibarsigma, r1mag, r2mag, theta1, theta2, dmag, h, a
 end
 
 """
-    get_vortex_influence(node1, node2, point)
+    calculate_vortex_influence(node1, node2, point)
 
 Calculate vortex influence coefficients on the evaluation point from the panel between node1 and node2.
 
@@ -101,28 +107,51 @@ Calculate vortex influence coefficients on the evaluation point from the panel b
  - `point::Array{Float}(2)` : [x y] location of evaluation point
 
 """
-function get_vortex_influence(node1, node2, point)
-
-    # Use inputs to get raw distances
-    r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
-
-    # Calculate a, h, and natural logs based on position of point
-    theta1, theta2, ln1, ln2, h, a = get_orientation(node1, node2, point)
-
+function calculate_vortex_influence(::Linear, mesh, i, j)
     # get psibargamma value
-    psibargamma = get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
+    psibargamma = get_psibargamma(
+        mesh.theta1[i, j],
+        mesh.theta2[i, j],
+        mesh.lnr1[i, j],
+        mesh.lnr2[i, j],
+        mesh.panel_length[j],
+        mesh.r1normal[i, j],
+        mesh.r1tangent[i, j],
+    )
 
     # get psitildegamma value
     psitildegamma = get_psitildegamma(
-        psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a
+        psibargamma,
+        mesh.r1[i, j],
+        mesh.r2[i, j],
+        mesh.theta1[i, j],
+        mesh.theta2[i, j],
+        mesh.lnr1[i, j],
+        mesh.lnr2[i, j],
+        mesh.panel_length[j],
+        mesh.r1normal[i, j],
+        mesh.r1tangent[i, j],
     )
 
     # put psi`s together
     return (psibargamma - psitildegamma), psitildegamma
 end
 
+function calculate_vortex_influence(::Constant, mesh, i, j)
+    # get psibargamma value
+    return get_psibargamma(
+        mesh.theta1[i, j],
+        mesh.theta2[i, j],
+        mesh.lnr1[i, j],
+        mesh.lnr2[i, j],
+        mesh.panel_length[j],
+        mesh.r1normal[i, j],
+        mesh.r1tangent[i, j],
+    )
+end
+
 """
-    get_source_influence(node1, node2, point)
+    calculate_source_influence(::Constant, node1, node2, point)
 
 Calculate source influence coefficients on the evaluation point from the panel between node1 and node2.
 
@@ -131,74 +160,89 @@ Calculate source influence coefficients on the evaluation point from the panel b
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point
 """
-function get_source_influence(node1, node2, point)
-
-    # Use inputs to get raw distances
-    r1, r1mag, r2, r2mag, d, dmag = get_distances(node1, node2, point)
-
-    # Calculate a, h, and natural logs based on position of point
-    theta1, theta2, ln1, ln2, h, a = get_orientation(node1, node2, point)
-
+function calculate_source_influence(::Constant, mesh, i, j)
     #get psibarsigma value
-    psibarsigma = get_psibarsigma(theta1, theta2, ln1, ln2, dmag, h, a)
+    psibarsigma = get_psibarsigma(
+        mesh.theta1[i, j],
+        mesh.theta2[i, j],
+        mesh.lnr1[i, j],
+        mesh.lnr2[i, j],
+        mesh.panel_length[j],
+        mesh.r1normal[i, j],
+        mesh.r1tangent[i, j],
+    )
 
     # shift source in order to get a better behaved branch cut orientation
-    if (theta1 + theta2) > pi
-        psibarsigma -= 0.25 * dmag
+    if (mesh.theta1[i, j] + mesh.theta2[i, j]) > pi
+        psibarsigma -= 0.25 * mesh.panel_length[j]
     else
-        psibarsigma += 0.75 * dmag
+        psibarsigma += 0.75 * mesh.panel_length[j]
     end
 
     return psibarsigma
 end
 
-####################################
-##### ----- AXISYMMETRIC ----- #####
-####################################
+######################################################################
+#                                                                    #
+#                            AXISYMMETRIC                            #
+#                                                                    #
+######################################################################
 
 """
-    get_ring_vortex_influence(paneli, panelj)
+    calculate_ring_vortex_influence(paneli, panelj, mesh, i, j)
 
 Cacluate the influence of a ring vortex at panel j onto panel i.
 
 **Arguments:**
 - `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
 - `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
+- `mesh::FLOWFoil.AxisymmetricMesh` : relative geometry object.
+- `i::Int` : index for ith panel
+- `j::Int` : index for jth panel
 
 **Returns:**
 - `aij::Float` : Influence of vortex ring strength at panel j onto panel i.
 """
-function get_ring_vortex_influence(paneli, panelj)
-
-    #get geometry of panels and influence
-    x, r, rj, dmagj, m, nhati = get_ring_geometry(paneli, panelj)
+function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
+    m2p = mesh.mesh2panel
 
     #calculate unit velocities
-    u = get_u_ring(x, r, rj, dmagj, m)
-    v = get_v_ring(x, r, rj, m)
+    u = get_u_ring_vortex(
+        mesh.x[i, j],
+        mesh.r[i, j],
+        panelj.panel_center[m2p[j], 2],
+        panelj.panel_length[m2p[j]],
+        mesh.m[i, j],
+    )
+
+    v = get_v_ring_vortex(
+        mesh.x[i, j], mesh.r[i, j], panelj.panel_center[m2p[j], 2], mesh.m[i, j]
+    )
 
     #return appropriate strength
     # if asin(sqrt(m)) != pi / 2
-    if m != 1.0
+    if mesh.m[i, j] != 1.0
 
         #panels are different
-        return (-u * cos(paneli.beta) + v * sin(paneli.beta)) * dmagj
+        return (
+            u * cos(paneli.panel_angle[m2p[i]]) + v * sin(paneli.panel_angle[m2p[i]])
+        ) * panelj.panel_length[m2p[j]]
     else
         #same panel -> self induction equation
 
         #NOTE: this is not eqn 4.22 in Lewis.  Their code uses this expression which seems to avoid singularities better.  Not sure how they changed the second term (from dj/4piR to -R) though; perhaps the R in the text != the curvature in the code (radiusofcurvature vs curvature).
 
         # constant used in multiple places to clean things up
-        cons = 4.0 * pi * rj / dmagj
+        cons = 4.0 * pi * panelj.panel_center[m2p[j], 2] / panelj.panel_length[m2p[j]]
 
         # return self inducement coefficient
-        return -0.5 - panelj.radiusofcurvature -
-               (log(2.0 * cons) - 0.25) / cons * cos(panelj.beta)
+        return -0.5 - panelj.panel_curvature[m2p[j]] -
+               (log(2.0 * cons) - 0.25) / cons * cos(panelj.panel_angle[m2p[j]])
     end
 end
 
 """
-    get_u_ring(x, r, rj, m)
+    get_u_ring_vortex(x, r, rj, m)
 
 Calculate x-component of velocity influence of vortex ring.
 
@@ -211,7 +255,7 @@ Calculate x-component of velocity influence of vortex ring.
 **Returns:**
 - `uij::Float` : x-component of velocity induced by panel j onto panel i
 """
-function get_u_ring(x, r, rj, dj, m; probe=false)
+function get_u_ring_vortex(x, r, rj, dj, m; probe=false)
 
     #get the first denominator
     den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
@@ -223,21 +267,11 @@ function get_u_ring(x, r, rj, dj, m; probe=false)
     #get values for elliptic integrals
     K, E = get_elliptics(m)
 
-    #phi = asin(sqrt(m))
-    #if probe && phi > 89.5 * pi / 180.0
-    #    println("K, E: ", K, ", ", E)
-    #end
-    ##return velocity
-    #if sqrt((x^2 + (r - 1.0)^2)) < 0.01 && probe
-    #    println("u sing: ", (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2)))
-    #    return (r - 1.0) / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
-    #else
-    return 1.0 / den1 * (K - (1.0 + num2 / den2) * E)
-    # end
+    return -1.0 / den1 * (K - (1.0 + num2 / den2) * E)
 end
 
 """
-    get_v_ring(x, r, rj, m)
+    get_v_ring_vortex(x, r, rj, m)
 
 Calculate r-component of velocity influence of vortex ring.
 
@@ -250,7 +284,7 @@ Calculate r-component of velocity influence of vortex ring.
 **Returns:**
 - `vij::Float` : r-component of velocity induced by panel j onto panel i
 """
-function get_v_ring(x, r, rj, m; probe=false)
+function get_v_ring_vortex(x, r, rj, m; probe=false)
 
     #get numerator and denominator of first fraction
     num1 = x / r
@@ -262,12 +296,7 @@ function get_v_ring(x, r, rj, m; probe=false)
     #get values for elliptic integrals
     K, E = get_elliptics(m)
 
-    #return velocity
-    # if sqrt((x^2 + (r - 1.0)^2)) < 0.01 && probe
-    #     return -x / (2.0 * pi * sqrt(x^2 + (r - 1.0)^2))
-    # else
     return num1 / den1 * (K - (1.0 + num2 / den2) * E)
-    # end
 end
 
 """
@@ -300,4 +329,108 @@ function get_elliptics(m)
     end
     return SpecialFunctions.ellipk(m), SpecialFunctions.ellipe(m)
     # end
+end
+
+"""
+    get_u_ring_source(x, r, rj, m)
+
+Calculate x-component of velocity influence of source ring.
+
+**Arguments:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `uij::Float` : x-component of velocity induced by panel j onto panel i
+"""
+function get_u_ring_source(x, r, rj, dj, m; probe=false)
+    #TODO: dj unused, remove from inputs and throughout
+
+    #get values for elliptic integrals
+    K, E = get_elliptics(m)
+
+    #get the first denominator
+    den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
+
+    #get numerator and denominator of second fraction
+    num2 = 2 * x * E
+    den2 = x^2 + (r - 1)^2
+
+    return 1.0 / den1 * (num2 / den2)
+end
+
+"""
+    get_v_ring_source(x, r, rj, m)
+
+Calculate r-component of velocity influence of source ring.
+
+**Arguments:**
+- `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
+- `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
+- `rj::Float` : r-location of the jth panel control point
+- `m::Float` : Elliptic Function parameter
+
+**Returns:**
+- `vij::Float` : r-component of velocity induced by panel j onto panel i
+"""
+function get_v_ring_source(x, r, rj, m; probe=false)
+
+    #get values for elliptic integrals
+    K, E = get_elliptics(m)
+
+    #get numerator and denominator of first fraction
+    den1 = 2.0 * pi * rj * sqrt(x^2 + (r + 1.0)^2)
+
+    num2 = 2 * r * (r - 1.0)
+    den2 = x^2 + (r - 1)^2
+
+    return 1.0 / den1 * (K - (1.0 - num2 / den2) * E)
+end
+######################################################################
+#                                                                    #
+#                              PERIODIC                              #
+#                                                                    #
+######################################################################
+
+"""
+    calculate_periodic_vortex_influence(paneli, panelj)
+
+Cacluate the influence of a periodic vortex at panel j onto panel i.
+TODO: BUGGY, NOT WORKING, NEED TO FIX
+
+**Arguments:**
+- `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
+- `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
+
+**Returns:**
+- `aij::Float` : Influence of vortex strength at panel j onto panel i.
+"""
+function calculate_periodic_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
+
+    # - Self Induction Term - #
+    if isapprox([mesh.x[i, j]; mesh.y[i, j]], [0.0; 0.0])
+        return -0.5 - paneli.delta_angle[i] / (4.0 * pi)
+
+    else
+
+        # - Standard Periodic Coefficient - #
+        s = mesh.stagger * pi / 180.0
+        t = mesh.pitch
+
+        a = (mesh.x[i, j] * cos(s) - mesh.y[i, j] * sin(s)) * 2 * pi / t
+        b = (mesh.x[i, j] * sin(s) + mesh.y[i, j] * cos(s)) * 2 * pi / t
+        e = exp(a)
+        sinha = 0.5 * (e - 1.0 / e)
+        cosha = 0.5 * (e + 1.0 / e)
+        k = 0.5 / t / (cosha - cos(b))
+
+        dmagi = paneli.panel_length[i]
+        dmagj = panelj.panel_length[j]
+
+        betaj = panelj.panel_angle[j]
+
+        return sinha * sin(s + betaj) - sin(b) * cos(s + betaj) * k * dmagj
+    end
 end
