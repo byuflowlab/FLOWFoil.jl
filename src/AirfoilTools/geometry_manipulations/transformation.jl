@@ -132,7 +132,6 @@ function position_coordinates!(
     rotation_point=[0.0; 0.0],
     flipped=false,
 )
-    display(coordinates)
     #flip if needed
     if flipped
         coordinates[:, 2] .*= -1.0
