@@ -9,30 +9,67 @@ abstract type Method end
 #---------------------------------#
 
 """
-    reformat_inputs(method::method, coordinates, flow_angle, reynolds, mach)
+    reformat_inputs(x, y, flow_angle, reynolds, mach)
+    reformat_inputs(coordinates, flow_angle, reynolds, mach)
 
-Defines a Problem object to be used for setup and post-processing.
+Reformats inputs to be the expected format.
 
-**Arguments:**
-- `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
+# Arguments:
+- `coordinates::Tuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a vecotr of matrices as well)
 - `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
+
+# Optional Arguments:
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
 - `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
-- `method::Method` : Type of problem to solve (planar, axisymmetric, or periodic).
 
-**Returns:**
-- `problem::Problem` : Problem object
+# Keyword Arguments:
+- `method::Method=Xfoil()` : desired method for solving
+- `gap_tolerance::Float` : gap_tolerance for determining trailing edge gap
+
+# Returns:
+- `coordinates::Vector{Float}` : reformatted coordinates
+- `nbody::Int` : number of bodies
+- `aoa::Vector{Float}` : reformatted angles of attack
+- `reynolds_numbers::Vector{Float}` : reformatted Reynolds numbers
+- `mach_numbers::Vector{Float}` : reformatted Mach numbers
 """
-function reformat_inputs(method::Method, coordinates, flow_angle, reynolds, mach)
+function reformat_inputs(x, y, flow_angle, reynolds, mach)
+    # combine coordinates
+    return reformat_inputs([x y], flow_angle, reynolds, mach)
+end
+
+function reformat_inputs(coordinates, flow_angle, reynolds, mach)
+    # if coordinates is a tuple of coordinates, then splat it into a vector
+    return reformat_inputs([coordinates...], flow_angle, reynolds, mach)
+end
+
+function reformat_inputs(coordinates::AbstractMatrix, flow_angle, reynolds, mach)
+    sc = size(coordinates)
+    @assert length(sc) == 2 "Coordinates must include both x and y coordinates"
+    @assert 2 ∈ sc "Coordinates must only include x and y values"
+
+    if sc[1] == 2
+        # shape into expected dimensions
+        return reformat_inputs(
+            [coordinates[1, :] coordiantes[2, :]], flow_angle, reynolds, mach
+        )
+    else
+        # pass through if already in expected dimensions
+        return reformat_inputs(coordinates, flow_angle, reynolds, mach)
+    end
+end
+
+function reformat_inputs(coordinates::AbstractArray, flow_angle, reynolds, mach)
 
     # - Get Number of Bodies - #
-    #= NOTE:
-        The size function in the first if will use the overloaded version that returns the length of the tuple if coordinates is of type Tuple.  See overloaded function at the end of FLOWFoil.jl
-    =#
     if length(size(coordinates)) == 1
+        # if coordinates is a vector of vectors
+        # should be if user inputs it as such or if user inputs a tuple
         nbody = length(coordinates)
     else
-        nbody = size(coordinates)[2]
+        # if coordinates is a single matrix
+        # should be if user inputs a single airfoil or if separate x and y coordinates are combined
+        nbody = 1
     end
 
     # - Make Angles of Attack a Vector (if not one already) - #
@@ -60,49 +97,45 @@ function reformat_inputs(method::Method, coordinates, flow_angle, reynolds, mach
         mach_numbers = mach
     end
 
-    # - Must be Viscous if Reynolds Numbers are Greater Than Zero - #
-    if all(x -> x != nothing, reynolds_numbers) && all(x -> x > 0.0, reynolds_numbers)
-        viscous = true
-    elseif all(x -> x == nothing, reynolds_numbers) || all(x -> x <= 0.0, reynolds_numbers)
-        viscous = false
-    else
-        @error "Cannot mix viscid and inviscid analyses. For viscous analsis sets, all reynolds numbers must be greater than 0.0. For inviscid analysis sets, it is best to set reynolds to -1.0."
-    end
-
-    # - RETURN - #
     return coordinates, nbody, aoa, reynolds_numbers, mach_numbers
 end
+
 #---------------------------------#
 #          Panel Geometry         #
 #---------------------------------#
 
 """
-    generate_panels(p, coordinates)
+    generate_panel_geometry(p, coordinates)
 
-Generate panel object for a give set of coordinates.
+Generate panel geometries for a give set of coordinates.
 
-**Arguments:**
-- `p::Method` : problem type object
-- `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
+# Arguments:
+- `method::Method` : method for solving
+- `coordinates::Vector{Matrix{Float}}` : Vector of [x y] matrices of airfoil coordinates (may be a single matrix as well)
 
-**Returns:**
-- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
+# Returns:
+- `panel_geometry::Vector{NTuple}` : Vector of named tuples (one for each body in the system)
 """
-function generate_panels(::Method, coordinates) end
+function generate_panel_geometry(method::Method, coordinates) end
 
 #---------------------------------#
 #         System Geometry         #
 #---------------------------------#
-"""
-**Arguments:**
-- `method::Method` : Problem type object for dispatch
-- `panels::Vector{Panel}` : Array of panel object for airfoil system. (can also be a single panel object if only one body is being modeled)
 
-**Returns:**
-- `mesh::Mesh` : Mesh object including various influence geometries for the system
-- `TEmesh::Mesh` : Mesh object specifically for trailing edge gap panels if present.
 """
-function generate_system_geometry(method::Method, panels; gap_tolerance=1e-10) end
+    generate_system_geometry(method::Method, panel_geometry; gap_tolerance=1e-10) end
+
+Generate relative geometry between panels used in assembling the system matrices.
+
+# Arguments:
+- `method::Method` : Problem type object for dispatch
+- `panel_geometry::Vector{Panel}` : Array of panel object for airfoil system. (can also be a single panel object if only one body is being modeled)
+
+# Returns:
+- `system_goemetry::NTuple` : Named tuple including various influence geometries for the system
+- `TE_geometry::NTuple` : Named tuple specifically for trailing edge gap panel_geometry if present.
+"""
+function generate_system_geometry(method::Method, panel_geometry; gap_tolerance=1e-10) end
 
 #---------------------------------#
 #   Generate (Non)Linear System   #
@@ -111,44 +144,38 @@ function generate_system_geometry(method::Method, panels; gap_tolerance=1e-10) e
 """
     generate_system_matrices(method::Method, mesh, TEmesh)
 
-**Arguments:**
-- If PlanarProblem:
-  - `method::Method` : method object for dispatch
-  - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
-  - `mesh::Mesh` : Mesh for airfoil system to analyze.
-  - `TEMesh::Mesh` : Trailing edge gap panel influence mesh.
+Assemble various matrices used in system solves.
 
-- If AxisymmetricProblem:
-  - `method::Method` : method object for dispatch
-  - `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
-  - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
-  - `mesh::Mesh` : Mesh for airfoil system to analyze.
+# Arguments:
+- `method::Method` : method object for dispatch
+- `panel_geometry::Vector{NTuple}` : Vector of named tuples (one for each body in the system)
+- `system_geometry::NTuple` : geometry for airfoil system to analyze.
+- `TE_geometry::NTuple` : Trailing edge gap panel influence geometry.
 
-**Returns:**
-` inviscid_system::InviscidSystem` : Inviscid System object containing influence and boundary condition matrices for the system.
+# Returns:
+- `system::NTuple` : Named tuple containing relevant influence and right hand side matrices, etc.
 """
-function generate_system_matrices(method::Method, panels, mesh, TEmesh) end
+function generate_system_matrices(
+    method::Method, panel_geometry, system_geometry, TE_geometry
+) end
 
 #---------------------------------#
 #              SOLVE              #
 #---------------------------------#
 
 """
-    solve(problem)
+    solve(method::Method, system_matrices)
 
-Solve problem defined by the input Problem object and return the solution in a Solution object.
+Solve system.
 
-**Arguments:**
-- `problem::Problem` : Problem to solve
+# Arguments:
+- `method::Method` : method object for dispatch
+- `system_matrices::system_matrices` : system to solve
 
-**Returns:**
- - `solution::{InviscidSolution or ViscousSolution}` : returns solution of type matching viscous flag in problem.
+# Returns:
+ - `strengths:Array{Float}` : values for solved panel strengths
 """
-function solve(system)
-    solution = solve_inviscid(system)
-
-    return solution
-end
+function solve(method::Method, system) end
 
 #---------------------------------#
 #          Post Processing        #
@@ -158,23 +185,17 @@ abstract type Outputs end
 abstract type AuxOutputs end
 
 """
-    post_process(::Method, problem, panels, mesh, solution; debug=false)
+    post_process(method::Method, panel_geometry, system_geometry, strengths)
 
 Post-process solution and produce a Polar object.
 
-**Arguments:**
+# Arguments:
 - `method::Method` : Problem type for dispatch
-- `problem::Problem` : Problem object
-- `panels::Vector{Panel}` : vector of Panel objects
-- `mesh::Mesh` : Mesh object
-- `solution::Solution` : Solution object
+- `panel_geometry::Vector{Panel}` : vector of Panel objects
+- `system_geometry::NTuple` : geometry for airfoil system to analyze.
+- `strengths:Array{Float}` : values for solved panel strengths
 
-**Keyword Arguments:**
-- `npanels::Int` : number of panels to use on top and bottom surface for surface distribution smoothing
-- `debug::Bool` : Flag for output format (see below)
-
-**Returns:**
-- If debug == false: `polar::Polar` : a Polar object
-- If debug == true: all the fields of a Polar object (in order), but as a tuple rather than a struct, such that the raw, unsmoothed, velocity and pressure distributions can be output.
+# Returns:
+- `outputs::Outputs` : object of type outputs
 """
-function post_process(::Method, problem, panels, mesh, solution; npanels=80, debug=false) end
+function post_process(method::Method, panel_geometry, system_geometry, strengths) end
