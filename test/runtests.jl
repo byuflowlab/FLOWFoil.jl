@@ -6,9 +6,16 @@ using ForwardDiff
 using ReverseDiff
 
 include("problem_tests.jl")
-include("panel_tests.jl")
-include("mesh_tests.jl")
-include("system_tests.jl")
-include("solve_tests.jl")
-include("post_process_tests.jl")
-include("autodiff_tests.jl")
+# include("autodiff_tests.jl")
+
+# Mfoil (Xfoil)
+include.(filter(contains(r".jl$"), readdir("mfoil"; join=true)))
+
+# Lewis (Axisymmetric)
+include.(filter(contains(r".jl$"), readdir("lewis"; join=true)))
+
+# Martensen (Periodic)
+include.(filter(contains(r".jl$"), readdir("martensen"; join=true)))
+
+# Hess-Smith (Educational)
+include.(filter(contains(r".jl$"), readdir("hess_smith"; join=true)))
