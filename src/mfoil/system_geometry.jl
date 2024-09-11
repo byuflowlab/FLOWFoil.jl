@@ -1,6 +1,6 @@
 """
 """
-function generate_system_geometry(p::PlanarProblem, panels; gap_tolerance=1e-10)
+function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
 
     ### --- Convenience Variables --- ###
     nbodies = length(panels)
