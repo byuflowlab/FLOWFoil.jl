@@ -1,2 +1,1 @@
-@kwdef struct Lewis{} <: Method
-end
+@kwdef struct Lewis{} <: Method end

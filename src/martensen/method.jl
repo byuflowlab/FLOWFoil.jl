@@ -1,2 +1,1 @@
-@kwdef struct Martensen{} <: Method
-end
+@kwdef struct Martensen{} <: Method end

@@ -1,5 +1,4 @@
 
-
 """
 """
 function get_vtbar(theta1, theta2)
@@ -40,4 +39,3 @@ function vt(mesh, gamma)
     vtbar = get_vtbar(theta1, theta2)
     return vttilde = get_vttilde(theta1, theta2, ln1, ln2, dmag, h, a)
 end
-

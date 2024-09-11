@@ -34,9 +34,8 @@ function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
     if mesh.m[i, j] != 1.0
 
         #panels are different
-        return (
-            u * cos(paneli.panel_angle[m2p[i]]) + v * sin(paneli.panel_angle[m2p[i]])
-        ) * panelj.panel_length[m2p[j]]
+        return (u * cos(paneli.panel_angle[m2p[i]]) + v * sin(paneli.panel_angle[m2p[i]])) *
+               panelj.panel_length[m2p[j]]
     else
         #same panel -> self induction equation
 

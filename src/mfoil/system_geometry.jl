@@ -16,16 +16,11 @@ function generate_system_geometry(p::PlanarProblem, panels; gap_tolerance=1e-10)
     csnodes = cumsum(nnodes)
     cspanels = cumsum(npanels)
 
-
-    node_indices = [
-        (1 + (i == 1 ? 0 : csnodes[i - 1])):(csnodes[i]) for i in 1:nbodies
-    ]
-    panel_indices = [
-        (1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:nbodies
-    ]
+    node_indices = [(1 + (i == 1 ? 0 : csnodes[i - 1])):(csnodes[i]) for i in 1:nbodies]
+    panel_indices = [(1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:nbodies]
 
     # - Map indices - #
-    mesh2panel = reduce(vcat,[1:npanels[i] for i in 1:nbodies])
+    mesh2panel = reduce(vcat, [1:npanels[i] for i in 1:nbodies])
 
     ### --- Initialize Vectors --- ###
     TF = typeof(sum([panels[i].panel_length[1] for i in 1:nbodies]))
@@ -110,8 +105,7 @@ function generate_system_geometry(p::PlanarProblem, panels; gap_tolerance=1e-10)
         trailing_edges[m] = maximum(panels[m].panel_edges[:, :, 1])
 
         # Check if trailing edge is sharp or not
-        if abs(TE_panel_length[m]) >
-            gap_tolerance * (trailing_edges[m] - leading_edges[m])
+        if abs(TE_panel_length[m]) > gap_tolerance * (trailing_edges[m] - leading_edges[m])
 
             # set blunt_te to true
             blunt_te[m] = true
@@ -152,7 +146,7 @@ function generate_system_geometry(p::PlanarProblem, panels; gap_tolerance=1e-10)
                     TE_panel_vector,
                     trailing_edge_gap[m],
                     # field_panel_edge[edgeidx, :];
-                    nodes[i,:];
+                    nodes[i, :];
                     gap_tolerance=gap_tolerance,
                 )
 
@@ -173,7 +167,7 @@ function generate_system_geometry(p::PlanarProblem, panels; gap_tolerance=1e-10)
                         influence_panel_vector,
                         panel_length[mesh2panel[j]],
                         # field_panel_edge[edgeidx, :];
-                        nodes[i,:];
+                        nodes[i, :];
                         gap_tolerance=gap_tolerance,
                     )
                 end #for panels being influenced
@@ -317,8 +311,8 @@ function calculate_influence_geometry(
 end
 
 # - If single airfoil, need to put Panel object in a vector - #
-function generate_system_geometry(p::PlanarProblem, panels::TP; gap_tolerance=1e-10) where {TP<:Panel}
+function generate_system_geometry(
+    p::PlanarProblem, panels::TP; gap_tolerance=1e-10
+) where {TP<:Panel}
     return generate_system_geometry(p, [panels]; gap_tolerance=gap_tolerance)
 end
-
-

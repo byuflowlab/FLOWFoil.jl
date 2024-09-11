@@ -64,5 +64,4 @@ for i in 1:length(meshes)
 end
 ylim(1.0, -1.25)
 
-
-savefig("twofoiltest.pdf", bbox_inches="tight")
+savefig("twofoiltest.pdf"; bbox_inches="tight")

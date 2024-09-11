@@ -278,4 +278,3 @@ function findclmaxlinear(
     end
     return aoaclmaxlinear, clmaxlinear
 end #findclmaxlinear
-

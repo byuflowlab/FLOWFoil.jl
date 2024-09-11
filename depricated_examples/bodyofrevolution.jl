@@ -7,12 +7,12 @@ using FLOWMath
 include("../test/data/bodyofrevolutioncoords.jl")
 
 #Plot
-figure(figsize=(6,4))
+figure(; figsize=(6, 4))
 ylim([-0.25, 1.5])
 xlabel("x")
 ylabel(L"V_s/V_\infty")
 
-plot(x, r, "C2",linewidth=2, label="geometry")
+plot(x, r, "C2"; linewidth=2, label="geometry")
 
 # p = plot(; xlabel="x", ylabel=L"V_s/V_\infty", ylimits=[-0.25, 1.5])
 # plot!(x, r; linecolor=mycolors[3], label="geometry")
@@ -41,11 +41,10 @@ surface_velocity = solution.panelgammas
 #    label="Experimental",
 #)
 
-plot(Vs_over_Vinf_x, Vs_over_Vinf_vs, "oC1", label = "Experimental")
-plot(cpx, surface_velocity, "C0",linewidth=2, label="Panel Method")
+plot(Vs_over_Vinf_x, Vs_over_Vinf_vs, "oC1"; label="Experimental")
+plot(cpx, surface_velocity, "C0"; linewidth=2, label="Panel Method")
 
 legend()
-
 
 #panel method solution
 # plot!(
@@ -57,5 +56,5 @@ legend()
 # )
 
 # savefig("surface_velocity.pdf")
-savefig("./docs/src/bodyofrevolution.pdf", bbox_inches="tight")
+savefig("./docs/src/bodyofrevolution.pdf"; bbox_inches="tight")
 # savetightplot(p, "surface_velocity.pdf")

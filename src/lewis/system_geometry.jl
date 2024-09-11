@@ -16,12 +16,10 @@ function generate_system_geometry(axisym::Lewis, panels::AbstractArray; ex=1e-5)
     cspanels = cumsum(npanels)
 
     # put together index ranges of panels for each body
-    panel_indices = [
-        (1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:nbodies
-    ]
+    panel_indices = [(1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:nbodies]
 
     # - Map indices - #
-    mesh2panel = reduce(vcat,[1:npanels[i] for i in 1:nbodies])
+    mesh2panel = reduce(vcat, [1:npanels[i] for i in 1:nbodies])
 
     ### --- Initialize Vectors --- ###
     TF = typeof(sum([panels[i].panel_length[1] for i in 1:nbodies]))
@@ -66,7 +64,5 @@ function generate_system_geometry(axisym::Lewis, panels::AbstractArray; ex=1e-5)
     end #for mth influenced body
 
     # Return Mesh
-    return AxisymmetricMesh(nbodies, panel_indices, mesh2panel,x, r, k2)
+    return AxisymmetricMesh(nbodies, panel_indices, mesh2panel, x, r, k2)
 end
-
-

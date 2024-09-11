@@ -161,14 +161,14 @@ function generate_panels!(::AxisymmetricProblem, panels, coordinates::Matrix{TF}
         else
             panels.panel_angle[i] = beta
         end
-
     end
 
     # - Calculate Panel Curvature - #
     # - If not the end panels, calculate non-zero curvatures - #
     # NOTE: end panels are trailing edges, which are assumed to have zero curvature.
     for i in 2:(npanels - 1)
-        panels.panel_curvature[i] = (panels.panel_angle[i + 1] - panels.panel_angle[i - 1]) / 8.0 / pi
+        panels.panel_curvature[i] =
+            (panels.panel_angle[i + 1] - panels.panel_angle[i - 1]) / 8.0 / pi
     end
 
     return nothing

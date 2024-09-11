@@ -208,5 +208,3 @@ function post_process(
         return PlanarPolar(cl, cd, cdp, cdi, cm, v_surf, p_surf, smooth_nodes)
     end
 end
-
-

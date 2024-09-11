@@ -8,7 +8,6 @@ Date Started: 2 May 2023
 Change Log:
 =#
 
-
 # ---------- parameters ----------
 struct Params{TF}
     γ::TF  # ratio of specific heats
@@ -39,34 +38,34 @@ function kt_params(Minf)
 end
 
 # local Karman-Tsien velocity correction
-kt_velocity(u, λ, Vinf) = u*(1 - λ) / (1 - λ*(u/Vinf)^2)
-kt_cp(cp, λ, β) = cp / (β + λ*(1 + β)*cp/2)
+kt_velocity(u, λ, Vinf) = u * (1 - λ) / (1 - λ * (u / Vinf)^2)
+kt_cp(cp, λ, β) = cp / (β + λ * (1 + β) * cp / 2)
 
 # local speed of sound
-speedsound(u, ht, γ) = sqrt((γ-1)*(ht - u^2/2))
+speedsound(u, ht, γ) = sqrt((γ - 1) * (ht - u^2 / 2))
 
 # local mach number
 mach(u, ht, γ) = u / speedsound(u, ht, γ)
 
 # freestream total enthalpy
 function totalenthapy(Vinf, Minf, γ)
-    γm = γ-1
-    factor = 1 + γm/2*Minf^2
+    γm = γ - 1
+    factor = 1 + γm / 2 * Minf^2
     return Vinf^2 / (γm * Minf^2) * factor
 end
 
 # local density
 function density(Me, ρinf, Minf, γ)
-    γm2 = (γ-1)/2
-    ex = 1/(γ - 1)
-    return ρinf * (1 + γm2*Minf^2)^ex / (1 + γm2*Me^2)^ex
+    γm2 = (γ - 1) / 2
+    ex = 1 / (γ - 1)
+    return ρinf * (1 + γm2 * Minf^2)^ex / (1 + γm2 * Me^2)^ex
 end
 
 # ratio of local temperature to total temperature
-tempratio(u, ht) = 1 - 0.5*u^2/ht
+tempratio(u, ht) = 1 - 0.5 * u^2 / ht
 
 # subfunction in Sutherland's law
-su_func(Tratio, rsu) = Tratio^1.5*(1 + rsu)/(Tratio + rsu)
+su_func(Tratio, rsu) = Tratio^1.5 * (1 + rsu) / (Tratio + rsu)
 
 # freestream parameters for Sutherland's
 function su_params(Vinf, muinf, ht, rsu)
@@ -90,7 +89,7 @@ function compressibility(ue, θ, params)
     M = mach(u, ht, γ)
     rho = density(M, ρinf, Minf, γ)
     mu = viscosity(u, mu0, rsu)
-    Reθ = rho*u*θ/mu
+    Reθ = rho * u * θ / mu
 
     return u, M, Reθ
 end
@@ -105,7 +104,6 @@ function set_freestream(Minf, Reinf, Vinf, rhoinf, chord, γ)
     return (β=β, λ=λ, ht=ht, mu0=mu0)
 end
 
-
 # -----------------------------------------
 
 # ------ shape parameters --------
@@ -114,7 +112,7 @@ end
 function shape(H, M, Reθ, bltype)
 
     # H_k
-    Hk = (H - 0.29*M^2)/(1 + 0.113*M^2)
+    Hk = (H - 0.29 * M^2) / (1 + 0.113 * M^2)
 
     if bltype == "wake"
         Hk = max(Hk, 1.00005)  # TODO
@@ -123,32 +121,30 @@ function shape(H, M, Reθ, bltype)
     end
 
     #H^{**}
-    Hss = 0.064*M^2 / (Hk - 0.8)
+    Hss = 0.064 * M^2 / (Hk - 0.8)
 
     #H^*
     if bltype == "laminar"
-
         Hkt = Hk - 4.35
         if Hk < 4.35  # TODO: make these if/else statements smooth
-            Hsl = (0.0111*Hkt^2 - 0.0278^Hkt^3) / (Hk - 1) + 1.528 - 0.002*(Hkt*Hk)^2
+            Hsl = (0.0111 * Hkt^2 - 0.0278^Hkt^3) / (Hk - 1) + 1.528 - 0.002 * (Hkt * Hk)^2
         else
-            Hsl = 0.015*Hkt^2/Hk + 1.528
+            Hsl = 0.015 * Hkt^2 / Hk + 1.528
         end
 
         Hs = Hsl
 
     else  # turbulent
-
-        H0 = min(3.0 + 400/Reθ, 4.0)  # TODO: replace with smooth min
+        H0 = min(3.0 + 400 / Reθ, 4.0)  # TODO: replace with smooth min
         Hr = (H0 - Hk) / (H0 - 1)
         Reθt = max(Reθ, 200)  # TODO: replace with smooth max
-        AH = Hk - H0 + 4/log(Reθt)
+        AH = Hk - H0 + 4 / log(Reθt)
         if Hk < H0
-            Hsti = 1.5 + 4/Reθt + 1.5*(0.5 - 4/Reθt)*Hr^2/(Hk + 0.5)
+            Hsti = 1.5 + 4 / Reθt + 1.5 * (0.5 - 4 / Reθt) * Hr^2 / (Hk + 0.5)
         else
-            Hsti = 1.5 + 4/Reθt + (Hk - H0)^2*(0.007*log(Reθt)/AH^2 + 0.015/Hk)
+            Hsti = 1.5 + 4 / Reθt + (Hk - H0)^2 * (0.007 * log(Reθt) / AH^2 + 0.015 / Hk)
         end
-        Hst = (Hsti + 0.028*M^2) / (1 + 0.014*M^2)
+        Hst = (Hsti + 0.028 * M^2) / (1 + 0.014 * M^2)
 
         Hs = Hst
     end
@@ -156,40 +152,34 @@ function shape(H, M, Reθ, bltype)
     return Hk, Hss, Hs
 end
 
-
-
-
 # ------- skin friction  ----------------
 
 # laminar skin friction
 function cf_lam(Reθ, Hk)
-
     if Hk < 5.5  # TODO: make these if/else statements smooth
-        num = 0.0727*(5.5 - Hk)^3 / (Hk + 1) - 0.07
+        num = 0.0727 * (5.5 - Hk)^3 / (Hk + 1) - 0.07
     else
-        num = 0.015*(1 - 1/(Hk - 4.5))^2 - 0.07
+        num = 0.015 * (1 - 1 / (Hk - 4.5))^2 - 0.07
     end
 
-    return num/Reθ
+    return num / Reθ
 end
 
 # turbulent skin friction
 function cf_turb(Reθ, Hk, M, γ)
-
-    Acf = -1.33*Hk
+    Acf = -1.33 * Hk
     if Acf < -17  # TODO
-        Acf = -20.0 + 3*exp((Acf + 17)/3.0)
+        Acf = -20.0 + 3 * exp((Acf + 17) / 3.0)
     end
 
-    Fc = sqrt(1 + 0.5*(γ - 1)*M^2)
-    Bcf = max(log10(Reθ/Fc), 1.303)  # TODO
+    Fc = sqrt(1 + 0.5 * (γ - 1) * M^2)
+    Bcf = max(log10(Reθ / Fc), 1.303)  # TODO
 
-    return 0.3*exp(Acf)*Bcf^(-1.74 - 0.31*Hk) + 0.00011*(tanh(4 - Hk/0.875) - 1)
+    return 0.3 * exp(Acf) * Bcf^(-1.74 - 0.31 * Hk) + 0.00011 * (tanh(4 - Hk / 0.875) - 1)
 end
 
 # combine for convenience
 function skinfriction(Reθ, Hk, M, γ, bltype)
-
     if bltype == "laminar"
         return cf_lam(Reθ, Hk)
 
@@ -199,31 +189,28 @@ function skinfriction(Reθ, Hk, M, γ, bltype)
     else  # wake
         return 0.0
     end
-
 end
 
 # ------- dissipation  ----------------
 
 # laminar dissipation
 function cdi_lam(Reθ, Hk)
-
     if Hk < 4  # TODO
-        num = 0.00205*(4 - Hk)^5.5 + 0.207
+        num = 0.00205 * (4 - Hk)^5.5 + 0.207
     else
-        num = -0.0016*(Hk - 4)^2 / (1 + 0.02*(Hk - 4)^2) + 0.207
+        num = -0.0016 * (Hk - 4)^2 / (1 + 0.02 * (Hk - 4)^2) + 0.207
     end
 
-    return num/Reθ
+    return num / Reθ
 end
 
 # slip velocity
 function slip_velocity(H, Hk, Hs, Gb, bltype)
-
     if bltype == "laminar"
         return 1.0  # not used
     end
 
-    Us = 0.5*Hs*(1 - (Hk-1)/(H*Gb))
+    Us = 0.5 * Hs * (1 - (Hk - 1) / (H * Gb))
 
     if bltype == "wake"
         Us = min(Us, 0.99995)  # TODO
@@ -236,7 +223,6 @@ end
 
 # sub function used in turbulent and wake coefficients
 function cdi_sub(cτ, Reθ, Hs, Us)
-
     cdio = cτ * (0.995 - Us) * 2 / Hs  # outer
     cdis = 0.3 * (0.995 - Us)^2 / (Hs * Reθ)  # stress
 
@@ -245,11 +231,10 @@ end
 
 # turbulent dissipation
 function cdi_turb(cτ, Reθ, Hk, Hs, cf, Us)
-
     cdi = cdi_sub(cτ, Reθ, Hs, Us)
 
     # wall
-    cdiw = 0.5 * cf * Us / Hs * (1 + tanh((Hk-1)*log(Reθ)/2.1))
+    cdiw = 0.5 * cf * Us / Hs * (1 + tanh((Hk - 1) * log(Reθ) / 2.1))
 
     cdi += cdiw
 
@@ -258,18 +243,15 @@ end
 
 # wake dissipation
 function cdi_wake(cτ, Reθ, Hk, Hs, Us)
-
     cdi = dissipation_sub(cτ, Reθ, Hs, Us)
 
-    cdilw = 2.2*(1 - 1/Hk)^2 / (Hk*Hs*Reθ)
+    cdilw = 2.2 * (1 - 1 / Hk)^2 / (Hk * Hs * Reθ)
 
     return min(cdi, cdilw)  # TODO
-
 end
 
 # combine for convenience
 function dissipation(cτ, Reθ, H, Hk, Hs, cf, Gb, bltype)
-
     Us = slip_velocity(H, Hk, Hs, Gb, bltype)
 
     if bltype == "laminar"
@@ -290,22 +272,21 @@ end
 
 # rate of increase in amplification factor
 function amplification(θ, n, Reθ, Hk, params)
-
-    epsn = 0.001*(1 + tanh(5*(n - params.ncrit)))
-    Hhat = 1/(Hk - 1)
-    L0 = 2.492*Hhat^0.43 + 0.7*(1 + tanh(14*Hhat - 9.24))
+    epsn = 0.001 * (1 + tanh(5 * (n - params.ncrit)))
+    Hhat = 1 / (Hk - 1)
+    L0 = 2.492 * Hhat^0.43 + 0.7 * (1 + tanh(14 * Hhat - 9.24))
     sn = (log10(Reθ) - (L0 - 0.1)) / 0.2
     if sn < 0  # TODO
         rn = 0
     elseif sn > 1
         rn = 1
     else
-        rn = 3*sn^2 - 2*sn^3
+        rn = 3 * sn^2 - 2 * sn^3
     end
-    gn = 0.028/Hhat - 0.0345*exp(-(3.87*Hhat - 2.52)^2)
-    fn = -0.05 + 2.7*Hhat - 5.5*Hhat^2 + 3*Hhat^3 + 0.1*exp(-20*Hhat)
+    gn = 0.028 / Hhat - 0.0345 * exp(-(3.87 * Hhat - 2.52)^2)
+    fn = -0.05 + 2.7 * Hhat - 5.5 * Hhat^2 + 3 * Hhat^3 + 0.1 * exp(-20 * Hhat)
 
-    return (rn*fn*gn + epsn)/θ
+    return (rn * fn * gn + epsn) / θ
 end
 
 # -----------------------------------------
@@ -314,7 +295,7 @@ end
 # H_{kc}
 function get_Hkc(Reθ, Hk, params, bltype)
     Gc = bltype == "wake" ? 0.0 : params.Gc
-    Hkc = Hk - 1 - Gc/Reθ
+    Hkc = Hk - 1 - Gc / Reθ
     return Hkc
 end
 
@@ -322,7 +303,7 @@ end
 function get_uq(δs, Reθ, Hk, cf, params, bltype)
     (; Ga, Gb, ηd) = params
     Hkc = get_Hkc(Reθ, Hk, params, bltype)
-    uq = (0.5*cf - (Hkc/(Ga*ηd*Hk))^2) / (Gb * δs)
+    uq = (0.5 * cf - (Hkc / (Ga * ηd * Hk))^2) / (Gb * δs)
     return uq
 end
 
@@ -330,31 +311,28 @@ end
 function get_cτeq(Reθ, H, Hk, Hs, Us)
     (; Ga, Gb) = params
     Hkc = get_Hkc(Reθ, Hk, params, bltype)
-    cτeq = Hs*(Hk - 1)*Hkc^2 / (2*Ga^2*Gb*(1 - Us)*H*Hk^2)
+    cτeq = Hs * (Hk - 1) * Hkc^2 / (2 * Ga^2 * Gb * (1 - Us) * H * Hk^2)
     return cτeq
 end
 
-delta(δs, θ, Hk) = min(3.15 + 1.72/(Hk - 1) + δs, 12*θ)  # TODO
-
+delta(δs, θ, Hk) = min(3.15 + 1.72 / (Hk - 1) + δs, 12 * θ)  # TODO
 
 # ----------------------------
-
 
 # ---- averaging and upwinding ------
 # factor used in upwinding
 function upwind_factor(Hk1, Hk2, bltype)
     Cup = bltype == "wake" ? 5.0 : 1.0
     fhu = (Hk2 - 1) / (Hk1 - 1)
-    eta = 1.0 - 0.5*exp(-log(abs(fhu))^2 * Cup / Hk2^2)
+    eta = 1.0 - 0.5 * exp(-log(abs(fhu))^2 * Cup / Hk2^2)
     return eta
 end
 
 # upwind two variables using eta factor
-upwind(one, two, eta) = @. (1 - eta)*one + eta*two
+upwind(one, two, eta) = @. (1 - eta) * one + eta * two
 
 # average two variables
 average(one, two) = upwind(one, two, 0.5)
-
 
 # -------- residuals ----------------
 
@@ -371,13 +349,19 @@ function lresid(state1, state2, x1, x2, params, bltype)
 
     # set third state
     if bltype == "laminar"
-        n1 = v1; n2 = v2
-        sqcτ1 = 1.0; sqcτ2 = 1.0  # unused
-        cτ1 = 1.0; cτ2 = 1.0  # unused
+        n1 = v1
+        n2 = v2
+        sqcτ1 = 1.0
+        sqcτ2 = 1.0  # unused
+        cτ1 = 1.0
+        cτ2 = 1.0  # unused
     else
-        n1 = 1.0; n2 = 1.0  # unused
-        sqcτ1 = v1; sqcτ2 = v2
-        cτ1 = sqcτ1^2; cτ2 = sqcτ2^2
+        n1 = 1.0
+        n2 = 1.0  # unused
+        sqcτ1 = v1
+        sqcτ2 = v2
+        cτ1 = sqcτ1^2
+        cτ2 = sqcτ2^2
     end
 
     # compressibility
@@ -386,7 +370,9 @@ function lresid(state1, state2, x1, x2, params, bltype)
     um, Mm, Reθm = compressibility(uem, θm, params)
 
     # shape factors
-    H1 = δs1/θ1; H2 = δs2/θ2; Hm = δsm/θm
+    H1 = δs1 / θ1
+    H2 = δs2 / θ2
+    Hm = δsm / θm
 
     Hk1, Hss1, Hs1 = shape(H1, M1, Reθ1, bltype)
     Hk2, Hss2, Hs2 = shape(H2, M2, Reθ2, bltype)
@@ -403,12 +389,12 @@ function lresid(state1, state2, x1, x2, params, bltype)
     cfxt1 = cf1 * x1 / θ1
     cfxt2 = cf2 * x2 / θ2
     cfxtm = cfm * xm / θm
-    cfxt = 0.25*cfxt1 + 0.25*cfxt2 + 0.5*cfxtm
+    cfxt = 0.25 * cfxt1 + 0.25 * cfxt2 + 0.5 * cfxtm
 
     # momentum residual
     H = average(H1, H2)
     M = average(M1, M2)
-    r_mom = log(θ2/θ1) + (2 + H - M^2)*log(u2/u1) - 0.5*log(x2/x1)*cfxt
+    r_mom = log(θ2 / θ1) + (2 + H - M^2) * log(u2 / u1) - 0.5 * log(x2 / x1) * cfxt
 
     # dissipation
     Us1, cdi1 = dissipation(cτ1, Reθ1, H1, Hk1, Hs1, cf1, params.Gb, bltype)
@@ -416,25 +402,25 @@ function lresid(state1, state2, x1, x2, params, bltype)
 
     # shape residual
     cfxtup = upwind(cfxt1, cfxt2, eta)
-    cdxtHup = upwind((cdi1*x1)/(θ1*Hs1), (cdi2*x2)/(θ2*Hs2), eta)
+    cdxtHup = upwind((cdi1 * x1) / (θ1 * Hs1), (cdi2 * x2) / (θ2 * Hs2), eta)
     Hs = average(Hs1, Hs2)
     Hss = average(Hss1, Hss2)
-    r_shape = log(Hs2/Hs1) + (2*Hss/Hs + 1 - H)*log(u2/u1) + log(x2/x1)*(cfxtup/2 - cdxtHup)
-
+    r_shape =
+        log(Hs2 / Hs1) +
+        (2 * Hss / Hs + 1 - H) * log(u2 / u1) +
+        log(x2 / x1) * (cfxtup / 2 - cdxtHup)
 
     # amplification residual (e^n method)
     if bltype == "laminar"
-
         dndx1 = amplification(θ1, n1, Reθ1, Hk1, params)
         dndx2 = amplification(θ2, n2, Reθ2, Hk2, params)
         dndx = average(dndx1, dndx2)
 
-        r_amp = n2 - n1 - dndx*dx
+        r_amp = n2 - n1 - dndx * dx
 
         return [r_mom, r_shape, r_amp]
 
     else  # lag residual
-
         sqcτ = upwind(sqcτ1, sqcτ2, eta)
         cτeq1 = get_cτeq(Reθ1, H1, Hk1, Hs1, Us1)
         cτeq2 = get_cτeq(Reθ2, H2, Hk2, Hs2, Us2)
@@ -449,10 +435,11 @@ function lresid(state1, state2, x1, x2, params, bltype)
 
         (; Klag, Gb, ηd) = params
 
-        r_lag = 2*δ*log(sqcτ2/sqcτ1) - Klag/(Gb*(1 + Us))*(sqcτeq - ηd*sqcτ)*dx -
-            2*δ*(uq*dx - log(u2/u1))
+        r_lag =
+            2 * δ * log(sqcτ2 / sqcτ1) -
+            Klag / (Gb * (1 + Us)) * (sqcτeq - ηd * sqcτ) * dx -
+            2 * δ * (uq * dx - log(u2 / u1))
 
         return [r_mom, r_shape, r_lag]
     end
-
 end
