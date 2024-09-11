@@ -6,22 +6,8 @@ Authors: Judd Mehr,
 
 =#
 
-######################################################################
-#                                                                    #
-#                           SOLVE WRAPPERS                           #
-#                                                                    #
-######################################################################
-
-#---------------------------------#
-#             DEFAULTS            #
-#---------------------------------#
-#=
-    Most users will probably be wanting to do Xfoil-like 2D analyses,
-    so we'll have the defaults be xfoil-like implementaions.
-=#
-
 """
-    solve(coordinates, flow_angle, reynolds, mach, method)
+    analyze(coordinates, flow_angle, reynolds, mach, method)
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
@@ -30,7 +16,7 @@ Convenience function for setting up, solving, and post-processing airfoils and a
 - `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
 - `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
-- `method::ProblemType` : Type of problem to solve (Planar, axisymmetric, or periodic). Defaults to XFoil-like method: PlanarProblem(Vortex(Linear(),Dirichlet())
+- `method::ProblemType` : Type of problem to analyze (Planar, axisymmetric, or periodic). Defaults to XFoil-like method: PlanarProblem(Vortex(Linear(),Dirichlet())
 
 **Returns:**
 - `polar::Polar` : Polar object according to ProblemType
@@ -38,12 +24,12 @@ Convenience function for setting up, solving, and post-processing airfoils and a
 ---
 
 ## Other Implementations:
-`solve(coordinates, flow_angle, reynolds; method)` : assumes mach = 0.0
-`solve(coordinates, flow_angle; method)` : assumes inviscid and mach = 0.0
-`solve(coordinates; method)` : assumes inviscid and mach and angle of attack are 0.0
+`analyze(coordinates, flow_angle, reynolds; method)` : assumes mach = 0.0
+`analyze(coordinates, flow_angle; method)` : assumes inviscid and mach = 0.0
+`analyze(coordinates; method)` : assumes inviscid and mach and angle of attack are 0.0
 
 """
-function solve(
+function analyze(
     coordinates,
     flow_angle,
     reynolds,
@@ -63,8 +49,8 @@ function solve(
     # Assemble Linear System
     system = generate_inviscid_system(method, panels, mesh, TEmesh)
 
-    # Solve Linear System
-    solution = solve(system)
+    # analyze Linear System
+    solution = analyze(system)
 
     # Post Process Solution
     polar = post_process(method, problem, panels, mesh, solution)
@@ -74,7 +60,7 @@ function solve(
 end
 
 # - Mach = 0.0 - #
-function solve(
+function analyze(
     coordinates,
     flow_angle,
     reynolds,
@@ -82,19 +68,19 @@ function solve(
 ) end
 
 # - Inviscid; Mach = 0.0 - #
-function solve(
+function analyze(
     coordinates,
     flow_angle,
     method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
 )
-    return solve(coordinates, flow_angle, [-1.0], [-1.0], method)
+    return analyze(coordinates, flow_angle, [-1.0], [-1.0], method)
 end
 
 # - Inviscid; AoA = Mach = 0.0 - #
-function solve(
+function analyze(
     coordinates, method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet())
 )
-    return solve(coordinates, [0.0], [-1.0], [-1.0], method)
+    return analyze(coordinates, [0.0], [-1.0], [-1.0], method)
 end
 
 # TODO: consider also adding convenience functions for the other implementations.

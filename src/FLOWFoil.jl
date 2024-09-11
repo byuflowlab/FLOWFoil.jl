@@ -53,4 +53,6 @@ export Mfoil, Xfoil, Lewis#, Martensen
 ##### ----- FUNCTIONS ----- #####
 
 # Convenience Functions
-export solve
+export analyze
+
+end
