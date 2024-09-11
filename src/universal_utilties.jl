@@ -1,3 +1,12 @@
+#= NOTE:
+    Used in problem definition function to help count number of bodies, the coordinates of which are a tuple of vectors if multiple bodies are being analyzed together.
+=#
+import Base.size
+function size(t::Tuple)
+    return length(t)
+end
+
+end
 """
     linear_transform(range1, range2, values)
 

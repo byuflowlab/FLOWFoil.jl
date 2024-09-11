@@ -20,38 +20,27 @@ export AirfoilTools
 
 ##### ----- CORE FUNCTIONALITY ----- #####
 
-# Dispatch Types
-include("dispatch_types.jl")
-
-# Problem Object Definition
-include("problem.jl")
-
-# Panel Definition
-include("panel.jl")
-
-# Mesh Generation
-include("mesh.jl")
-
-# Geometry Utilities
-include("geometry.jl")
-
-# Singularity Functions
-include("singularity.jl")
-
-# Linear System Generation
-include("system.jl")
-
-# Linear System Solve
-include("solve.jl")
-
-# Solution Post Processing
-include("post_process.jl")
-
 # Convenience Functions
 include("convenience_functions.jl")
 
+# Dispatch Functions
+include("universal_dispatch.jl")
+
 # Utility Functions
-include("utils.jl")
+include("universal_utilities.jl")
+
+##### ----- Methods ----- #####
+# Mfoil (Xfoil)
+include.(filter(contains(r".jl$"), readdir("mfoil"; join=true)))
+
+# Lewis (Axisymmetric)
+include.(filter(contains(r".jl$"), readdir("lewis"; join=true)))
+
+# Martensen (Periodic)
+include.(filter(contains(r".jl$"), readdir("martensen"; join=true)))
+
+# Hess-Smith (Educational)
+include.(filter(contains(r".jl$"), readdir("hess_smith"; join=true)))
 
 #---------------------------------#
 #             EXPORTS             #
@@ -59,55 +48,9 @@ include("utils.jl")
 
 ##### ----- TYPES ----- #####
 
-# Singularities
-export Source, Doublet, Vortex
-export Constant, Linear, Quadratic, Spline
-
-# Boundary Conditions
-export Neumann, Dirichlet, Robin, Mixed
-
-# Problem
-export Problem, PlanarProblem, AxisymmetricProblem, PeriodicProblem
-
-# Panels
-export PlanarFlatPanel, AxisymmetricFlatPanel
-
-# System
-export InviscidSystem
+export Mfoil, Xfoil, Lewis#, Martensen
 
 ##### ----- FUNCTIONS ----- #####
 
 # Convenience Functions
 export solve
-
-# Problem
-export define_problem
-
-# Panels
-export generate_panels
-
-# Mesh
-export generate_mesh
-
-# System
-export generate_inviscid_system
-
-# Post Process
-export post_process
-
-# Airfoil Parameterizations
-export naca4
-
-#---------------------------------#
-#       OVERLOADED FUNCTIONS      #
-#---------------------------------#
-
-#= NOTE:
-    Used in problem definition function to help count number of bodies, the coordinates of which are a tuple of vectors if multiple bodies are being analyzed together.
-=#
-import Base.size
-function size(t::Tuple)
-    return length(t)
-end
-
-end
