@@ -1,41 +1,25 @@
-"""
-    solve_inviscid(inviscid_system, mesh)
-
-Solve the inviscid_system for the vortex and streamfunction strengths.
-
-Outputs the InviscidSolution object which contains the inviscid_system.
-
-**Arguments:**
-- `inviscid_system::InviscidSystem` : inviscid_system to solve.
-- `mesh::Mesh` : Mesh defining geometry (to put into solution object)
-
-**Returns:**
- - `solution::InviscidSolution`
-
-"""
-function solve_inviscid(inviscid_system)
+function solve(::Lewis, system_matrices)
 
     # Solve System
-    if ndims(inviscid_system.b) > 1
+    if ndims(system_matrices.b) > 1
 
         # initialize output
-        x = similar(inviscid_system.b)
+        x = similar(system_matrices.b)
 
         # Pre-compute factorization
-        Afact = LinearAlgebra.factorize(ImplicitAD.fd_value(inviscid_system.A))
+        Afact = LinearAlgebra.factorize(ImplicitAD.fd_value(system_matrices.A))
 
         # loop through dimensions, reusing the factorization of A
-        for i in 1:size(inviscid_system.b)[2]
+        for i in 1:size(system_matrices.b)[2]
             x[:, i] = ImplicitAD.implicit_linear(
-                inviscid_system.A, inviscid_system.b[:, i]; Af=Afact
+                system_matrices.A, system_matrices.b[:, i]; Af=Afact
             )
         end
 
     else
         # Just solve like normal
-        x = ImplicitAD.implicit_linear(inviscid_system.A, inviscid_system.b)
-        # x = inviscid_system.A \ inviscid_system.b
+        x = ImplicitAD.implicit_linear(system_matrices.A, system_matrices.b)
     end
 
-    return InviscidSolution(x, inviscid_system)
+    return x
 end

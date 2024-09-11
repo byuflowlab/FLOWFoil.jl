@@ -18,6 +18,29 @@ include("AirfoilTools/AirfoilTools.jl")
 const at = AirfoilTools
 export AirfoilTools
 
+##### ----- Methods ----- #####
+
+abstract type Method end
+abstract type Outputs end
+abstract type AuxOutputs end
+
+# Mfoil (Xfoil)
+include("mfoil/method.jl")
+
+# Lewis (Axisymmetric)
+include("lewis/method.jl")
+include("lewis/geometry_utils.jl")
+include("lewis/panel_geometry.jl")
+include("lewis/system_geometry.jl")
+include("lewis/singularities.jl")
+include("lewis/system_matrices.jl")
+include("lewis/solve.jl")
+include("lewis/post_process.jl")
+
+# Martensen (Periodic)
+
+# Hess-Smith (Educational)
+
 ##### ----- CORE FUNCTIONALITY ----- #####
 
 # Convenience Functions
@@ -28,19 +51,7 @@ include("universal_dispatch.jl")
 
 # Utility Functions
 include("universal_utilities.jl")
-
-##### ----- Methods ----- #####
-# Mfoil (Xfoil)
-include.(filter(contains(r".jl$"), readdir("mfoil"; join=true)))
-
-# Lewis (Axisymmetric)
-include.(filter(contains(r".jl$"), readdir("lewis"; join=true)))
-
-# Martensen (Periodic)
-include.(filter(contains(r".jl$"), readdir("martensen"; join=true)))
-
-# Hess-Smith (Educational)
-include.(filter(contains(r".jl$"), readdir("hess_smith"; join=true)))
+include("universal_geometry_utilities.jl")
 
 #---------------------------------#
 #             EXPORTS             #

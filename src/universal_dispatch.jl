@@ -1,10 +1,4 @@
 #---------------------------------#
-#             Methods             #
-#---------------------------------#
-
-abstract type Method end
-
-#---------------------------------#
 #          Reformat Inputs        #
 #---------------------------------#
 
@@ -17,14 +11,8 @@ Reformats inputs to be the expected format.
 # Arguments:
 - `coordinates::Tuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a vecotr of matrices as well)
 - `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
-
-# Optional Arguments:
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
 - `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
-
-# Keyword Arguments:
-- `method::Method=Xfoil()` : desired method for solving
-- `gap_tolerance::Float` : gap_tolerance for determining trailing edge gap
 
 # Returns:
 - `coordinates::Vector{Float}` : reformatted coordinates
@@ -55,7 +43,7 @@ function reformat_inputs(coordinates::AbstractMatrix, flow_angle, reynolds, mach
         )
     else
         # pass through if already in expected dimensions
-        return reformat_inputs(coordinates, flow_angle, reynolds, mach)
+        return reformat_inputs([coordinates], flow_angle, reynolds, mach)
     end
 end
 
@@ -175,14 +163,11 @@ Solve system.
 # Returns:
  - `strengths:Array{Float}` : values for solved panel strengths
 """
-function solve(method::Method, system) end
+function solve(method::Method, system_matrices) end
 
 #---------------------------------#
 #          Post Processing        #
 #---------------------------------#
-
-abstract type Outputs end
-abstract type AuxOutputs end
 
 """
     post_process(method::Method, panel_geometry, system_geometry, strengths)

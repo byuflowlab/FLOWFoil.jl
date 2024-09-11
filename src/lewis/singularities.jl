@@ -1,37 +1,40 @@
 """
-    calculate_ring_vortex_influence(paneli, panelj, mesh, i, j)
+    calculate_ring_vortex_influence(paneli, panelj, system_geometry, i, j)
 
 Cacluate the influence of a ring vortex at panel j onto panel i.
 
 **Arguments:**
 - `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
 - `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
-- `mesh::FLOWFoil.AxisymmetricMesh` : relative geometry object.
+- `system_geometry::FLOWFoil.AxisymmetricMesh` : relative geometry object.
 - `i::Int` : index for ith panel
 - `j::Int` : index for jth panel
 
 **Returns:**
 - `aij::Float` : Influence of vortex ring strength at panel j onto panel i.
 """
-function calculate_ring_vortex_influence(::Constant, paneli, panelj, mesh, i, j)
-    m2p = mesh.mesh2panel
+function calculate_ring_vortex_influence(paneli, panelj, system_geometry, i, j)
+    m2p = system_geometry.mesh2panel
 
     #calculate unit velocities
     u = get_u_ring_vortex(
-        mesh.x[i, j],
-        mesh.r[i, j],
+        system_geometry.x[i, j],
+        system_geometry.r[i, j],
         panelj.panel_center[m2p[j], 2],
         panelj.panel_length[m2p[j]],
-        mesh.m[i, j],
+        system_geometry.k2[i, j],
     )
 
     v = get_v_ring_vortex(
-        mesh.x[i, j], mesh.r[i, j], panelj.panel_center[m2p[j], 2], mesh.m[i, j]
+        system_geometry.x[i, j],
+        system_geometry.r[i, j],
+        panelj.panel_center[m2p[j], 2],
+        system_geometry.k2[i, j],
     )
 
     #return appropriate strength
     # if asin(sqrt(m)) != pi / 2
-    if mesh.m[i, j] != 1.0
+    if system_geometry.k2[i, j] != 1.0
 
         #panels are different
         return (u * cos(paneli.panel_angle[m2p[i]]) + v * sin(paneli.panel_angle[m2p[i]])) *
@@ -154,7 +157,7 @@ Calculate x-component of velocity influence of source ring.
 **Returns:**
 - `uij::Float` : x-component of velocity induced by panel j onto panel i
 """
-function get_u_ring_source(x, r, rj, dj, m; probe=false)
+function get_u_ring_source(x, r, rj, dj, m)
     #TODO: dj unused, remove from inputs and throughout
 
     #get values for elliptic integrals
@@ -184,7 +187,7 @@ Calculate r-component of velocity influence of source ring.
 **Returns:**
 - `vij::Float` : r-component of velocity induced by panel j onto panel i
 """
-function get_v_ring_source(x, r, rj, m; probe=false)
+function get_v_ring_source(x, r, rj, m)
 
     #get values for elliptic integrals
     K, E = get_elliptics(m)

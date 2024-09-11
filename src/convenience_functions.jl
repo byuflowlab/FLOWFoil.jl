@@ -27,7 +27,13 @@ Convenience function for setting up, solving, and post-processing airfoils and a
 - `outputs::Outputs` : object of type Outputs
 """
 function analyze(
-        x, y, flow_angle=[0.0], reynolds=[1e6], mach=[0.0]; method::Mfoil(), gap_tolerance=1e-10
+    x::AbstractVector,
+    y::AbstractVector,
+    flow_angle=[0.0],
+    reynolds=[1e6],
+    mach=[0.0];
+    method=Mfoil(),
+    gap_tolerance=1e-10,
 )
     return analyze(
         [x y], flow_angle, reynolds, mach; method=method, gap_tolerance=gap_tolerance
@@ -39,25 +45,23 @@ function analyze(
     flow_angle=[0.0],
     reynolds=[1e6],
     mach=[0.0];
-    method::Mfoil(),
+    method=Mfoil(),
     gap_tolerance=1e-10,
 )
 
     # Reformat inputs as needed
-    problem = reformat_inputs(coordinates, flow_angle, reynolds, mach)
+    coordinates, nbodies, flow_angle, reynolds, mach = reformat_inputs(
+        coordinates, flow_angle, reynolds, mach
+    )
 
     # Generate Panel Geometry
     panel_geometry = generate_panel_geometry(method, coordinates)
 
     # Generate Influence Mesh
-    system_geometry, TE_geometry = generate_system_geometry(
-        method, panel_geometry; gap_tolerance=gap_tolerance
-    )
+    system_geometry = generate_system_geometry(method, panel_geometry)
 
     # Assemble Linear System
-    system_matrices = generate_system_matrices(
-        method, panel_geometry, system_geometry, TE_geometry
-    )
+    system_matrices = generate_system_matrices(method, panel_geometry, system_geometry)
 
     # Solve System
     strengths = solve(method, system_matrices)

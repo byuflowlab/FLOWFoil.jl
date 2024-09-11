@@ -1,13 +1,13 @@
 # - If single airfoil, need to put Panel object in a vector - #
-function generate_system_geometry(p::Lewis, panels; ex=1e-5)
-    return generate_system_geometry(p, [panels]; ex=ex)
+function generate_system_geometry(method::Lewis, panel_geometry)
+    return generate_system_geometry(method, [panel_geometry])
 end
 
-function generate_system_geometry(axisym::Lewis, panels::AbstractArray; ex=1e-5)
+function generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
 
     ### --- Convenience Variables --- ###
-    nbodies = length(panels)
-    npanels = [panels[i].npanels for i in 1:nbodies]
+    nbodies = length(panel_geometry)
+    npanels = [panel_geometry[i].npanels for i in 1:nbodies]
     total_panels = sum(npanels)
 
     # - Define Body Indexing - #
@@ -15,17 +15,17 @@ function generate_system_geometry(axisym::Lewis, panels::AbstractArray; ex=1e-5)
     #find starting indices for each body
     cspanels = cumsum(npanels)
 
-    # put together index ranges of panels for each body
+    # put together index ranges of panel_geometry for each body
     panel_indices = [(1 + (i == 1 ? 0 : cspanels[i - 1])):(cspanels[i]) for i in 1:nbodies]
 
     # - Map indices - #
     mesh2panel = reduce(vcat, [1:npanels[i] for i in 1:nbodies])
 
     ### --- Initialize Vectors --- ###
-    TF = typeof(sum([panels[i].panel_length[1] for i in 1:nbodies]))
+    TF = typeof(sum([panel_geometry[i].panel_length[1] for i in 1:nbodies]))
 
     ### --- General Mesh Fields --- ###
-    # Panel Length (contained in panels objects)
+    # Panel Length (contained in panel_geometry objects)
     panel_length = zeros(TF, (total_panels))
 
     # x-component of normalized distance from influencing panel center to field point
@@ -37,22 +37,32 @@ function generate_system_geometry(axisym::Lewis, panels::AbstractArray; ex=1e-5)
     # variable used in elliptic function calculations
     k2 = zeros(TF, (total_panels, total_panels))
 
+    system_geometry = (; nbodies, panel_indices, mesh2panel, x, r, k2)
+
+    return generate_system_geometry!(method, system_geometry, panel_geometry)
+end
+
+function generate_system_geometry!(method::Lewis, system_geometry, panel_geometry)
+
+    # extract fields
+    (; nbodies, panel_indices, mesh2panel, x, r, k2) = system_geometry
+
     ### --- Loop through bodies --- ###
     for m in 1:nbodies
         for n in 1:nbodies
-            ### --- Loop through panels --- ###
+            ### --- Loop through panel_geometry --- ###
             for i in panel_indices[m]
                 for j in panel_indices[n]
 
-                    # Get x-locations of influencing and influenced panels
-                    xi = panels[m].panel_center[mesh2panel[i], 1]
-                    xj = panels[n].panel_center[mesh2panel[j], 1]
+                    # Get x-locations of influencing and influenced panel_geometry
+                    xi = panel_geometry[m].panel_center[mesh2panel[i], 1]
+                    xj = panel_geometry[n].panel_center[mesh2panel[j], 1]
 
-                    # Get r-locations of influencing and influenced panels
-                    ri = panels[m].panel_center[mesh2panel[i], 2]
-                    rj = panels[n].panel_center[mesh2panel[j], 2]
+                    # Get r-locations of influencing and influenced panel_geometry
+                    ri = panel_geometry[m].panel_center[mesh2panel[i], 2]
+                    rj = panel_geometry[n].panel_center[mesh2panel[j], 2]
 
-                    # Calculate normalized distance components for current set of panels
+                    # Calculate normalized distance components for current set of panel_geometry
                     x[i, j] = (xi - xj) / rj
                     r[i, j] = ri / rj
 
@@ -64,5 +74,5 @@ function generate_system_geometry(axisym::Lewis, panels::AbstractArray; ex=1e-5)
     end #for mth influenced body
 
     # Return Mesh
-    return AxisymmetricMesh(nbodies, panel_indices, mesh2panel, x, r, k2)
+    return system_geometry
 end

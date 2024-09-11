@@ -1,17 +1,20 @@
-function generate_system_matrices(
-    p::AxisymmetricProblem, panels::TP, mesh
-) where {TP<:Panel}
-    return generate_system_matrices(p, [panels], mesh)
+function generate_system_matrices(method::Lewis, panel_geometry, system_geometry)
+    return generate_system_matrices(method, [panel_geometry], system_geometry)
 end
 
-function generate_system_matrices(p::AxisymmetricProblem, panels, mesh)
+function generate_system_matrices(
+    method::Lewis, panel_geometry::AbstractVector, system_geometry
+)
+
     # Get coeffiecient matrix (A, left hand side)
-    A = assemble_ring_influence_matrix(p.singularity, p.body_of_revolution, panels, mesh)
+    A = assemble_ring_vortex_matrix(
+        method.body_of_revolution, panel_geometry, system_geometry
+    )
 
     # Get boundary conditions (b, right hand side)
-    b = assemble_ring_boundary_conditions(p.boundary, p.body_of_revolution, panels, mesh)
+    b = assemble_right_hand_side(method.body_of_revolution, panel_geometry, system_geometry)
 
-    return InviscidSystem(A, b, mesh.panel_indices)
+    return (; A, b)
 end
 
 #---------------------------------#
@@ -19,67 +22,33 @@ end
 #---------------------------------#
 
 """
-    assemble_ring_influence_matrix(v::Vortex, body_of_revolution, panels, mesh)
+    assemble_ring_influence_matrix(body_of_revolution, panel_geometry, system_geometry)
 
 Assembles the "A" matrix (left hand side coefficient matrix).
 
 **Arguments:**
-- `s::Singularity` : The singularity type used.
 - `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
-- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
-- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
+- `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
+- `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 
 **Returns:**
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
-function assemble_ring_influence_matrix(::Singularity, body_of_revolution, panels, mesh) end
-
-function assemble_ring_influence_matrix(v::Vortex, body_of_revolution, panels, mesh)
-    return assemble_ring_vortex_matrix(v.order, body_of_revolution, panels, mesh)
-end
-
-"""
-    assemble_ring_vortex_matrix(::Order, body_of_revolution, panels, mesh)
-
-Assembles the coefficient matrix for a given order of singularity.
-
-**Arguments:**
-- `o::Order` : The order of singularity used.
-- `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
-- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
-- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
-
-**Returns:**
-- A::Matrix{Float}` : The influence coefficient matrix for the linear system
-"""
-function assemble_ring_vortex_matrix(::Order, body_of_revolution, panels, mesh) end
-
-function get_kutta_indices(body_of_revolution, mesh)
-
-    # Count number of bodies requiring a Kutta Condition
-    nk = count(br -> br == false, body_of_revolution)
-    kutta_count = 1
-    kutta_idxs = zeros(Int, nk, 2)
-
-    for m in findall(m -> m == false, body_of_revolution)
-        ### --- GetKutta Condition Indices --- ###
-        kutta_idxs[kutta_count, :] = [mesh.panel_indices[m][1]; mesh.panel_indices[m][end]]
-        kutta_count += 1
-    end
-
-    return kutta_idxs
-end
-
-function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mesh)
-    amat = assemble_ring_vortex_matrix_raw(Constant(), body_of_revolution, panels, mesh)
+function assemble_ring_vortex_matrix(body_of_revolution, panel_geometry, system_geometry)
+    amat = assemble_ring_vortex_matrix_raw(
+        body_of_revolution, panel_geometry, system_geometry
+    )
 
     for m in findall(m -> m == false, body_of_revolution)
         apply_back_diagonal_correction!(
-            amat, panels[m], mesh.panel_indices[m], mesh.mesh2panel
+            amat,
+            panel_geometry[m],
+            system_geometry.panel_indices[m],
+            system_geometry.mesh2panel,
         )
     end
 
-    kutta_idxs = get_kutta_indices(body_of_revolution, mesh)
+    kutta_idxs = get_kutta_indices(body_of_revolution, system_geometry)
 
     ## -- Apply Kutta Condition Subtractions -- ##
     for i in 1:length(kutta_idxs[:, 1])
@@ -90,7 +59,30 @@ function assemble_ring_vortex_matrix(::Constant, body_of_revolution, panels, mes
     return amat[1:end .∉ [kutta_idxs[:, 2]], 1:end .∉ [kutta_idxs[:, 2]]]
 end
 
-function apply_back_diagonal_correction!(amat, panels, idx, m2p)
+"""
+"""
+function get_kutta_indices(body_of_revolution, system_geometry)
+
+    # Count number of bodies requiring a Kutta Condition
+    nk = count(br -> br == false, body_of_revolution)
+    kutta_count = 1
+    kutta_idxs = zeros(Int, nk, 2)
+
+    for m in findall(m -> m == false, body_of_revolution)
+        ### --- GetKutta Condition Indices --- ###
+        kutta_idxs[kutta_count, :] = [
+            system_geometry.panel_indices[m][1]
+            system_geometry.panel_indices[m][end]
+        ]
+        kutta_count += 1
+    end
+
+    return kutta_idxs
+end
+
+"""
+"""
+function apply_back_diagonal_correction!(amat, panel_geometry, idx, m2p)
     # if m == n && !body_of_revolution[m]
 
     ### --- Apply Back Diagonal Correction --- ###
@@ -102,12 +94,12 @@ function apply_back_diagonal_correction!(amat, panels, idx, m2p)
         # for j in idx[m]
         for j in idx
             if j != jidx
-                # sum += amat[j, i] * panels[m].panel_length[mesh2panel[j]]
-                sum += amat[j, i] * panels.panel_length[m2p[j]]
+                # sum += amat[j, i] * panel_geometry[m].panel_length[mesh2panel[j]]
+                sum += amat[j, i] * panel_geometry.panel_length[m2p[j]]
             end
         end
-        # dmagj = panels[m].panel_length[m2p[jidx]]
-        dmagj = panels.panel_length[m2p[jidx]]
+        # dmagj = panel_geometry[m].panel_length[m2p[jidx]]
+        dmagj = panel_geometry.panel_length[m2p[jidx]]
         amat[jidx, i] = -sum / dmagj
     end
     # end
@@ -115,18 +107,20 @@ function apply_back_diagonal_correction!(amat, panels, idx, m2p)
     return nothing
 end
 
-function assemble_ring_vortex_matrix_raw(::Constant, body_of_revolution, panels, mesh)
+function assemble_ring_vortex_matrix_raw(
+    body_of_revolution, panel_geometry, system_geometry
+)
 
     ### --- SETUP --- ###
 
     # - Rename for Convenience - #
-    idx = mesh.panel_indices
+    idx = system_geometry.panel_indices
     N = idx[end][end]
-    nbodies = mesh.nbodies
-    mesh2panel = mesh.mesh2panel
+    nbodies = system_geometry.nbodies
+    mesh2panel = system_geometry.mesh2panel
 
     # initialize coefficient matrix
-    TF = eltype(mesh.m)
+    TF = eltype(system_geometry.k2)
     # amat = zeros(TF, (N + nk, N + nk))
     amat = zeros(TF, (N, N))
 
@@ -135,13 +129,13 @@ function assemble_ring_vortex_matrix_raw(::Constant, body_of_revolution, panels,
     ### --- Loop through bodies --- ###
     for m in 1:nbodies
         for n in 1:nbodies
-            ### --- Loop through panels --- ###
+            ### --- Loop through panel_geometry --- ###
             for i in idx[m]
                 for j in idx[n]
 
                     ### --- Calculate influence coefficient --- ###
                     amat[i, j] = calculate_ring_vortex_influence(
-                        Constant(), panels[m], panels[n], mesh, i, j
+                        panel_geometry[m], panel_geometry[n], system_geometry, i, j
                     )
                 end
             end
@@ -164,29 +158,24 @@ end
 #---------------------------------#
 
 """
-    assemble_ring_boundary_conditions(::BoundaryCondition, body_of_revolution, panels, mesh)
+    assemble_right_hand_side(body_of_revolution, panel_geometry, system_geometry)
 
 Assemble boundary condition vector.
 
 **Arguments:**
-- `bc::BoundaryCondition` : The type of boundary condition to be used.
-- `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
+- `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
-- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
+- `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 
 **Returns**
  - `b::Matrix{Float}` : Boundary condition matrix
 """
-function assemble_ring_boundary_conditions(
-    ::BoundaryCondition, body_of_revolution, panels, mesh
-) end
-
-function assemble_ring_boundary_conditions(::Dirichlet, body_of_revolution, panels, mesh)
+function assemble_right_hand_side(body_of_revolution, panel_geometry, system_geometry)
     bc = assemble_ring_boundary_conditions_raw(
-        Dirichlet(), body_of_revolution, panels, mesh
+        body_of_revolution, panel_geometry, system_geometry
     )
 
-    kutta_idxs = get_kutta_indices(body_of_revolution, mesh)
+    kutta_idxs = get_kutta_indices(body_of_revolution, system_geometry)
 
     ## -- Apply Kutta Condition Subtractions -- ##
     for i in 1:length(kutta_idxs[:, 1])
@@ -197,7 +186,7 @@ function assemble_ring_boundary_conditions(::Dirichlet, body_of_revolution, pane
 end
 
 function assemble_ring_boundary_conditions_raw(
-    ::Dirichlet, body_of_revolution, panels, mesh
+    body_of_revolution, panel_geometry, system_geometry
 )
 
     ### --- SETUP --- ###
@@ -208,13 +197,13 @@ function assemble_ring_boundary_conditions_raw(
     # kutta_count = 1
 
     # - Rename for Convenience - #
-    idx = mesh.panel_indices
+    idx = system_geometry.panel_indices
     N = idx[end][end]
-    nbodies = mesh.nbodies
-    mesh2panel = mesh.mesh2panel
+    nbodies = system_geometry.nbodies
+    mesh2panel = system_geometry.mesh2panel
 
     # initialize boundary condition array
-    TF = eltype(mesh.m)
+    TF = eltype(system_geometry.k2)
     # bc = zeros(TF, N + nk)
     bc = zeros(TF, N)
 
@@ -222,7 +211,7 @@ function assemble_ring_boundary_conditions_raw(
     for m in 1:nbodies
 
         # generate portion of boundary condition array associated with mth body
-        bc[idx[m], 1] = [-cos(panels[m].panel_angle[mesh2panel[i]]) for i in idx[m]]
+        bc[idx[m], 1] = [-cos(panel_geometry[m].panel_angle[mesh2panel[i]]) for i in idx[m]]
         # if !body_of_revolution[m]
         #     kutta_idxs[kutta_count, :] = [idx[m][1]; idx[m][end]]
         #     kutta_count += 1
@@ -230,11 +219,4 @@ function assemble_ring_boundary_conditions_raw(
     end
 
     return bc
-
-    # ## -- Apply Kutta Condition Subtractions -- ##
-    # for i in 1:nk
-    #     bc[kutta_idxs[i, 1]] -= bc[kutta_idxs[i, 2]]
-    # end
-
-    # return bc[1:end .∉ [kutta_idxs[:, 2]]]
 end

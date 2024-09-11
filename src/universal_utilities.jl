@@ -6,7 +6,6 @@ function size(t::Tuple)
     return length(t)
 end
 
-end
 """
     linear_transform(range1, range2, values)
 
@@ -27,12 +26,11 @@ function linear_transform(source_range, target_range, source_values)
 end
 
 """
-    smooth_distributions(::Order, surface_location, surface_values, npanels) end
+    smooth_distributions(surface_location, surface_values, npanels) end
 
 Generates smooth surface distribution values.
 
 **Arguments:**
-- `o::Order` : Order of input geometry
 - `surface_location::Array{Float}` : location where distribution values lie.
 - `surface_values::Array{Float}` : surface distribution values
 - `npanels::Int` : Number of panels to use on the top and bottom surface for smoothing (total panels = 2*npanels-1)
@@ -43,9 +41,7 @@ Generates smooth surface distribution values.
 
 # TODO: Consider returning spline objects rather than another set of discrete values.
 """
-function smooth_distributions(::Order, surface_location, surface_values, npanels) end
-
-function smooth_distributions(::Linear, panel_edges, distribution, npanels)
+function smooth_distributions(method::Mfoil, panel_edges, distribution, npanels)
 
     #= NOTE:
         Akima splines in FLOWMath require the 'x' values to be monotonically ascending.
@@ -95,7 +91,7 @@ function smooth_distributions(::Linear, panel_edges, distribution, npanels)
 end
 
 function smooth_distributions(
-    ::Constant, panel_center, distribution, npanels; body_of_revolution=false
+    method::Lewis, panel_center, distribution, npanels; body_of_revolution=false
 )
 
     #= NOTE:
