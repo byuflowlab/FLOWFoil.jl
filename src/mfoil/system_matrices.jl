@@ -1,11 +1,11 @@
-function generate_system_matrices(pt::Mfoil, panels, mesh, TEmesh)
+function generate_system_matrices(method::Mfoil, panels, mesh, TEmesh)
     # Get coeffiecient matrix (A, left hand side)
-    A = assemble_influence_matrix(pt.singularity, mesh, TEmesh)
+    A = assemble_influence_matrix(method, mesh, TEmesh)
 
     # Get boundary conditions (b, right hand side)
-    b = assemble_boundary_conditions(pt.boundary, panels, mesh, TEmesh)
+    b = assemble_boundary_conditions(method, panels, mesh, TEmesh)
 
-    return InviscidSystem(A, b, mesh.node_indices)
+    return (; A, b, mesh.node_indices)
 end
 
 #---------------------------------#
@@ -18,35 +18,13 @@ end
 Assembles the "A" matrix (left hand side coefficient matrix).
 
 **Arguments:**
-- `s::Singularity` : The singularity type used.
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
 - `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
 
 **Returns:**
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
-function assemble_influence_matrix(::Singularity, mesh, TEmesh) end
-
-function assemble_influence_matrix(v::Vortex, mesh, TEmesh)
-    return assemble_vortex_matrix(v.order, mesh, TEmesh)
-end
-
-"""
-    assemble_vortex_matrix(::Order, mesh, TEmesh)
-
-Assembles the coefficient matrix for a given order of singularity.
-
-**Arguments:**
-- `o::Order` : The order of singularity used.
-- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
-- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
-
-**Returns:**
-- A::Matrix{Float}` : The influence coefficient matrix for the linear system
-"""
-function assemble_vortex_matrix(::Order, mesh, TEmesh) end
-
-function assemble_vortex_matrix(::Linear, mesh, TEmesh)
+function assemble_influence_matrix(method::Mfoil, mesh, TEmesh)
 
     # - Rename For Convenience - #
     pidx = mesh.panel_indices
@@ -166,13 +144,16 @@ end
 #    BOUNDARY CONDITION MATRIX    #
 #---------------------------------#
 
+#= NOTE:
+This implementation doesn't precisely fit.  As stated in other places, this Xfoil-like implementation will likely be moved with a better method can replace it.
+=#
+
 """
     assemble_boundary_conditions(meshes)
 
 Assemble boundary condition vector.
 
 **Arguments:**
-- `bc::BoundaryCondition` : The type of boundary condition to be used.
 - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
 - `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
@@ -180,12 +161,7 @@ Assemble boundary condition vector.
 **Returns**
  - `b::Matrix{Float}` : Boundary condition matrix
 """
-function assemble_boundary_conditions(::BoundaryCondition, panels, mesh, TEmesh) end
-
-#= NOTE:
-This implementation doesn't precisely fit.  As stated in other places, this Xfoil-like implementation will likely be moved with a better method can replace it.
-=#
-function assemble_boundary_conditions(::Dirichlet, panels, mesh, TEmesh)
+function assemble_boundary_conditions(method::Mfoil, panels, mesh, TEmesh)
 
     # - Rename For Convenience - #
     nidx = mesh.node_indices
