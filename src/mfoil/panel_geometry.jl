@@ -1,12 +1,9 @@
-"""
-"""function generate_panels(p::PlanarProblem, coordinates)
+function generate_panels(p::PlanarProblem, coordinates)
 
     #broadcast for multiple airfoils
     return reduce(vcat, generate_panels.(Ref(p), coordinates))
 end
 
-"""
-"""
 function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
 
     # Separate coordinates
@@ -41,8 +38,6 @@ function generate_panels(::PlanarProblem, coordinates::Matrix{TF}) where {TF}
     return [LinearFlatPanel(numpanels, panel_edges, panel_vectors, panel_lengths, nodes)]
 end
 
-"""
-"""
 function generate_panels!(::PlanarProblem, panels, coordinates::Matrix{TF}) where {TF}
 
     # Separate coordinates
@@ -72,5 +67,3 @@ function generate_panels!(::PlanarProblem, panels, coordinates::Matrix{TF}) wher
 
     return nothing
 end
-
-
