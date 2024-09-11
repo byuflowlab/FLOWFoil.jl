@@ -1,5 +1,5 @@
 """
-    MfoilOutputs{TF}
+    MfoilOutputs{TF} <: Outputs
 
 **Fields:**
 - `lift::Matrix{Float}` : Lift Coefficient.
@@ -22,8 +22,6 @@ struct MfoilOutputs{TF} <: Outputs
     xsmooth::Array{TF,3}
 end
 
-"""
-"""
 function post_process(
     ::Mfoil, problem, panels, mesh, solution; npanels=80, debug=false
 )

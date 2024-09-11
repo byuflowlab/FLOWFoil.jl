@@ -20,7 +20,7 @@ Outputs the InviscidSolution object which contains the inviscid_system.
 - `mesh::Mesh` : Mesh defining geometry (to put into solution object)
 
 **Returns:**
- - `solution::InviscidSolution`
+ - `x::inviscid solution, consisting of node vortex strengths`
 
 """
 function analyze_inviscid(method::Mfoil, inviscid_system)

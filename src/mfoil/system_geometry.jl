@@ -1,5 +1,3 @@
-"""
-"""
 function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
 
     ### --- Convenience Variables --- ###

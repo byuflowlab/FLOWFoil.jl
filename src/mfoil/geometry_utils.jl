@@ -10,6 +10,9 @@ Calculate various items needed for trailing edge treatment.
  - `tdp::Float` : dot product of TE bisection and TE gap unit vectors
  - `txp::Float` : "cross product" of TE bisection and TE gap unit vectors
  - `trailing_edge_gap::Float` : TE gap distance
+ - `gap_edges`
+ - `dte`
+ - `dtemag`
 """
 function get_trailing_edge_info(panel_edges)
 
