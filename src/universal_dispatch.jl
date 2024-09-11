@@ -5,6 +5,74 @@
 abstract type Method end
 
 #---------------------------------#
+#          Reformat Inputs        #
+#---------------------------------#
+
+"""
+    reformat_inputs(method::method, coordinates, flow_angle, reynolds, mach)
+
+Defines a Problem object to be used for setup and post-processing.
+
+**Arguments:**
+- `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
+- `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
+- `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
+- `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
+- `method::Method` : Type of problem to solve (planar, axisymmetric, or periodic).
+
+**Returns:**
+- `problem::Problem` : Problem object
+"""
+function reformat_inputs(method::Method, coordinates, flow_angle, reynolds, mach)
+
+    # - Get Number of Bodies - #
+    #= NOTE:
+        The size function in the first if will use the overloaded version that returns the length of the tuple if coordinates is of type Tuple.  See overloaded function at the end of FLOWFoil.jl
+    =#
+    if length(size(coordinates)) == 1
+        nbody = length(coordinates)
+    else
+        nbody = size(coordinates)[2]
+    end
+
+    # - Make Angles of Attack a Vector (if not one already) - #
+    if length(flow_angle) == 1
+        aoa = [flow_angle[1]]
+    else
+        aoa = flow_angle
+    end
+
+    # - Make Reynolds Number a Vector (if not one already) - #
+    if reynolds == nothing
+        reynolds_numbers = [reynolds[1]]
+    elseif length(reynolds) == 1
+        reynolds_numbers = [reynolds[1]]
+    else
+        reynolds_numbers = reynolds
+    end
+
+    # - Make Mach Number a Vector (if not one already) - #
+    if mach == nothing
+        mach_numbers = [mach[1]]
+    elseif length(mach) == 1
+        mach_numbers = [mach[1]]
+    else
+        mach_numbers = mach
+    end
+
+    # - Must be Viscous if Reynolds Numbers are Greater Than Zero - #
+    if all(x -> x != nothing, reynolds_numbers) && all(x -> x > 0.0, reynolds_numbers)
+        viscous = true
+    elseif all(x -> x == nothing, reynolds_numbers) || all(x -> x <= 0.0, reynolds_numbers)
+        viscous = false
+    else
+        @error "Cannot mix viscid and inviscid analyses. For viscous analsis sets, all reynolds numbers must be greater than 0.0. For inviscid analysis sets, it is best to set reynolds to -1.0."
+    end
+
+    # - RETURN - #
+    return coordinates, nbody, aoa, reynolds_numbers, mach_numbers
+end
+#---------------------------------#
 #          Panel Geometry         #
 #---------------------------------#
 
@@ -60,6 +128,27 @@ function generate_system_geometry(method::Method, panels; gap_tolerance=1e-10) e
 ` inviscid_system::InviscidSystem` : Inviscid System object containing influence and boundary condition matrices for the system.
 """
 function generate_system_matrices(method::Method, panels, mesh, TEmesh) end
+
+#---------------------------------#
+#              SOLVE              #
+#---------------------------------#
+
+"""
+    solve(problem)
+
+Solve problem defined by the input Problem object and return the solution in a Solution object.
+
+**Arguments:**
+- `problem::Problem` : Problem to solve
+
+**Returns:**
+ - `solution::{InviscidSolution or ViscousSolution}` : returns solution of type matching viscous flag in problem.
+"""
+function solve(system)
+    solution = solve_inviscid(system)
+
+    return solution
+end
 
 #---------------------------------#
 #          Post Processing        #
