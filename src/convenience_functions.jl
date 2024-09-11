@@ -11,76 +11,57 @@ Authors: Judd Mehr,
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
-**Arguments:**
+# Arguments:
 - `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
+
+# Optional Arguments:
 - `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
 - `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
-- `method::ProblemType` : Type of problem to analyze (Planar, axisymmetric, or periodic). Defaults to XFoil-like method: PlanarProblem(Vortex(Linear(),Dirichlet())
 
-**Returns:**
-- `polar::Polar` : Polar object according to ProblemType
+# Keyword Arguments:
+- `method::Method=Xfoil()` : desired method for solving
+- `gap_tolerance::Float` : gap_tolerance for determining trailing edge gap
 
----
-
-## Other Implementations:
-`analyze(coordinates, flow_angle, reynolds; method)` : assumes mach = 0.0
-`analyze(coordinates, flow_angle; method)` : assumes inviscid and mach = 0.0
-`analyze(coordinates; method)` : assumes inviscid and mach and angle of attack are 0.0
-
+# Returns:
+- `outputs::Outputs` : object of type Outputs
 """
 function analyze(
+        x, y, flow_angle=[0.0], reynolds=[1e6], mach=[0.0]; method::Mfoil(), gap_tolerance=1e-10
+)
+    return analyze(
+        [x y], flow_angle, reynolds, mach; method=method, gap_tolerance=gap_tolerance
+    )
+end
+
+function analyze(
     coordinates,
-    flow_angle,
-    reynolds,
-    mach,
-    method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
+    flow_angle=[0.0],
+    reynolds=[1e6],
+    mach=[0.0];
+    method::Mfoil(),
+    gap_tolerance=1e-10,
 )
 
-    # Generate Problem Object
-    problem = define_problem(method, coordinates, flow_angle, reynolds, mach)
+    # Reformat inputs as needed
+    problem = reformat_inputs(coordinates, flow_angle, reynolds, mach)
 
     # Generate Panel Geometry
-    panels = generate_panels(method, coordinates)
+    panel_geometry = generate_panel_geometry(method, coordinates)
 
     # Generate Influence Mesh
-    mesh, TEmesh = generate_mesh(method, panels)
+    system_geometry, TE_geometry = generate_system_geometry(
+        method, panel_geometry; gap_tolerance=gap_tolerance
+    )
 
     # Assemble Linear System
-    system = generate_inviscid_system(method, panels, mesh, TEmesh)
+    system_matrices = generate_system_matrices(
+        method, panel_geometry, system_geometry, TE_geometry
+    )
 
-    # analyze Linear System
-    solution = analyze(system)
+    # Solve System
+    strengths = solve(method, system_matrices)
 
     # Post Process Solution
-    polar = post_process(method, problem, panels, mesh, solution)
-
-    # Return
-    return polar
+    return post_process(method, panel_geometry, system_geometry, strengths)
 end
-
-# - Mach = 0.0 - #
-function analyze(
-    coordinates,
-    flow_angle,
-    reynolds,
-    method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
-) end
-
-# - Inviscid; Mach = 0.0 - #
-function analyze(
-    coordinates,
-    flow_angle,
-    method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet()),
-)
-    return analyze(coordinates, flow_angle, [-1.0], [-1.0], method)
-end
-
-# - Inviscid; AoA = Mach = 0.0 - #
-function analyze(
-    coordinates, method::ProblemType=PlanarProblem(Vortex(Linear()), Dirichlet())
-)
-    return analyze(coordinates, [0.0], [-1.0], [-1.0], method)
-end
-
-# TODO: consider also adding convenience functions for the other implementations.
