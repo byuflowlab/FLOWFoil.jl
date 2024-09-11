@@ -44,7 +44,7 @@ function assemble_influence_matrix(method::Mfoil, mesh, TEmesh)
             ### --- Populate main body of influence matrix --- ###
             for i in nidx[m]
                 for j in pidx[n]
-                    aij, aijp1 = calculate_vortex_influence(Linear(), mesh, i, j)
+                    aij, aijp1 = calculate_vortex_influence(mesh, i, j)
 
                     # add coefficients to matrix at correct nodes
                     if j == 1
@@ -113,8 +113,8 @@ function assemble_influence_matrix(method::Mfoil, mesh, TEmesh)
                     for i in nidx[m]
 
                         # Get panel influence coefficients
-                        sigmate = calculate_source_influence(Constant(), TEmesh, i, m)
-                        gammate = sum(calculate_vortex_influence(Linear(), TEmesh, i, m))
+                        sigmate = calculate_source_influence(TEmesh, i, m)
+                        gammate = sum(calculate_vortex_influence(TEmesh, i, m))
 
                         # Add/subtract from relevant matrix entries
                         amat[i, nidx[m][1]] +=
@@ -151,7 +151,7 @@ This implementation doesn't precisely fit.  As stated in other places, this Xfoi
 """
     assemble_boundary_conditions(meshes)
 
-Assemble boundary condition vector.
+Assemble Dirchilet boundary condition vector.
 
 **Arguments:**
 - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)

@@ -90,7 +90,7 @@ Calculate vortex influence coefficients on the evaluation point from the panel b
  - `point::Array{Float}(2)` : [x y] location of evaluation point
 
 """
-function calculate_vortex_influence(::Linear, mesh, i, j)
+function calculate_vortex_influence(mesh, i, j)
     # get psibargamma value
     psibargamma = get_psibargamma(
         mesh.theta1[i, j],
@@ -120,30 +120,31 @@ function calculate_vortex_influence(::Linear, mesh, i, j)
     return (psibargamma - psitildegamma), psitildegamma
 end
 
-function calculate_vortex_influence(::Constant, mesh, i, j)
-    # get psibargamma value
-    return get_psibargamma(
-        mesh.theta1[i, j],
-        mesh.theta2[i, j],
-        mesh.lnr1[i, j],
-        mesh.lnr2[i, j],
-        mesh.panel_length[j],
-        mesh.r1normal[i, j],
-        mesh.r1tangent[i, j],
-    )
-end
+#### Constant vortex panels - for now don't need until we add viscous analysis
+# function calculate_vortex_influence(::Constant, mesh, i, j)
+#     # get psibargamma value
+#     return get_psibargamma(
+#         mesh.theta1[i, j],
+#         mesh.theta2[i, j],
+#         mesh.lnr1[i, j],
+#         mesh.lnr2[i, j],
+#         mesh.panel_length[j],
+#         mesh.r1normal[i, j],
+#         mesh.r1tangent[i, j],
+#     )
+# end
 
 """
-    calculate_source_influence(::Constant, node1, node2, point)
+    calculate_source_influence(node1, node2, point)
 
-Calculate source influence coefficients on the evaluation point from the panel between node1 and node2.
+Calculate constant source influence coefficients on the evaluation point from the panel between node1 and node2.
 
 **Arguments:**
  - `node1::Array{Float}(2)` : [x y] location of node1
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point
 """
-function calculate_source_influence(::Constant, mesh, i, j)
+function calculate_source_influence(mesh, i, j)
     #get psibarsigma value
     psibarsigma = get_psibarsigma(
         mesh.theta1[i, j],
