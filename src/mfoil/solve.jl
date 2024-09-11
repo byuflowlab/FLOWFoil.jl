@@ -1,21 +1,31 @@
-"""
-    solve_inviscid(inviscid_system, mesh)
+function analyze(method::Mfoil, system)
 
-Solve the inviscid_system for the vortex and streamfunction strengths.
+    if method.viscous
+        error("Viscous method not yet implemented.")
+    else
+        return analyze_inviscid(method, system)
+    end
+
+end
+
+"""
+    analyze_inviscid(inviscid_system, mesh)
+
+analyze the inviscid_system for the vortex and streamfunction strengths.
 
 Outputs the InviscidSolution object which contains the inviscid_system.
 
 **Arguments:**
-- `inviscid_system::InviscidSystem` : inviscid_system to solve.
+- `inviscid_system::InviscidSystem` : inviscid_system to analyze.
 - `mesh::Mesh` : Mesh defining geometry (to put into solution object)
 
 **Returns:**
  - `solution::InviscidSolution`
 
 """
-function solve_inviscid(inviscid_system)
+function analyze_inviscid(method::Mfoil, inviscid_system)
 
-    # Solve System
+    # analyze System
     if ndims(inviscid_system.b) > 1
 
         # initialize output

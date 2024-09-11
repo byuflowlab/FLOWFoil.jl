@@ -1,3 +1,5 @@
-@kwdef struct Mfoil{} <: Method end
+@kwdef struct Mfoil{} <: Method 
+    viscous::Bool = false
+end
 
 const Xfoil = Mfoil

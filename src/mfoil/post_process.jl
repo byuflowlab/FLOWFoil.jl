@@ -1,7 +1,5 @@
 """
-    PlanarPolar{TF}
-
-Also used for Periodic (cascade) post processing.
+    MfoilOutputs{TF}
 
 **Fields:**
 - `lift::Matrix{Float}` : Lift Coefficient.
@@ -13,7 +11,7 @@ Also used for Periodic (cascade) post processing.
 - `surfacepressure::Array{Float}` : smoothed surface pressure distribution
 - `xsmooth::Array{Float}` : x-values associated with smoothed surface distributions
 """
-struct PlanarPolar{TF} <: Outputs
+struct MfoilOutputs{TF} <: Outputs
     lift::Matrix{TF}
     drag::Matrix{TF}
     pdrag::Matrix{TF}
@@ -27,7 +25,7 @@ end
 """
 """
 function post_process(
-    ::PlanarProblem, problem, panels, mesh, solution; npanels=80, debug=false
+    ::Mfoil, problem, panels, mesh, solution; npanels=80, debug=false
 )
 
     ##### ----- Set Up ----- #####
@@ -205,6 +203,6 @@ function post_process(
     if debug
         return cl, cd, cdp, cdi, cm, v_surf, p_surf
     else
-        return PlanarPolar(cl, cd, cdp, cdi, cm, v_surf, p_surf, smooth_nodes)
+        return MfoilOutputs(cl, cd, cdp, cdi, cm, v_surf, p_surf, smooth_nodes)
     end
 end
