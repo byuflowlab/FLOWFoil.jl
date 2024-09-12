@@ -21,11 +21,11 @@ OR
 Note that inputting separate vectors for airfoil coordinates is only available for analysis of single airfoils/bodies.  Multi-airfoil/body systems require the use of a tuple of matrices for coordinate inputs.
 
 # Optional Arguments:
-- `flow_angles::Vector{Float}` : Vector of angles of attack (may be a single float as well)
-- `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
-- `machs::Vector{Float}` : Vector of machs numbers (may be a single float as well)
+- `flow_angles::Vector{Float}=0.0` : Vector of angles of attack (may be a single float as well)
+- `reynolds::Vector{Float}=1e-6` : Vector of reynolds numbers (may be a single float as well)
+- `machs::Vector{Float}=0.0` : Vector of machs numbers (may be a single float as well)
 
-Note that Reynolds and Mach numbers are only used for viscous methods, and flow_angles is unused in the axisymmetric methods.
+Note that Reynolds and Mach numbers are only used for viscous methods, and Flow Angles are unused in the axisymmetric methods.
 
 # Keyword Arguments:
 - `method::Method=Mfoil()` : desired method for solving
