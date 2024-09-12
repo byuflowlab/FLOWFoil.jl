@@ -2,8 +2,8 @@ using Documenter
 using FLOWFoil
 
 makedocs(;
-    # modules=[FLOWFoil, FLOWFoil.AirfoilTools],
-    modules=[FLOWFoil.AirfoilTools],
+    modules=[FLOWFoil, FLOWFoil.AirfoilTools],
+    # modules=[FLOWFoil.AirfoilTools],
     repo="https://github.com/byuflowlab/FLOWFoil.jl/blob/{commit}{path}#{line}",
     format=Documenter.HTML(;
         repolink="https://github.com/byuflowlab/FLOWFoil.jl/blob/{commit}{path}#L{line}",
@@ -11,12 +11,13 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
-        # "FLOWFoil" => [
-        #     "Getting Started" => "FLOWFoil/tutorial.md",
-        #     "Examples" => "FLOWFoil/examples.md",
+        "FLOWFoil" => [
+            "Quick Start" => "FLOWFoil/tutorial.md",
+            "Basic Examples" => "FLOWFoil/additional_tutorials.md",
+        #     "Additional Examples" => "FLOWFoil/examples.md",
         #     "API Index" => "FLOWFoil/api.md",
         #     "Theory" => "FLOWFoil/theory.md",
-        # ],
+        ],
         "AirfoilTools" => [
             "Intro" => "AirfoilTools/intro.md",
             "Airfoil Generation" => "AirfoilTools/parameterizations.md",
