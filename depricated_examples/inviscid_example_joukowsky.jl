@@ -9,7 +9,7 @@ R = 1.0
 alpha = 4.0
 U = 1.0
 
-xj, yj, vj, cpj, clj = FLOWFoil.joukowskysurface(center, R, alpha, U; N=120)
+xj, yj, vj, cpj, clj = FLOWFoil.AirfoilTools.joukowskysurface(center, R, alpha, U; N=120)
 
 plot(xj, vj; label="Joukowsky")
 
