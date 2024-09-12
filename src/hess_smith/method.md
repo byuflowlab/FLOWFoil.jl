@@ -4,4 +4,3 @@
 # Fields:
 
 """
-@kwdef struct Martensen{} <: Method end

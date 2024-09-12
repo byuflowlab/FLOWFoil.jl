@@ -1,29 +1,29 @@
 # Basic Tutorials
 
-<!-- FLOWFoil includes various panel method implementations that are available based on the `method` keyword argument. -->
-<!-- Here we go over the available methods and their various options -->
+FLOWFoil includes various panel method implementations that are available based on the `method` keyword argument.
+Here we go over the available methods and their various options
 
-<!-- ## Xfoil Method -->
+## Xfoil Method
 
-<!-- An Xfoil-like method, actually based on [mfoil](https://websites.umich.edu/~kfid/codes.html) can be accessed using the `Mfoil` method type: -->
+An Xfoil-like method, actually based on [mfoil](https://websites.umich.edu/~kfid/codes.html) can be accessed using the `Mfoil` method type:
 
-<!-- ```@docs -->
-<!-- FLOWFoil.Mfoil -->
-<!-- ``` -->
+```@docs
+FLOWFoil.Mfoil
+```
 
-<!-- Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results. -->
+Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results.
 
-<!-- ```@example mfoil -->
-<!-- using FLOWFoil -->
+```@julia
+using FLOWFoil
 
-<!-- x, y = AirfoilTools.naca4() -->
+x, y = AirfoilTools.naca4()
 
-<!-- angles_of_attack = range(-5.0, 15.0, step=1) -->
+angles_of_attack = range(-5.0, 15.0, step=1)
 
-<!-- method = Mfoil() -->
+method = Mfoil()
 
-<!-- outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method) -->
-<!-- ``` -->
+outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
+```
 
 ## Lewis' Method for Axisymmetric Bodies
 
@@ -46,54 +46,58 @@ r .+= 1.0
 # indicate that the body is not a body of revolution (lying on the axis)
 method = Lewis(body_of_revolution = [false])
 
-# angle of attack needs to be zero since it's axisymmetric
-outputs = analyze(x, r, 0.0; method=method)
+# angle of attack defaults to zero, which is what we want for the axisymmetric case
+outputs = analyze(x, r; method=method)
 ```
 
 !!! note
     No part of the geometry for an axisymmetric body can reside below z=0, otherwise an error will be thrown.
 
 
-<!-- ## Martensen's Method for Periodic Bodies (Cascades) -->
+## Martensen's Method for Periodic Bodies (Cascades)
 
-<!-- A periodic method for cascade analysis based on that developed by [Martensen](https://archive.org/details/nasa_techdoc_19710021012) can be accessed using the `Martensen` method type: -->
+TODO: add this functionality
 
-<!-- ```@docs -->
-<!-- FLOWFoil.Martensen -->
-<!-- ``` -->
+A periodic method for cascade analysis based on that developed by [Martensen](https://archive.org/details/nasa_techdoc_19710021012) can be accessed using the `Martensen` method type:
 
-<!-- ```@example martensen -->
-<!-- using FLOWFoil -->
+```@docs
+FLOWFoil.Martensen
+```
 
-<!-- # - DUCT - # -->
+```@julia
+using FLOWFoil
 
-<!-- x, y = AirfoilTools.naca4(6,4,12) -->
+# - DUCT - #
 
-<!-- angles_of_attack = range(-5.0, 15.0, step=1) -->
+x, y = AirfoilTools.naca4(6,4,12)
 
-<!-- method = Martensen(pitch=2.0*pi/15.0) -->
+angles_of_attack = range(-5.0, 15.0, step=1)
 
-<!-- outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method) -->
-<!-- ``` -->
+method = Martensen(pitch=2.0*pi/15.0)
 
-<!-- ## Hess-Smith 2D Method for Educational Purposes -->
+outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
+```
 
-<!-- We also have a version of the Hess-Smith method primarily for educational use that can be accessed with the `HessSmith` method type: -->
+## Hess-Smith 2D Method for Educational Purposes
 
-<!-- ```@docs -->
-<!-- FLOWFoil.HessSmith -->
-<!-- ``` -->
+TODO: Add this functionality
 
-<!-- ```@example hesssmith -->
-<!-- using FLOWFoil -->
+We also have a version of the Hess-Smith method primarily for educational use that can be accessed with the `HessSmith` method type:
 
-<!-- # - DUCT - # -->
+```@docs
+FLOWFoil.HessSmith
+```
 
-<!-- x, y = AirfoilTools.naca4(6,4,12) -->
+```@julia
+using FLOWFoil
 
-<!-- angles_of_attack = range(-5.0, 15.0, step=1) -->
+# - DUCT - #
 
-<!-- method = HessSmith() -->
+x, y = AirfoilTools.naca4(6,4,12)
 
-<!-- outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method) -->
-<!-- ``` -->
+angles_of_attack = range(-5.0, 15.0, step=1)
+
+method = HessSmith()
+
+outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
+```

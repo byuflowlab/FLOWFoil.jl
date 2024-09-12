@@ -7,7 +7,7 @@ Authors: Judd Mehr,
 =#
 
 """
-    analyze(coordinates, flow_angle, reynolds, mach, method)
+    analyze(coordinates, flow_angles, reynolds, machs, method)
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
@@ -15,13 +15,12 @@ Convenience function for setting up, solving, and post-processing airfoils and a
 - `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
 
 # Optional Arguments:
-- `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
+- `flow_angles::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
-- `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
+- `machs::Vector{Float}` : Vector of machs numbers (may be a single float as well)
 
 # Keyword Arguments:
 - `method::Method=Xfoil()` : desired method for solving
-- `gap_tolerance::Float` : gap_tolerance for determining trailing edge gap
 
 # Returns:
 - `outputs::Outputs` : object of type Outputs
@@ -29,29 +28,29 @@ Convenience function for setting up, solving, and post-processing airfoils and a
 function analyze(
     x::AbstractVector,
     y::AbstractVector,
-    flow_angle=[0.0],
+    flow_angles=[0.0],
     reynolds=[1e6],
-    mach=[0.0];
+    machs=[0.0];
     method=Mfoil(),
     gap_tolerance=1e-10,
 )
     return analyze(
-        [x y], flow_angle, reynolds, mach; method=method, gap_tolerance=gap_tolerance
+        [x y], flow_angles, reynolds, machs; method=method, gap_tolerance=gap_tolerance
     )
 end
 
 function analyze(
     coordinates,
-    flow_angle=[0.0],
+    flow_angles=[0.0],
     reynolds=[1e6],
-    mach=[0.0];
+    machs=[0.0];
     method=Mfoil(),
     gap_tolerance=1e-10,
 )
 
     # Reformat inputs as needed
-    coordinates, nbodies, flow_angle, reynolds, mach = reformat_inputs(
-        coordinates, flow_angle, reynolds, mach
+    coordinates, nbodies, flow_angles, reynolds, machs = reformat_inputs(
+        coordinates, flow_angles, reynolds, machs
     )
 
     # Generate Panel Geometry

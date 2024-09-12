@@ -6,12 +6,12 @@ Running FLOWFoil can be done simply with a single method: `analyze`
 FLOWFoil.analyze
 ```
 
-As an introductory example, we will do a quick analysis of a NACA 2412 airfoil, with coordinates from one of the available methods in the [AirfoilTools](@ref) sub-module.
+As an introductory example, we will do a quick analysis of a NACA 2412 airfoil, with coordinates from one of the available methods in the [Airfoil Tools](@ref) sub-module.
 
 !!! note
     For any airfoil coordinate generation method (from FLOWFoil or otherwise), the coordinates must start at the trailing edge, and proceed clockwise around the airfoil.
 
-```@example quickstart
+```@julia
 using FLOWFoil
 
 # 2412 is default
@@ -24,10 +24,10 @@ outputs = analyze(x, y, angles_of_attack)
 ```
 
 The `outputs` named tuple will contain
-- $c_\ell$: lift coefficient of each body
-- $c_d$: total drag coefficient of each body
-- $c_{d_p}$: profile drag coefficient of each body
-- $c_m$: moment coefficient of each body
+- `cl`: lift coefficient of each body
+- `cd`: total drag coefficient of each body
+- `cdp`: profile drag coefficient of each body
+- `cm`: moment coefficient of each body
 - `tangential_velocities`: surface velocities on each body
 - `surface_pressures`: surface pressures on each body
 - `convergenced`: convergence flag

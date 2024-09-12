@@ -1,5 +1,5 @@
 """
-    Mfoil{TB} <: Method
+    Mfoil <: Method
 
 # Fields:
 - `viscous::Bool` : Flag whether to run an inviscid (false) or viscous (true) analysis.
