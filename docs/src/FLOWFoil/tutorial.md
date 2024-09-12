@@ -28,7 +28,7 @@ The `outputs` named tuple will contain
 - $c_d$: total drag coefficient of each body
 - $c_{d_p}$: profile drag coefficient of each body
 - $c_m$: moment coefficient of each body
-- $v_{surf}$: surface velocities on each body
-- $c_p$: surface pressures on each body
-- convergence flag
-- auxiliary outputs: a named tuple that contains additional outputs applicable to the method used.
+- `tangential_velocities`: surface velocities on each body
+- `surface_pressures`: surface pressures on each body
+- `convergenced`: convergence flag
+- `auxiliary outputs`: a named tuple that contains additional outputs applicable to the method used.

@@ -206,7 +206,7 @@ function circlecoords(npts, r=0.16)
     return r .+ r * cos.(t), r * sin.(t)
 end
 
-N = 30
+N = 160
 avg_ds = pi / 2.0 / N
 xcirc, ycirc = circlecoords(N)
 xcylendidx = findlast(x -> x == 0.16, r)
@@ -219,4 +219,6 @@ ywedge = 0.16 .- 0.16 / (xwedge[end] - xwedge[1]) * (xwedge .- xwedge[1])
 
 xsmooth = [xcirc; xcyl[2:(end - 1)]; xwedge]
 rsmooth = [ycirc; ycyl[2:(end - 1)]; ywedge]
+
+center_body_coordinates = [xsmooth rsmooth]
 

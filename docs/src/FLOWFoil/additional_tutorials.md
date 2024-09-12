@@ -43,12 +43,11 @@ x, r = AirfoilTools.naca4()
 # give the duct some diameter
 r .+= 1.0
 
-angles_of_attack = range(-5.0, 15.0, step=1)
-
 # indicate that the body is not a body of revolution (lying on the axis)
 method = Lewis(body_of_revolution = [false])
 
-outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
+# angle of attack needs to be zero since it's axisymmetric
+outputs = analyze(x, r, 0.0; method=method)
 ```
 
 !!! note

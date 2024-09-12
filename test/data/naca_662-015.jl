@@ -77,6 +77,8 @@ rpos = 0.835 #radial offset of airfoil relative to chord
 x = [xl; xu[2:end]]
 r = [rl; ru[2:end]]
 
+duct_coordinates = [x r]
+
 pressurexupper = [
     0.0022988505747127
     0.0206896551724138
