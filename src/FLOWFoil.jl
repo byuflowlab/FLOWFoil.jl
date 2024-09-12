@@ -21,11 +21,15 @@ export AirfoilTools
 ##### ----- Methods ----- #####
 
 abstract type Method end
-abstract type Outputs end
-abstract type AuxOutputs end
 
 # Mfoil (Xfoil)
 include("mfoil/method.jl")
+include("mfoil/geometry_utils.jl")
+include("mfoil/panel_geometry.jl")
+include("mfoil/system_geometry.jl")
+include("mfoil/singularities.jl")
+include("mfoil/system_matrices.jl")
+include("mfoil/solve.jl")
 
 # Lewis (Axisymmetric)
 include("lewis/method.jl")
@@ -37,9 +41,25 @@ include("lewis/system_matrices.jl")
 include("lewis/solve.jl")
 include("lewis/post_process.jl")
 
-# Martensen (Periodic)
+# # Martensen (Periodic)
+# include("martensen/method.jl")
+# include("martensen/geometry_utils.jl")
+# include("martensen/panel_geometry.jl")
+# include("martensen/system_geometry.jl")
+# include("martensen/singularities.jl")
+# include("martensen/system_matrices.jl")
+# include("martensen/solve.jl")
+# include("martensen/post_process.jl")
 
-# Hess-Smith (Educational)
+# # Hess-Smith (Educational)
+# include("hess_smith/method.jl")
+# include("hess_smith/geometry_utils.jl")
+# include("hess_smith/panel_geometry.jl")
+# include("hess_smith/system_geometry.jl")
+# include("hess_smith/singularities.jl")
+# include("hess_smith/system_matrices.jl")
+# include("hess_smith/solve.jl")
+# include("hess_smith/post_process.jl")
 
 ##### ----- CORE FUNCTIONALITY ----- #####
 
@@ -59,7 +79,7 @@ include("universal_geometry_utilities.jl")
 
 ##### ----- TYPES ----- #####
 
-export Mfoil, Xfoil, Lewis#, Martensen
+export Mfoil, Xfoil, Lewis#, Martensen, #HessSmith
 
 ##### ----- FUNCTIONS ----- #####
 
