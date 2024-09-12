@@ -8,10 +8,10 @@
 
 #Solves the viscous problem.
 
-#**Arguments:**
+## Arguments:
 #- `problem::Problem` : Problem Definition.
 
-#**Returns:**
+## Returns:
 # - `solution::ViscousSolution`
 #"""
 #function solve_viscous(problem; parameters=nothing)
@@ -37,10 +37,10 @@
 
 #Initialized viscous solution (solves invscid problem, initialized wake and boundary layer, etc.)
 
-#**Arguments:**
+## Arguments:
 # - problem::Problem` : Problem to solve.
 
-#**Returns:**
+## Returns:
 # - solution::ViscousSolution` : Initialized ViscousSolution
 #"""
 #function initalize_viscous(problem; parameters=nothing)

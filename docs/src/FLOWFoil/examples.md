@@ -115,7 +115,26 @@ using FLOWFoil
 
 outputs = analyze([duct_coordinates, center_body_coordinates], 0.0; method = Lewis(body_of_revolution=[false, true]))
 
+
+# plot v # hide
+include("../assets/plots_default.jl")
+plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}")
+plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Center Body",markerstrokecolor=1, markercolor=1, markersize=4) #hide
+plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.tangential_velocities[2], label="FLOWFoil Center Body with Duct Effects") #hide
+savefig("../assets/duct_hub_vs.png") #hide
+
+# plot cp # hide
+include("../assets/plots_default.jl")
+plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p")
+plot!(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4) #hide
+plot!(pressurexlower, pressurelower, seriestype=:scatter, markershape=:dtriangle, label="Experimental Casing", color=1, markerstrokecolor=1, markercolor=1, markersize=4) #hide
+plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.surface_pressures[1], label="FLOWFoil Duct with Center Body Effects",color=2) #hide
+savefig("../assets/duct_hub_cp.png") #hide
 nothing #hide
 ```
 
 Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.
+
+![](assets/duct_hub_vs.png)
+
+![](assets/duct_hub_cp.png)

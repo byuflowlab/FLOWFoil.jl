@@ -17,11 +17,11 @@ end
 
 Assembles the "A" matrix (left hand side coefficient matrix).
 
-**Arguments:**
+# Arguments:
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
 - `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
 
-**Returns:**
+# Returns:
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
 function assemble_influence_matrix(method::Mfoil, mesh, TEmesh)
@@ -153,12 +153,12 @@ This implementation doesn't precisely fit.  As stated in other places, this Xfoi
 
 Assemble Dirchilet boundary condition vector.
 
-**Arguments:**
+# Arguments:
 - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
 - `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
 
-**Returns**
+# Returns
  - `b::Matrix{Float}` : Boundary condition matrix
 """
 function assemble_boundary_conditions(method::Mfoil, panels, mesh, TEmesh)

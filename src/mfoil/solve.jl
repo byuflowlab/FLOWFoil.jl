@@ -15,11 +15,11 @@ analyze the inviscid_system for the vortex and streamfunction strengths.
 
 Outputs the InviscidSolution object which contains the inviscid_system.
 
-**Arguments:**
+# Arguments:
 - `inviscid_system::InviscidSystem` : inviscid_system to analyze.
 - `mesh::Mesh` : Mesh defining geometry (to put into solution object)
 
-**Returns:**
+# Returns:
  - `x::inviscid solution, consisting of node vortex strengths`
 
 """

@@ -4,11 +4,11 @@
 Cacluate the influence of a periodic vortex at panel j onto panel i.
 TODO: BUGGY, NOT WORKING, NEED TO FIX
 
-**Arguments:**
+# Arguments:
 - `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
 - `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
 
-**Returns:**
+# Returns:
 - `aij::Float` : Influence of vortex strength at panel j onto panel i.
 """
 function calculate_periodic_vortex_influence(::Constant, paneli, panelj, mesh, i, j)

@@ -11,12 +11,12 @@ end
 
 Linear transfrom of values from range (source_range[1], raend) to (target_range[1], target_range[end])
 
-**Arguments:**
+# Arguments:
 - `source_range::Vector{Float{` : range values come from
 - `target_range::Vector{Float}` : range onto which we are transforming
 - `source_values::Array{Float}` : array of source_values to transform
 
-**Returns:**
+# Returns:
  - `target_values::Array{Float}` : array of transformed source_values onto target range
 """
 function linear_transform(source_range, target_range, source_values)
@@ -30,12 +30,12 @@ end
 
 Generates smooth surface distribution values.
 
-**Arguments:**
+# Arguments:
 - `surface_location::Array{Float}` : location where distribution values lie.
 - `surface_values::Array{Float}` : surface distribution values
 - `npanels::Int` : Number of panels to use on the top and bottom surface for smoothing (total panels = 2*npanels-1)
 
-**Returns:**
+# Returns:
 - `distribution::Vector{Float}` : Smoothed surface distribution
 - `xsmooth::Vector{Float}` : Smoothed x-coordinates
 

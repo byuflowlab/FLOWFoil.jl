@@ -3,7 +3,7 @@
 
 Calculate value of  \$\\overline{\\Psi}^\\gamma\$
 
-**Arguments:**
+# Arguments:
  - `theta1::Float` : angle between panel and vector from node1 to evaluation point
  - `theta2::Float` : angle between panel and vector from node2 to evaluation point
  - `ln1::Float` : value of ln(rmag1), which may be that or 0.0, depening on evaluation point location
@@ -22,7 +22,7 @@ end
 
 Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
 
-**Arguments:**
+# Arguments:
  - `psibargamma::Float` : value of \$\\overline{\\Psi}^\\gamma\$
  - `r1mag::Float` : distance from node1 to evaluation point
  - `r2mag::Float` : distance from node2 to evaluation point
@@ -47,7 +47,7 @@ end
 
 Calculate value of  \$\\overline{\\Psi}^\\sigma\$
 
-**Arguments:**
+# Arguments:
  - `theta1::Float` : Angle between panel and evaluation point, centered at node1.
  - `theta2::Float` : Angle between panel and evaluation point, centered at node2.
  - `ln1::Float` : Natural log of distance from node1 to evaluation point.
@@ -64,7 +64,7 @@ end
 
 Calculate value of  \$\\widetilde{\\Psi}^\\sigma\$
 
-**Arguments:**
+# Arguments:
  - `psibargamma::Float` : value of \$\\overline{\\Psi}^\\sigma\$
  - `r1mag::Float` : distance from node1 to evaluation point
  - `r2mag::Float` : distance from node2 to evaluation point
@@ -84,7 +84,7 @@ end
 
 Calculate vortex influence coefficients on the evaluation point from the panel between node1 and node2.
 
-**Arguments:**
+# Arguments:
  - `node1::Array{Float}(2)` : [x y] location of node1
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point
@@ -139,7 +139,7 @@ end
 
 Calculate constant source influence coefficients on the evaluation point from the panel between node1 and node2.
 
-**Arguments:**
+# Arguments:
  - `node1::Array{Float}(2)` : [x y] location of node1
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point

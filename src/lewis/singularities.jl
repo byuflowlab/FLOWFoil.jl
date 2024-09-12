@@ -3,14 +3,14 @@
 
 Cacluate the influence of a ring vortex at panel j onto panel i.
 
-**Arguments:**
+# Arguments:
 - `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
 - `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
 - `system_geometry::FLOWFoil.AxisymmetricMesh` : relative geometry object.
 - `i::Int` : index for ith panel
 - `j::Int` : index for jth panel
 
-**Returns:**
+# Returns:
 - `aij::Float` : Influence of vortex ring strength at panel j onto panel i.
 """
 function calculate_ring_vortex_influence(paneli, panelj, system_geometry, i, j)
@@ -58,13 +58,13 @@ end
 
 Calculate x-component of velocity influence of vortex ring.
 
-**Arguments:**
+# Arguments:
 - `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
 - `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
 - `rj::Float` : r-location of the jth panel control point
 - `m::Float` : Elliptic Function parameter
 
-**Returns:**
+# Returns:
 - `uij::Float` : x-component of velocity induced by panel j onto panel i
 """
 function get_u_ring_vortex(x, r, rj, dj, m; probe=false)
@@ -87,13 +87,13 @@ end
 
 Calculate r-component of velocity influence of vortex ring.
 
-**Arguments:**
+# Arguments:
 - `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
 - `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
 - `rj::Float` : r-location of the jth panel control point
 - `m::Float` : Elliptic Function parameter
 
-**Returns:**
+# Returns:
 - `vij::Float` : r-component of velocity induced by panel j onto panel i
 """
 function get_v_ring_vortex(x, r, rj, m; probe=false)
@@ -116,10 +116,10 @@ end
 
 Calculate value of elliptic functions for the given geometry parameter.
 
-**Arguments:**
+# Arguments:
 - `m::Float` : Elliptic Function parameter
 
-**Returns:**
+# Returns:
 - `K::Float` : K(m), value of elliptic function of the first kind at m.
 - `E::Float` : E(m), value of eeliptic function of the second kind at m.
 """
@@ -148,13 +148,13 @@ end
 
 Calculate x-component of velocity influence of source ring.
 
-**Arguments:**
+# Arguments:
 - `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
 - `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
 - `rj::Float` : r-location of the jth panel control point
 - `m::Float` : Elliptic Function parameter
 
-**Returns:**
+# Returns:
 - `uij::Float` : x-component of velocity induced by panel j onto panel i
 """
 function get_u_ring_source(x, r, rj, dj, m)
@@ -178,13 +178,13 @@ end
 
 Calculate r-component of velocity influence of source ring.
 
-**Arguments:**
+# Arguments:
 - `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
 - `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
 - `rj::Float` : r-location of the jth panel control point
 - `m::Float` : Elliptic Function parameter
 
-**Returns:**
+# Returns:
 - `vij::Float` : r-component of velocity induced by panel j onto panel i
 """
 function get_v_ring_source(x, r, rj, m)

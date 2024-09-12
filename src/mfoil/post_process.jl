@@ -1,7 +1,7 @@
 """
     MfoilOutputs{TF} <: Outputs
 
-**Fields:**
+# Fields:
 - `lift::Matrix{Float}` : Lift Coefficient.
 - `drag::Matrix{Float}` : Total Drag Coefficient.
 - `pdrag::Matrix{Float}` : Pressure Drag Coefficient.

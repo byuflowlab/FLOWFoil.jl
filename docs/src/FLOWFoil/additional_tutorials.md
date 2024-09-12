@@ -1,29 +1,29 @@
 # Basic Tutorials
 
-FLOWFoil includes various panel method implementations that are available based on the `method` keyword argument.
-Here we go over the available methods and their various options
+<!-- FLOWFoil includes various panel method implementations that are available based on the `method` keyword argument. -->
+<!-- Here we go over the available methods and their various options -->
 
-## Xfoil Method
+<!-- ## Xfoil Method -->
 
-An Xfoil-like method, actually based on [mfoil](https://websites.umich.edu/~kfid/codes.html) can be accessed using the `Mfoil` method type:
+<!-- An Xfoil-like method, actually based on [mfoil](https://websites.umich.edu/~kfid/codes.html) can be accessed using the `Mfoil` method type: -->
 
-```@docs
-FLOWFoil.Mfoil
-```
+<!-- ```@docs -->
+<!-- FLOWFoil.Mfoil -->
+<!-- ``` -->
 
-Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results.
+<!-- Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results. -->
 
-```@example mfoil
-using FLOWFoil
+<!-- ```@example mfoil -->
+<!-- using FLOWFoil -->
 
-x, y = AirfoilTools.naca4()
+<!-- x, y = AirfoilTools.naca4() -->
 
-angles_of_attack = range(-5.0, 15.0, step=1)
+<!-- angles_of_attack = range(-5.0, 15.0, step=1) -->
 
-method = Mfoil()
+<!-- method = Mfoil() -->
 
-outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
-```
+<!-- outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method) -->
+<!-- ``` -->
 
 ## Lewis' Method for Axisymmetric Bodies
 
@@ -76,24 +76,24 @@ outputs = analyze(x, r, 0.0; method=method)
 <!-- outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method) -->
 <!-- ``` -->
 
-## Hess-Smith 2D Method for Educational Purposes
+<!-- ## Hess-Smith 2D Method for Educational Purposes -->
 
-We also have a version of the Hess-Smith method primarily for educational use that can be accessed with the `HessSmith` method type:
+<!-- We also have a version of the Hess-Smith method primarily for educational use that can be accessed with the `HessSmith` method type: -->
 
-```@docs
-FLOWFoil.HessSmith
-```
+<!-- ```@docs -->
+<!-- FLOWFoil.HessSmith -->
+<!-- ``` -->
 
-```@example hesssmith
-using FLOWFoil
+<!-- ```@example hesssmith -->
+<!-- using FLOWFoil -->
 
-# - DUCT - #
+<!-- # - DUCT - # -->
 
-x, y = AirfoilTools.naca4(6,4,12)
+<!-- x, y = AirfoilTools.naca4(6,4,12) -->
 
-angles_of_attack = range(-5.0, 15.0, step=1)
+<!-- angles_of_attack = range(-5.0, 15.0, step=1) -->
 
-method = HessSmith()
+<!-- method = HessSmith() -->
 
-outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
-```
+<!-- outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method) -->
+<!-- ``` -->

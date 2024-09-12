@@ -10,13 +10,14 @@ function post_process(
 
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
+    println(idx)
     nbodies = system_geometry.nbodies
 
     # - Initialize Outputs - #
     TF = eltype(system_geometry.k2)
 
-    tangential_velocities = [zeros(idx[m][end]) for m in 1:nbodies]
-    surface_pressures = [zeros(idx[m][end]) for m in 1:nbodies]
+    tangential_velocities = [zeros(idx[m][end]-idx[m][1]+1) for m in 1:nbodies]
+    surface_pressures = [zeros(idx[m][end]-idx[m][1]+1) for m in 1:nbodies]
 
     for m in 1:nbodies
         # - Extract surface velocity - #

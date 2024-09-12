@@ -21,12 +21,12 @@ end
 
 Assembles the "A" matrix (left hand side coefficient matrix).
 
-**Arguments:**
+# Arguments:
 - `s::Singularity` : The singularity type used.
 - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
 
-**Returns:**
+# Returns:
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
 function assemble_periodic_influence_matrix(::Singularity, panels, mesh) end
@@ -40,13 +40,13 @@ end
 
 Assembles the coefficient matrix for a given order of singularity.
 
-**Arguments:**
+# Arguments:
 - `o::Order` : The order of singularity used.
 - `:Vector{Bool}` : flags whether bodies are bodies of revolution or not.
 - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
 
-**Returns:**
+# Returns:
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
 function assemble_periodic_vortex_matrix(::Order, panels, mesh) end
@@ -129,12 +129,12 @@ end
 
 Assemble boundary condition vector.
 
-**Arguments:**
+# Arguments:
 - `bc::BoundaryCondition` : The type of boundary condition to be used.
 - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
 
-**Returns**
+# Returns
  - `b::Matrix{Float}` : Boundary condition matrix
 """
 function assemble_periodic_boundary_conditions(::BoundaryCondition, panels, mesh) end

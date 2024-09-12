@@ -45,7 +45,7 @@ function rotate_coordinates!(coordinates, angle; rotation_point=[0.0; 0.0])
     # rotate and translate
     for c in eachrow(coordinates)
         c[:] .-= rotation_point
-        c[:] = R * c
+        c[:] .= R * c
         c[:] .+= rotation_point
     end
 

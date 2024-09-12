@@ -234,16 +234,16 @@ end
 
 Calculate all the various geometric pieces of the influence coefficients.
 
-**Arguments:**
+# Arguments:
 - `influence_panel_edge::Array{Float}` : Array of the edge locations of the panel doing the influencing.
 - `influence_panel_vector::Vector{Float}` : Vector from the first to second panel edge.
 - `influence_panel_length::Float` : Length of the influencing panel.
 - `field_point::Vector::Float` : position of field point (point being influence).
 
-**Keyword Arguments:**
+# Keyword Arguments:
 - `gap_tolerance::Float` : Distance at which self-induction is assumed (to avoid NaNs and Infs). default = 1e-10
 
-**Returns:**
+# Returns:
 - `r1::Matrix{TF}` : distance from first panel edge of influence panel to field point
 - `r2::Matrix{TF}` : distance from second panel edge of influence panel to field point.
 - `r1normal::Matrix{TF}` : component of r1 in normal direction of influence panel

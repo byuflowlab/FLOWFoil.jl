@@ -26,12 +26,12 @@ end
 
 Assembles the "A" matrix (left hand side coefficient matrix).
 
-**Arguments:**
+# Arguments:
 - `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
 - `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 
-**Returns:**
+# Returns:
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
 function assemble_ring_vortex_matrix(body_of_revolution, panel_geometry, system_geometry)
@@ -162,12 +162,12 @@ end
 
 Assemble boundary condition vector.
 
-**Arguments:**
+# Arguments:
 - `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
 - `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 
-**Returns**
+# Returns
  - `b::Matrix{Float}` : Boundary condition matrix
 """
 function assemble_right_hand_side(body_of_revolution, panel_geometry, system_geometry)

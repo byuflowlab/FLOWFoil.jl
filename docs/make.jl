@@ -12,9 +12,9 @@ makedocs(;
     pages=[
         "Home" => "index.md",
         "FLOWFoil" => [
-            "Quick Start" => "FLOWFoil/tutorial.md",
+            # "Quick Start" => "FLOWFoil/tutorial.md",
             "Basic Examples" => "FLOWFoil/additional_tutorials.md",
-        #     "Additional Examples" => "FLOWFoil/examples.md",
+            "Additional Examples" => "FLOWFoil/examples.md",
         #     "API Index" => "FLOWFoil/api.md",
         #     "Theory" => "FLOWFoil/theory.md",
         ],

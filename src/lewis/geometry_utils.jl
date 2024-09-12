@@ -3,11 +3,11 @@
 
 Obtain relevant geometry associated with ring singularity influence calculations.
 
-**Arguments:**
+# Arguments:
 - `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
 - `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
 
-**Returns:**
+# Returns:
 - `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
 - `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
 - `rj::Float` : r-location of the jth panel control point
@@ -43,11 +43,11 @@ end
 
 Obtain relevant geometry associated with ring singularity influence calculations for arbitrary field point
 
-**Arguments:**
+# Arguments:
 - `panel::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
 - `field_point::Array{Float}` : [x;r] coordinates of the field point in question.
 
-**Returns:**
+# Returns:
 - `x::Float` : ratio of difference of ith and jth panel x-locations and jth panel r-location ( (xi-xj)/rj )
 - `r::Float` : ratio of r-locations of ith and jth panels (ri/rj)
 - `rj::Float` : r-location of the jth panel control point

@@ -14,7 +14,7 @@ Authors: Judd Mehr,
 
 
 # """
-# **Fields:**
+# # Fields:
 # """
 # struct ViscousSystem{TPa,TPr,TF}
 #     parameters::TPa
@@ -28,7 +28,7 @@ Authors: Judd Mehr,
 # """
 #     WakeMesh{TF}
 
-# **Fields:**
+# # Fields:
 #  - `wake_nodes::Array{Float,2}` : x,y wake panel node locations.
 #  - `wake_midpoints::Array{Float,2}` : x,y wake panel center point locations.
 # """
@@ -40,7 +40,7 @@ Authors: Judd Mehr,
 # """
 # ViscousSolution{}
 
-# **Fields:**
+# # Fields:
 #  - `panelgammas::Array{Float,2}` : \$\\gamma_0\$ and \$\\gamma_{90}\$ values at each airfoil node.
 #  - `panelsources::Array{Float,2}` : source values at each airfoil node.
 #  - `wakesources::Array{Float,2}` : source values at each wake node.
@@ -58,7 +58,7 @@ Authors: Judd Mehr,
 
 #Thermodynamic properties for the viscous solution
 
-#**Fields:**
+## Fields:
 # - `machinf::Float` : freestream mach number
 # - `KTbeta::Float` : Karman-Tsien beta
 # - `KTlambda::Float` : Karman-Tsien lambda
@@ -82,7 +82,7 @@ Authors: Judd Mehr,
 
 #Solver Parameters.
 
-#**Fields:**
+## Fields:
 # - `gamma_air::Float = 1.4` : ratio of specific heats for air
 # - `eta_crit::Float = 9.0` : critical amplification factor
 # - `eta_D::Float = 0.9` : wall/wake dissipation length ratio
@@ -126,7 +126,7 @@ Authors: Judd Mehr,
 
 #Initialized parameters to defaults, but allows selective user override through keyword arguments.
 
-#**Keyword Arguments:**
+## Keyword Arguments:
 # - `gamma_air::Float` : ratio of specific heats for air
 # - `eta_crit::Float` : critical amplification factor
 # - `eta_D::Float` : wall/wake dissipation length ratio

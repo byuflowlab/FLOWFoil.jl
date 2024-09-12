@@ -4,11 +4,11 @@
 Calculate panel length (between adjacent nodes).
 
 
-**Arguments:**
+# Arguments:
  - `node1::Array{Float}(2)` : [x y] location of first node
  - `node2::Array{Float}(2)` : [x y] location of second node
 
-**Returns**
+# Returns
  - `d::Vector{Float}` : vector from node1 to node2
  - `dmag::Float` : length of panel between node1 and node2
 """
@@ -21,10 +21,10 @@ end
 """
     get_d(node1, node2)
 Calculate panel length (between adjacent nodes).
-**Arguments:**
+# Arguments:
  - `node1::Array{Float}(2)` : [x y] location of first node
  - `node2::Array{Float}(2)` : [x y] location of second node
-**Returns**
+# Returns
  - `d::Vector{Float}` : vector from node1 to node2
  - `dmag::Float` : length of panel between node1 and node2
 """
@@ -39,11 +39,11 @@ end
 
 Calculate the vector, \$\\mathbf{r}\$, and distance, \$|r|\$, from the node to the evaluation point
 
-**Arguments:**
+# Arguments:
  - `node::Array{Float}` : [x y] position of node
  - `point::Array{Float}` : [x y] position of point.
 
-**Returns**
+# Returns
  - `r::Vector{Float}` : vector from node to evaluation point
  - `rmag::Float` : length of panel between node and evaluation point
 """
@@ -73,7 +73,7 @@ end
 
 Get unit tangent to panel.
 
-**Arguments:**
+# Arguments:
  - `d::Vector{Float}` : vector from node1 to node2.
  - `dmag::Float` : panel length
 
@@ -87,7 +87,7 @@ end
 
 Get unit normal to panel.
 
-**Arguments:**
+# Arguments:
  - `d::Vector{Float}` : vector from node1 to node2.
  - `dmag::Float` : panel length
 
