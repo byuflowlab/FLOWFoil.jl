@@ -7,23 +7,39 @@ Authors: Judd Mehr,
 =#
 
 """
-    analyze(coordinates, flow_angles, reynolds, machs, method)
+    analyze(coordinates, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
+    analyze(x, y, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
-# Arguments:
+# Required Arguments:
 - `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
+OR
+- `x::Vector{Float}` : Vector of x-coordinates of airfoil geometry
+- `y::Vector{Float}` : Vector of y-coordinates of airfoil geometry
+
+Note that inputting separate vectors for airfoil coordinates is only available for analysis of single airfoils/bodies.  Multi-airfoil/body systems require the use of a tuple of matrices for coordinate inputs.
 
 # Optional Arguments:
 - `flow_angles::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
 - `machs::Vector{Float}` : Vector of machs numbers (may be a single float as well)
 
+Note that Reynolds and Mach numbers are only used for viscous methods, and flow_angles is unused in the axisymmetric methods.
+
 # Keyword Arguments:
-- `method::Method=Xfoil()` : desired method for solving
+- `method::Method=Mfoil()` : desired method for solving
 
 # Returns:
-- `outputs::Outputs` : object of type Outputs
+- `outputs::NTuple` : named tuple with outputs.  Nominally contains
+  - `cl`: lift coefficient of each body
+  - `cd`: total drag coefficient of each body
+  - `cdp`: profile drag coefficient of each body
+  - `cm`: moment coefficient of each body
+  - `tangential_velocities`: surface velocities on each body
+  - `surface_pressures`: surface pressures on each body
+  - `convergenced`: convergence flag
+  - `auxiliary outputs`: a named tuple that contains additional outputs applicable to the method used.
 """
 function analyze(
     x::AbstractVector,
@@ -31,21 +47,13 @@ function analyze(
     flow_angles=[0.0],
     reynolds=[1e6],
     machs=[0.0];
-    method=Mfoil(),
-    gap_tolerance=1e-10,
+    method::Method=Mfoil(),
 )
-    return analyze(
-        [x y], flow_angles, reynolds, machs; method=method, gap_tolerance=gap_tolerance
-    )
+    return analyze([x y], flow_angles, reynolds, machs; method=method)
 end
 
 function analyze(
-    coordinates,
-    flow_angles=[0.0],
-    reynolds=[1e6],
-    machs=[0.0];
-    method=Mfoil(),
-    gap_tolerance=1e-10,
+    coordinates, flow_angles=[0.0], reynolds=[1e6], machs=[0.0]; method::Method=Mfoil()
 )
 
     # Reformat inputs as needed

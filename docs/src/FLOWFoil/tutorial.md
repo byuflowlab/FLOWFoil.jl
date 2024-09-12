@@ -22,13 +22,3 @@ angles_of_attack = range(-5.0, 15.0, step=1)
 
 outputs = analyze(x, y, angles_of_attack)
 ```
-
-The `outputs` named tuple will contain
-- `cl`: lift coefficient of each body
-- `cd`: total drag coefficient of each body
-- `cdp`: profile drag coefficient of each body
-- `cm`: moment coefficient of each body
-- `tangential_velocities`: surface velocities on each body
-- `surface_pressures`: surface pressures on each body
-- `convergenced`: convergence flag
-- `auxiliary outputs`: a named tuple that contains additional outputs applicable to the method used.
