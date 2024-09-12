@@ -8,6 +8,9 @@ FLOWFoil.analyze
 
 As an introductory example, we will do a quick analysis of a NACA 2412 airfoil, with coordinates from one of the available methods in the [AirfoilTools](@ref) sub-module.
 
+!!! note
+    For any airfoil coordinate generation method (from FLOWFoil or otherwise), the coordinates must start at the trailing edge, and proceed clockwise around the airfoil.
+
 ```@example quickstart
 using FLOWFoil
 

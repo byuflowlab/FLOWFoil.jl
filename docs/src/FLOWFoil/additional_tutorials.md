@@ -51,6 +51,10 @@ method = Lewis(body_of_revolution = [false])
 outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
 ```
 
+!!! note
+    No part of the geometry for an axisymmetric body can reside below z=0, otherwise an error will be thrown.
+
+
 <!-- ## Martensen's Method for Periodic Bodies (Cascades) -->
 
 <!-- A periodic method for cascade analysis based on that developed by [Martensen](https://archive.org/details/nasa_techdoc_19710021012) can be accessed using the `Martensen` method type: -->
