@@ -163,3 +163,88 @@ function assemble_periodic_boundary_conditions(::Neumann, panels, mesh)
 
     return bc
 end
+
+######################################################################
+#                                                                    #
+#                        FROM CHATGPT TRANSLATION OF LEWIS                         #
+#                                                                    #
+######################################################################
+
+function coupling_coefficients()
+    # Variable declarations
+    r = 0.0
+    u = 0.0
+    v = 0.0
+    a = 0.0
+    b = 0.0
+    k = 0.0
+    sinh = 0.0
+    cosh = 0.0
+    e = 0.0
+    pitch = 0.0
+    chord = 0.0
+    m = 0
+    stagger = 0.0
+    slope = zeros(Float64, m)
+    xdata = zeros(Float64, m)
+    ydata = zeros(Float64, m)
+    ds = zeros(Float64, m)
+    coup = zeros(Float64, m, m)
+
+    # Arrays to store sine and cosine values
+    sine = zeros(Float64, m)
+    cosine = zeros(Float64, m)
+
+    # Loop to initialize sine and cosine arrays
+    for i in 1:m
+        sine[i] = sin(stagger + slope[i])
+        cosine[i] = cos(stagger + slope[i])
+    end
+
+    # Self inducing coupling coefficients
+    coup[1, 1] = -0.5 * (slope[2] - slope[m] - 2.0 * pi) / (8.0 * pi)
+    coup[m, m] = -0.5 * (slope[1] - slope[m - 1] - 2.0 * pi) / (8.0 * pi)
+
+    for i in 2:(m - 1)
+        coup[i, i] = -0.5 * (slope[i + 1] - slope[i - 1]) / (8.0 * pi)
+    end
+
+    # Nested loops for coupling coefficients
+    for i in 1:m
+        for j in 1:m
+            if j < i
+                if pitch / chord > 30.0
+                    # Revert to single aerofoil for very wide blade spacing
+                    r = sqrt((xdata[i] - xdata[j])^2 + (ydata[i] - ydata[j])^2)
+                    u = (ydata[j] - ydata[i]) / (r * 2 * pi)
+                    v = -(xdata[j] - xdata[i]) / (r * 2 * pi)
+                    coup[i, j] = (u * cosine[j] + v * sine[j]) * ds[i]
+                    coup[j, i] = -(u * cosine[i] + v * sine[i]) * ds[j]
+                else
+                    # Cascade coupling coefficients
+                    a =
+                        (
+                            (xdata[i] - xdata[j]) * cos(stagger) -
+                            (ydata[i] - ydata[j]) * sin(stagger)
+                        ) *
+                        2 *
+                        pi / pitch
+                    b =
+                        (
+                            (xdata[i] - xdata[j]) * sin(stagger) +
+                            (ydata[i] - ydata[j]) * cos(stagger)
+                        ) *
+                        2 *
+                        pi / pitch
+                    e = exp(a)
+                    sinh = 0.5 * (e - 1.0 / e)
+                    cosh = 0.5 * (e + 1.0 / e)
+                    k = 0.5 * pitch / (cosh - cos(b))
+                    coup[i, j] = (sinh * sine[i] - sin(b) * cosine[i]) * k * ds[i]
+                    coup[j, i] = -(sinh * sine[j] + sin(b) * cosine[j]) * k * ds[j]
+                end
+            end
+        end
+    end
+end
+
