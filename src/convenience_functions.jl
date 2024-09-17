@@ -47,7 +47,7 @@ function analyze(
     flow_angles=[0.0],
     reynolds=[1e6],
     machs=[0.0];
-    method::Method=Mfoil(),
+    method::Method=Mfoil()
 )
     return analyze([x y], flow_angles, reynolds, machs; method=method)
 end
@@ -74,5 +74,5 @@ function analyze(
     strengths = solve(method, system_matrices)
 
     # Post Process Solution
-    return post_process(method, panel_geometry, system_geometry, strengths)
+    return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
 end

@@ -80,9 +80,9 @@ function get_psitildesigma(psibarsigma, r1mag, r2mag, theta1, theta2, dmag, h, a
 end
 
 """
-    calculate_vortex_influence(node1, node2, point)
+    calculate_linear_vortex_influence(node1, node2, point)
 
-Calculate vortex influence coefficients on the evaluation point from the panel between node1 and node2.
+Calculate linear vortex influence coefficients on the evaluation point from the panel between node1 and node2.
 
 # Arguments:
  - `node1::Array{Float}(2)` : [x y] location of node1
@@ -90,52 +90,62 @@ Calculate vortex influence coefficients on the evaluation point from the panel b
  - `point::Array{Float}(2)` : [x y] location of evaluation point
 
 """
-function calculate_vortex_influence(mesh, i, j)
+function calculate_linear_vortex_influence(system_geometry, i, j)
     # get psibargamma value
     psibargamma = get_psibargamma(
-        mesh.theta1[i, j],
-        mesh.theta2[i, j],
-        mesh.lnr1[i, j],
-        mesh.lnr2[i, j],
-        mesh.panel_length[j],
-        mesh.r1normal[i, j],
-        mesh.r1tangent[i, j],
+        system_geometry.theta1[i, j],
+        system_geometry.theta2[i, j],
+        system_geometry.lnr1[i, j],
+        system_geometry.lnr2[i, j],
+        system_geometry.panel_length[j],
+        system_geometry.r1normal[i, j],
+        system_geometry.r1tangent[i, j],
     )
 
     # get psitildegamma value
     psitildegamma = get_psitildegamma(
         psibargamma,
-        mesh.r1[i, j],
-        mesh.r2[i, j],
-        mesh.theta1[i, j],
-        mesh.theta2[i, j],
-        mesh.lnr1[i, j],
-        mesh.lnr2[i, j],
-        mesh.panel_length[j],
-        mesh.r1normal[i, j],
-        mesh.r1tangent[i, j],
+        system_geometry.r1[i, j],
+        system_geometry.r2[i, j],
+        system_geometry.theta1[i, j],
+        system_geometry.theta2[i, j],
+        system_geometry.lnr1[i, j],
+        system_geometry.lnr2[i, j],
+        system_geometry.panel_length[j],
+        system_geometry.r1normal[i, j],
+        system_geometry.r1tangent[i, j],
     )
 
     # put psi`s together
     return (psibargamma - psitildegamma), psitildegamma
 end
 
-#### Constant vortex panels - for now don't need until we add viscous analysis
-# function calculate_vortex_influence(::Constant, mesh, i, j)
-#     # get psibargamma value
-#     return get_psibargamma(
-#         mesh.theta1[i, j],
-#         mesh.theta2[i, j],
-#         mesh.lnr1[i, j],
-#         mesh.lnr2[i, j],
-#         mesh.panel_length[j],
-#         mesh.r1normal[i, j],
-#         mesh.r1tangent[i, j],
-#     )
-# end
+"""
+    calculate_constant_vortex_influence(node1, node2, point)
+
+Calculate constant vortex influence coefficients on the evaluation point from the panel between node1 and node2.
+
+# Arguments:
+ - `node1::Array{Float}(2)` : [x y] location of node1
+ - `node2::Array{Float}(2)` : [x y] location of node2
+ - `point::Array{Float}(2)` : [x y] location of evaluation point
 
 """
-    calculate_source_influence(node1, node2, point)
+function calculate_constant_vortex_influence(system_geometry, i, j)
+    # get psibargamma value
+    return get_psibargamma(
+        system_geometry.theta1[i, j],
+        system_geometry.theta2[i, j],
+        system_geometry.lnr1[i, j],
+        system_geometry.lnr2[i, j],
+        system_geometry.panel_length[j],
+        system_geometry.r1normal[i, j],
+        system_geometry.r1tangent[i, j],
+    )
+end
+
+"""
+    calculate_constant_source_influence(node1, node2, point)
 
 Calculate constant source influence coefficients on the evaluation point from the panel between node1 and node2.
 
@@ -144,23 +154,23 @@ Calculate constant source influence coefficients on the evaluation point from th
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point
 """
-function calculate_source_influence(mesh, i, j)
+function calculate_constant_source_influence(system_geometry, i, j)
     #get psibarsigma value
     psibarsigma = get_psibarsigma(
-        mesh.theta1[i, j],
-        mesh.theta2[i, j],
-        mesh.lnr1[i, j],
-        mesh.lnr2[i, j],
-        mesh.panel_length[j],
-        mesh.r1normal[i, j],
-        mesh.r1tangent[i, j],
+        system_geometry.theta1[i, j],
+        system_geometry.theta2[i, j],
+        system_geometry.lnr1[i, j],
+        system_geometry.lnr2[i, j],
+        system_geometry.panel_length[j],
+        system_geometry.r1normal[i, j],
+        system_geometry.r1tangent[i, j],
     )
 
     # shift source in order to get a better behaved branch cut orientation
-    if (mesh.theta1[i, j] + mesh.theta2[i, j]) > pi
-        psibarsigma -= 0.25 * mesh.panel_length[j]
+    if (system_geometry.theta1[i, j] + system_geometry.theta2[i, j]) > pi
+        psibarsigma -= 0.25 * system_geometry.panel_length[j]
     else
-        psibarsigma += 0.75 * mesh.panel_length[j]
+        psibarsigma += 0.75 * system_geometry.panel_length[j]
     end
 
     return psibarsigma

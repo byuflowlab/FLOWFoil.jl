@@ -1,69 +1,55 @@
-function generate_panels(p::Mfoil, coordinates)
+function generate_panel_geometry(method::Mfoil, coordinates)
 
     #broadcast for multiple airfoils
-    return reduce(vcat, generate_panels.(Ref(p), coordinates))
+    return reduce(vcat, generate_panel_geometry.(Ref(method), coordinates))
 end
 
-function generate_panels(p::Mfoil, coordinates::Matrix{TF}) where {TF}
+function generate_panel_geometry(method::Mfoil, coordinates::Matrix{TF}) where {TF}
 
     # Separate coordinates
     x = coordinates[:, 1]
     y = coordinates[:, 2]
 
     # Get number of airfoil nodes for convenience
-    numpanels = length(x) - 1
+    npanels = length(x) - 1
 
     # Initialize Outputs
-    panel_edges = zeros(TF, numpanels, 2, 2)
-    panel_lengths = zeros(TF, numpanels)
-    panel_vectors = zeros(TF, numpanels, 2)
-    nodes = zeros(TF, numpanels + 1, 2)
-    nodes[1, :] = [x[1] y[1]]
-    nodes[end, :] = [x[end] y[end]]
+    panel_geometry = (;
+        # - Rename for Convenience - #
+        npanels=npanels,
+        # - Initialize Outputs - #
+        panel_edges=zeros(TF, npanels, 2, 2),
+        panel_vectors=zeros(TF, npanels, 2),
+        panel_lengths=zeros(TF, npanels),
+        nodes=zeros(TF, npanels + 1, 2)
+    )
 
-    for i in 1:numpanels
-        # Get node locations from x,y coordinates
-        panel_edges[i, :, :] = [x[i] y[i]; x[i + 1] y[i + 1]]
-
-        # Calculate Panel Lengths
-        panel_lengths[i] = sqrt((x[i + 1] - x[i])^2 + (y[i + 1] - y[i])^2)
-
-        # Calculate Panel Vectors
-        panel_vectors[i, :] = [x[i + 1] - x[i] y[i + 1] - y[i]]
-
-        # Set Node Values
-        nodes[i, :] = [x[i] y[i]]
-    end
-
-    return [LinearFlatPanel(numpanels, panel_edges, panel_vectors, panel_lengths, nodes)]
+    return generate_panel_geometry!(method, panel_geometry, coordinates)
 end
 
-function generate_panels!(::Mfoil, panels, coordinates::Matrix{TF}) where {TF}
+function generate_panel_geometry!(::Mfoil, panel_geometry, coordinates::Matrix{TF}) where {TF}
 
     # Separate coordinates
     x = coordinates[:, 1]
     y = coordinates[:, 2]
 
-    # Get number of airfoil nodes for convenience
-    numpanels = length(x) - 1
-
     # Initialize Outputs
-    panels.nodes[1, :] .= [x[1] y[1]]
-    panels.nodes[end, :] .= [x[end] y[end]]
+    panel_geometry.nodes[1, :] = [x[1]; y[1]]
+    panel_geometry.nodes[end, :] = [x[end]; y[end]]
 
-    for i in 1:numpanels
+    for i in 1:panel_geometry.npanels
         # Get node locations from x,y coordinates
-        panels.panel_edges[i, :, :] .= [x[i] y[i]; x[i + 1] y[i + 1]]
+        panel_geometry.panel_edges[i, :, :] .= [x[i] y[i]; x[i + 1] y[i + 1]]
 
         # Calculate Panel Lengths
-        panels.panel_lengths[i] .= sqrt((x[i + 1] - x[i])^2 + (y[i + 1] - y[i])^2)
+        panel_geometry.panel_lengths[i] = sqrt((x[i + 1] - x[i])^2 + (y[i + 1] - y[i])^2)
 
         # Calculate Panel Vectors
-        panels.panel_vectors[i, :] .= [x[i + 1] - x[i] y[i + 1] - y[i]]
+        panel_geometry.panel_vectors[i, :] = [x[i + 1] - x[i]; y[i + 1] - y[i]]
 
         # Set Node Values
-        panels.nodes[i, :] .= [x[i] y[i]]
+        panel_geometry.nodes[i, :] = [x[i]; y[i]]
     end
 
-    return nothing
+    return panel_geometry
 end

@@ -1,11 +1,11 @@
-function generate_system_matrices(method::Mfoil, panels, mesh, TEmesh)
+function generate_system_matrices(method::Mfoil, panel_geometry, system_geometry)
     # Get coeffiecient matrix (A, left hand side)
-    A = assemble_influence_matrix(method, mesh, TEmesh)
+    A = assemble_influence_matrix(method, system_geometry)
 
     # Get boundary conditions (b, right hand side)
-    b = assemble_boundary_conditions(method, panels, mesh, TEmesh)
+    b = assemble_boundary_conditions(method, system_geometry)
 
-    return (; A, b, mesh.node_indices)
+    return (; A, b, system_geometry.node_indices)
 end
 
 #---------------------------------#
@@ -13,26 +13,28 @@ end
 #---------------------------------#
 
 """
-    assemble_influence_matrix(v::Vortex, mesh, TEmesh)
+    assemble_influence_matrix(v::Vortex, system_geometry, TE_geometry)
 
 Assembles the "A" matrix (left hand side coefficient matrix).
 
 # Arguments:
-- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
-- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
+- `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
+- `TE_geometry::system_geometry` : The system_geometry object associated with the trailing edge gap panels
 
 # Returns:
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
-function assemble_influence_matrix(method::Mfoil, mesh, TEmesh)
+function assemble_influence_matrix(method::Mfoil, system_geometry)
+
+    TE_geometry = system_geometry.TE_geometry
 
     # - Rename For Convenience - #
-    pidx = mesh.panel_indices
-    nidx = mesh.node_indices
-    nb = mesh.nbodies
+    pidx = system_geometry.panel_indices
+    nidx = system_geometry.node_indices
+    nb = system_geometry.nbodies
 
     # - Initialize Matrix - #
-    TF = typeof(mesh.chord)
+    TF = typeof(system_geometry.chord_length)
     amat = zeros(TF, nidx[end][end] + nb, nidx[end][end] + nb)
 
     ##### ----- Loop through the bodies being influenced ----- #####
@@ -44,7 +46,7 @@ function assemble_influence_matrix(method::Mfoil, mesh, TEmesh)
             ### --- Populate main body of influence matrix --- ###
             for i in nidx[m]
                 for j in pidx[n]
-                    aij, aijp1 = calculate_vortex_influence(mesh, i, j)
+                    aij, aijp1 = calculate_linear_vortex_influence(system_geometry, i, j)
 
                     # add coefficients to matrix at correct nodes
                     if j == 1
@@ -85,7 +87,7 @@ function assemble_influence_matrix(method::Mfoil, mesh, TEmesh)
                      We can re-use the indices we just found for the Kutta Condition,
                      but flip them so that they apply to the last columns instead.
                 =#
-                if !TEmesh.blunt_te[m]
+                if !TE_geometry.blunt_te[m]
                     #= If sharp trailing edge,
                       set the constant stream value
                       (associated with the Nth node equation for the airfoil)
@@ -113,14 +115,14 @@ function assemble_influence_matrix(method::Mfoil, mesh, TEmesh)
                     for i in nidx[m]
 
                         # Get panel influence coefficients
-                        sigmate = calculate_source_influence(TEmesh, i, m)
-                        gammate = sum(calculate_vortex_influence(TEmesh, i, m))
+                        sigmate = calculate_constant_source_influence(TE_geometry, i, m)
+                        gammate = sum(calculate_constant_vortex_influence(TE_geometry, i, m))
 
                         # Add/subtract from relevant matrix entries
                         amat[i, nidx[m][1]] +=
-                            0.5 * (gammate * TEmesh.tdp[m] - sigmate * TEmesh.txp[m])
+                            0.5 * (gammate * TE_geometry.tdp[m] - sigmate * TE_geometry.txp[m])
                         amat[i, nidx[m][end]] +=
-                            0.5 * (sigmate * TEmesh.txp[m] - gammate * TEmesh.tdp[m])
+                            0.5 * (sigmate * TE_geometry.txp[m] - gammate * TE_geometry.tdp[m])
                     end
                 end
             end
@@ -149,26 +151,28 @@ This implementation doesn't precisely fit.  As stated in other places, this Xfoi
 =#
 
 """
-    assemble_boundary_conditions(meshes)
+    assemble_boundary_conditions(system_geometryes)
 
 Assemble Dirchilet boundary condition vector.
 
 # Arguments:
 - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
-- `mesh::Mesh` : The mesh object containing relative geometry for the influence coefficient calculations.
-- `TEmesh::Mesh` : The mesh object associated with the trailing edge gap panels
+- `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
+- `TE_geometry::system_geometry` : The system_geometry object associated with the trailing edge gap panels
 
 # Returns
  - `b::Matrix{Float}` : Boundary condition matrix
 """
-function assemble_boundary_conditions(method::Mfoil, panels, mesh, TEmesh)
+function assemble_boundary_conditions(method::Mfoil, system_geometry)
+
+    TE_geometry = system_geometry.TE_geometry
 
     # - Rename For Convenience - #
-    nidx = mesh.node_indices
-    nb = mesh.nbodies
+    nidx = system_geometry.node_indices
+    nb = system_geometry.nbodies
 
     # initialize boundary condition array
-    TF = typeof(mesh.chord)
+    TF = typeof(system_geometry.chord_length)
     bmat = zeros(TF, nidx[end][end] + nb, 2)
 
     ##### ----- Loop through system ----- #####
@@ -182,17 +186,17 @@ function assemble_boundary_conditions(method::Mfoil, panels, mesh, TEmesh)
           but rather keeps the rhs as [-z,x] in all cases:
         =#
         bmat[nidx[m][1]:nidx[m][end - 1], 1] = [
-            -mesh.nodes[i, 2] for i in nidx[m][1]:nidx[m][end - 1]
+            -system_geometry.nodes[i, 2] for i in nidx[m][1]:nidx[m][end - 1]
         ]
 
         bmat[nidx[m][1]:nidx[m][end - 1], 2] = [
-            mesh.nodes[i, 1] for i in nidx[m][1]:nidx[m][end - 1]
+            system_geometry.nodes[i, 1] for i in nidx[m][1]:nidx[m][end - 1]
         ]
 
         # if blunt trailing edge, no need for adjustment to last equation in submatrix.
-        if TEmesh.blunt_te[m]
-            bmat[nidx[m][end], 1] = -mesh.nodes[nidx[m][end], 2]
-            bmat[nidx[m][end], 2] = mesh.nodes[nidx[m][end], 1]
+        if TE_geometry.blunt_te[m]
+            bmat[nidx[m][end], 1] = -system_geometry.nodes[nidx[m][end], 2]
+            bmat[nidx[m][end], 2] = system_geometry.nodes[nidx[m][end], 1]
         end
     end
 

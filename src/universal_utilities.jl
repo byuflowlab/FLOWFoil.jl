@@ -69,7 +69,7 @@ function smooth_distributions(method::Mfoil, panel_edges, distribution, npanels)
 
     # - Get smooth 'x' values from cosine spacing - #
     # Get cosine spaced values from zero to one.
-    xcosine = cosine_spacing(npanels)
+    xcosine = at.split_cosine_spacing(npanels)
 
     # - Transform the cosine spaced values to the minimum and maximum points - #
     # Get the maximum x value

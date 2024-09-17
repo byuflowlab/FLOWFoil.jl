@@ -1,12 +1,17 @@
-function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
+# - If single airfoil, need to put Panel object in a vector - #
+function generate_system_geometry(method::Mfoil, panel_geometry::NamedTuple)
+    return generate_system_geometry(method, [panel_geometry])
+end
+
+function generate_system_geometry(method::Mfoil, panel_geometry::AbstractVector; gap_tolerance=1e-10)
 
     ### --- Convenience Variables --- ###
-    nbodies = length(panels)
-    npanels = [panels[i].npanels for i in 1:nbodies]
+    nbodies = length(panel_geometry)
+    npanels = [panel_geometry[i].npanels for i in 1:nbodies]
     total_panels = sum(npanels)
     nnodes = npanels .+ 1
     total_nodes = sum(nnodes)
-    nodes = reduce(vcat, panels[i].node for i in 1:nbodies)
+    nodes = reduce(vcat, panel_geometry[i].nodes for i in 1:nbodies)
 
     # - Define Body Indexing - #
 
@@ -21,7 +26,7 @@ function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
     mesh2panel = reduce(vcat, [1:npanels[i] for i in 1:nbodies])
 
     ### --- Initialize Vectors --- ###
-    TF = typeof(sum([panels[i].panel_length[1] for i in 1:nbodies]))
+    TF = typeof(sum([panel_geometry[i].panel_lengths[1] for i in 1:nbodies]))
 
     # Individual Chord Lengths
     leading_edges = zeros(TF, nbodies)
@@ -95,12 +100,12 @@ function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
 
         # Get trailing edge information for each body
         tdp[m], txp[m], trailing_edge_gap[m], TE_panel_edges, TE_panel_vector, TE_panel_length[m] = get_trailing_edge_info(
-            panels[m].panel_edges
+            panel_geometry[m].panel_edges
         )
 
         # Get chord length
-        leading_edges[m] = minimum(panels[m].panel_edges[:, :, 1])
-        trailing_edges[m] = maximum(panels[m].panel_edges[:, :, 1])
+        leading_edges[m] = minimum(panel_geometry[m].panel_edges[:, :, 1])
+        trailing_edges[m] = maximum(panel_geometry[m].panel_edges[:, :, 1])
 
         # Check if trailing edge is sharp or not
         if abs(TE_panel_length[m]) > gap_tolerance * (trailing_edges[m] - leading_edges[m])
@@ -116,7 +121,7 @@ function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
 
         # Copy over panel lengths for convenience
         for pi in panel_indices
-            panel_length[pi] = panels[m].panel_length
+            panel_length[pi] = panel_geometry[m].panel_lengths
         end
 
         ##### ----- Loop through each of the bodies doing the influencing ----- #####
@@ -139,13 +144,16 @@ function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
                 # Get trailing edge panel geometry
 
                 # Calculate Influence Geometry
-                r1_TE[i, m], r2_TE[i, m], r1normal_TE[i, m], r1tangent_TE[i, m], theta1_TE[i, m], theta2_TE[i, m], lnr1_TE[i, m], lnr2_TE[i, m] = calculate_influence_geometry(
-                    TE_panel_edges,
-                    TE_panel_vector,
-                    trailing_edge_gap[m],
-                    # field_panel_edge[edgeidx, :];
-                    nodes[i, :];
-                    gap_tolerance=gap_tolerance,
+                r1_TE[i, m], r2_TE[i, m], r1normal_TE[i, m], 
+                    r1tangent_TE[i, m], theta1_TE[i, m], 
+                    theta2_TE[i, m], lnr1_TE[i, m], 
+                    lnr2_TE[i, m] = calculate_influence_geometry(
+                                        TE_panel_edges,
+                                        TE_panel_vector,
+                                        trailing_edge_gap[m],
+                                        # field_panel_edge[edgeidx, :];
+                                        nodes[i, :];
+                                        gap_tolerance=gap_tolerance,
                 )
 
                 ### --- Loop through each influence panel in body n --- ###
@@ -153,20 +161,23 @@ function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
 
                     # - Rename For Convenience - #
                     # Panel edges of influencing panels (body n)
-                    influence_panel_edge = panels[n].panel_edges[mesh2panel[j], :, :]
+                    influence_panel_edge = panel_geometry[n].panel_edges[mesh2panel[j], :, :]
 
                     # Panel Vector and Length
-                    influence_panel_vector = panels[n].panel_vector[mesh2panel[j], :]
+                    influence_panel_vector = panel_geometry[n].panel_vectors[mesh2panel[j], :]
 
                     # - Calculate Influence Geometry - #
 
-                    r1[i, j], r2[i, j], r1normal[i, j], r1tangent[i, j], theta1[i, j], theta2[i, j], lnr1[i, j], lnr2[i, j] = calculate_influence_geometry(
-                        influence_panel_edge,
-                        influence_panel_vector,
-                        panel_length[mesh2panel[j]],
-                        # field_panel_edge[edgeidx, :];
-                        nodes[i, :];
-                        gap_tolerance=gap_tolerance,
+                    r1[i, j], r2[i, j], r1normal[i, j], 
+                        r1tangent[i, j], theta1[i, j], 
+                        theta2[i, j], lnr1[i, j], 
+                        lnr2[i, j] = calculate_influence_geometry(
+                                        influence_panel_edge,
+                                        influence_panel_vector,
+                                        panel_length[mesh2panel[j]],
+                                        # field_panel_edge[edgeidx, :];
+                                        nodes[i, :];
+                                        gap_tolerance=gap_tolerance,
                     )
                 end #for panels being influenced
             end #for influencing panels
@@ -184,6 +195,23 @@ function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
         Possibly do the trailing edge gap panel discovery and geometry in the paneling function(s), and then pass those in as part of everything.
         Indexing could get tricky trying to combine everything together though, since the TE panels only influence and are not influenced, so they don't add any more equations to the system.
     =#
+
+        # trailing edge gap panel geomtry
+        TE_geometry = (;
+            blunt_te,
+            panel_length=trailing_edge_gap[1],
+            tdp,
+            txp,
+            r1=r1_TE,
+            lnr1=lnr1_TE,
+            r1normal=r1normal_TE,
+            r1tangent=r1tangent_TE,
+            theta1=theta1_TE,
+            r2=r2_TE,
+            lnr2=lnr2_TE,
+            theta2=theta2_TE,
+        )
+
     # main system_geometry
     system_geometry = (;
         nbodies,
@@ -201,26 +229,10 @@ function generate_system_geometry(p::Mfoil, panels; gap_tolerance=1e-10)
         r2,
         lnr2,
         theta2,
+        TE_geometry
     )
 
-    # trailing edge gap panel geomtry
-    TE_geometry = (;
-        blunt_te,
-        trailing_edge_gap,
-        tdp,
-        txp,
-        trailing_edge_gap,
-        r1_TE,
-        lnr1_TE,
-        r1normal_TE,
-        r1tangent_TE,
-        theta1_TE,
-        r2_TE,
-        lnr2_TE,
-        theta2_TE,
-    )
-
-    return system_geometry, TE_geometry
+    return system_geometry
 end
 
 """
@@ -306,11 +318,4 @@ function calculate_influence_geometry(
     end #if
 
     return r1, r2, r1normal, r1tangent, theta1, theta2, lnr1, lnr2
-end
-
-# - If single airfoil, need to put Panel object in a vector - #
-function generate_system_geometry(
-    p::PlanarProblem, panels::TP; gap_tolerance=1e-10
-) where {TP<:Panel}
-    return generate_system_geometry(p, [panels]; gap_tolerance=gap_tolerance)
 end
