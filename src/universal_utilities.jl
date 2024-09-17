@@ -26,14 +26,14 @@ function linear_transform(source_range, target_range, source_values)
 end
 
 """
-    smooth_distributions(surface_location, surface_values, npanels) end
+    smooth_distributions(method, panel_geometry, surface_values, npoints)
 
 Generates smooth surface distribution values.
 
 # Arguments:
-- `surface_location::Array{Float}` : location where distribution values lie.
-- `surface_values::Array{Float}` : surface distribution values
-- `npanels::Int` : Number of panels to use on the top and bottom surface for smoothing (total panels = 2*npanels-1)
+- `panel_geometry::NamedTuple` : NamedTuple that comes from `generate_panel_geometry`. Must contain `panel_edges`.
+- `distribution::Array{Float}` : surface distribution values
+- `npoints::Int` : Total number of points in the new distribution covering the entire airfoil. (There will be `(npoints+1)/2` points on the top and bottom surfaces, respectively.)
 
 # Returns:
 - `distribution::Vector{Float}` : Smoothed surface distribution
@@ -41,12 +41,15 @@ Generates smooth surface distribution values.
 
 # TODO: Consider returning spline objects rather than another set of discrete values.
 """
-function smooth_distributions(method::Mfoil, panel_edges, distribution, npanels)
+function smooth_distributions(method::Mfoil, panel_geometry, distribution, npoints)
 
     #= NOTE:
         Akima splines in FLOWMath require the 'x' values to be monotonically ascending.
         Therefore, we need to get all the panel edge points and then divide them into top and bottom in order to create our splines.
     =#
+
+    # get panel_edges from panel_geometry
+    panel_edges = panel_geometry.panel_edges
 
     # - Get 'x' values from panel edges - #
     x = [panel_edges[:, 1, 1]; panel_edges[end, 2, 1]]
@@ -69,7 +72,7 @@ function smooth_distributions(method::Mfoil, panel_edges, distribution, npanels)
 
     # - Get smooth 'x' values from cosine spacing - #
     # Get cosine spaced values from zero to one.
-    xcosine = at.split_cosine_spacing(npanels)
+    xcosine = at.split_cosine_spacing((npoints+1)/2)
 
     # - Transform the cosine spaced values to the minimum and maximum points - #
     # Get the maximum x value
@@ -91,13 +94,15 @@ function smooth_distributions(method::Mfoil, panel_edges, distribution, npanels)
 end
 
 function smooth_distributions(
-    method::Lewis, panel_center, distribution, npanels; body_of_revolution=false
+    method::Lewis, panel_geometry, distribution, npoints; body_of_revolution=false
 )
 
     #= NOTE:
         Akima splines in FLOWMath require the 'x' values to be monotonically ascending.
         Therefore, we need to get all the panel edge points and then divide them into top and bottom in order to create our splines.
     =#
+
+    panel_center = panel_geometry.panel_center
 
     # - Get 'x' values from panel centers - #
     x = panel_center[:, 1]
@@ -119,9 +124,9 @@ function smooth_distributions(
     # - Get smooth 'x' values from cosine spacing - #
     # Get cosine spaced values from zero to one.
     if body_of_revolution
-        xcosine = cosine_spacing(2 * npanels - 1)
+        xcosine = cosine_spacing(npoints)
     else
-        xcosine = cosine_spacing(npanels)
+        xcosine = cosine_spacing((npoints+1)/2)
     end
 
     # - Transform the cosine spaced values to the minimum and maximum points - #

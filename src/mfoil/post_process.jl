@@ -15,9 +15,6 @@ function post_process(
     # number of airfoils
     nbodies = system_geometry.nbodies
 
-    # number of panels
-    npanels = panel_geometry[1].npanels
-
     # number of angles of attack
     naoa = length(flow_angles)
 
@@ -52,38 +49,23 @@ function post_process(
     # Moment coefficient
     cm = zeros(TF, nbodies, naoa)
 
-    # - Surface Distributions - #
-
-    #= NOTE:
-        If debug is true, then we can allow for the raw outputs for surface distributions which may or may not be the same length (thus requiring a tuple).
-        If debug is false, then we assume that we'll be smoothing the outputs with Akima splines.
-    =#
-    # if debug
-    #     # Surface Velocities
-    #     tangential_velocities = NTuple(nbodies, Matrix{TF}(undef, (2 * npanels - 1, naoa)))
-    #     # Surface Pressures
-    #     surface_pressures = NTuple(nbodies, Matrix{TF}(undef, (2 * npanels - 1, naoa)))
-    # else
-        # Surface Velocities
-        tangential_velocities = zeros(TF, nbodies, 2 * npanels - 1, naoa)
-        # Surface Pressures
-        surface_pressures = zeros(TF, nbodies, 2 * npanels - 1, naoa)
-    # end
-
-    smooth_nodes = zeros(TF, nbodies, 2 * npanels - 1, naoa)
+    # Surface Velocities
+    tangential_velocities = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+    # Surface Pressures
+    surface_pressures = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
 
     ##### ----- Loop Through Bodies ----- #####
     for m in 1:nbodies
 
         # Panel Values
         # length
-        panel_lengths = panel_geometry[m].panel_lengths
+        # panel_lengths = panel_geometry[m].panel_lengths
         # vector
         panel_vector = panel_geometry[m].panel_vectors
         # edge locations
         panel_edges = panel_geometry[m].panel_edges
         # midpoints
-        panel_midpoints = (panel_edges[:, 2, :] .+ panel_edges[:, 1, :]) ./ panel_lengths
+        # panel_midpoints = (panel_edges[:, 2, :] .+ panel_edges[:, 1, :]) ./ panel_lengths
 
         for a in 1:naoa
 
@@ -103,23 +85,9 @@ function post_process(
             # Get Mean Pressure at PANEL MIDPOINTS
             cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
 
-            # organize outputs based on debug flag
-            # if debug
-            #     tangential_velocities[m][:, a] = vti
-            #     surface_pressures[m][:, a] = cpi
-            #     # Get Mean Pressure at PANEL MIDPOINTS
-            #     cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
-            # else
-                #smooth_distributions functions are found in utils.jl
-                tangential_velocities[m, :, a], smooth_nodes[m, :, a] = smooth_distributions(
-                    Mfoil(), panel_edges, vti, npanels
-                )
-                surface_pressures[m, :, a], _ = smooth_distributions(
-                    Mfoil(), panel_edges, cpi, npanels
-                )
-                # Get Mean Pressure at PANEL MIDPOINTS
-                cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
-            # end
+            # - Organize surface velocities and pressures - #
+            tangential_velocities[m][:, a] = vti
+            surface_pressures[m][:, a] = cpi
 
             #---------------------------------#
             #      Calculate Coefficients     #
@@ -183,5 +151,5 @@ function post_process(
         end
     end
 
-    return (; cl, cd, cdp, cdi, cm, tangential_velocities, surface_pressures, smooth_nodes)
+    return (; cl, cd, cdp, cdi, cm, tangential_velocities, surface_pressures)
 end
