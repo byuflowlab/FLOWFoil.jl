@@ -1,10 +1,10 @@
-function generate_panels(p::PeriodicProblem, coordinates)
+function generate_panels(method::Martensen, coordinates)
 
     #broadcast for multiple airfoils
-    return generate_panels.(Ref(p), coordinates)
+    return generate_panels.(Ref(method), coordinates)
 end
 
-function generate_panels(::PeriodicProblem, coordinates::Matrix{TF}) where {TF}
+function generate_panels(::Martensen, coordinates::Matrix{TF}) where {TF}
 
     ### --- SETUP --- ###
 

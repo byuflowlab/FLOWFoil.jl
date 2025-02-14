@@ -4,4 +4,7 @@
 # Fields:
 
 """
-@kwdef struct Martensen{} <: Method end
+@kwdef struct Martensen{TP,TS} <: Method
+    pitch::TP
+    stagger::TS
+end

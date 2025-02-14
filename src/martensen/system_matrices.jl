@@ -1,13 +1,13 @@
-function generate_system_matrices(p::PeriodicProblem, panels::TP, mesh) where {TP<:Panel}
-    return generate_system_matrices(p, [panels], mesh)
+function generate_system_matrices(method::Martensen, panels::TP, mesh) where {TP<:Panel}
+    return generate_system_matrices(method, [panels], mesh)
 end
 
-function generate_system_matrices(p::PeriodicProblem, panels, mesh)
+function generate_system_matrices(method::Martensen, panels, mesh)
     # Get coeffiecient matrix (A, left hand side)
-    A = assemble_periodic_influence_matrix(p.singularity, panels, mesh)
+    A = assemble_periodic_influence_matrix(method.singularity, panels, mesh)
 
     # Get boundary conditions (b, right hand side)
-    b = assemble_periodic_boundary_conditions(p.boundary, panels, mesh)
+    b = assemble_periodic_boundary_conditions(method.boundary, panels, mesh)
 
     return InviscidSystem(A, b, mesh.panel_indices)
 end

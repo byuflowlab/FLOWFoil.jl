@@ -1,13 +1,13 @@
 function post_process(
-    ap::PeriodicProblem, problem, panels::TP, mesh, solution; npanels=80, debug=false
+    method::Martensen, problem, panels::TP, mesh, solution; npanels=80, debug=false
 ) where {TP<:Panel}
     return post_process(
-        ap::PeriodicProblem, problem, [panels], mesh, solution; npanels=80, debug=false
+        method::Martensen, problem, [panels], mesh, solution; npanels=80, debug=false
     )
 end
 
 function post_process(
-    ::PeriodicProblem, problem, panels, mesh, solution; npanels=80, debug=false
+    ::Martensen, problem, panels, mesh, solution; npanels=80, debug=false
 )
 
     # - Rename for Convenience - #

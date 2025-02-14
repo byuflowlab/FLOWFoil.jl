@@ -1,8 +1,8 @@
-function generate_system_geometry(pp::Martensen, panels)
-    return generate_system_geometry(pp, [panels])
+function generate_system_geometry(method::Martensen, panels)
+    return generate_system_geometry(method, [panels])
 end
 
-function generate_system_geometry(pp::Martensen, panels::AbstractArray)
+function generate_system_geometry(method::Martensen, panels::AbstractArray)
 
     ### --- Convenience Variables --- ###
     nbodies = length(panels)
@@ -56,5 +56,5 @@ function generate_system_geometry(pp::Martensen, panels::AbstractArray)
     end #for mth influenced body
 
     # Return Mesh
-    return PeriodicMesh(nbodies, panel_indices, x, y, pp.pitch, pp.stagger)
+    return PeriodicMesh(nbodies, panel_indices, x, y, method.pitch, method.stagger)
 end
