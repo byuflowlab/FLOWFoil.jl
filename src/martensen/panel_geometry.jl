@@ -30,6 +30,7 @@ function generate_panels(::Martensen, coordinates::Matrix{TF}) where {TF}
         panel_center[i, :] = [0.5 * (x[i] + x[i + 1]); 0.5 * (y[i] + y[i + 1])]
 
         # Calculate panel length
+        panel_length[i] = sqrt((x[i + 1] - x[i])^2 + (y[i + 1] - y[i])^2)
         panel_vector, panel_length[i] = get_d([x[i] y[i]; x[i + 1] y[i + 1]])
 
         # Calculate panel unit normal
