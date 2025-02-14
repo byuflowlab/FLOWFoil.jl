@@ -88,6 +88,6 @@ function generate_panels(::Martensen, coordinates::Matrix{TF}) where {TF}
 
     # - Return Panel Object - #
     return ConstantFlatPanel(
-        npanels, panel_center, panel_length, panel_normal, panel_angle, delta_angle
+        npanels, panel_center, panel_length, panel_normal, panel_angle, delta_angle, sine_vector, cosine_vector
     )
 end
