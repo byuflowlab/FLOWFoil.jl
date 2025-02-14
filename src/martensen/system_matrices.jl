@@ -18,7 +18,16 @@ end
 
 #this function essentially takes in the panel geometry and outputs the coupling matrix
 #Important: panels need to include cascade pitch 
-function assemble_coupling_matrix(panels, mesh)
+function assemble_coupling_matrix(panels::TF, mesh)
+    m = panels.npanels
+    coup = Array{TF, 2}(undef, m, m) .= 0.0 #coup defined using number of panels from panel_geometry.jl
+    
+    #compute self-inducing coupling coefficients
+    coup[1,1] = -0.5 - (panels.panel_angle[2] - panels.panel_angle[m] - 2*pi) / (8*pi)
+    coup[m,m] = -0.5 - (panels.panel_angle[1] - panels.panel_angle[m - 1] - 2*pi) / (8*pi)
+    for i = 2:m - 1
+        coup[i,i] = -0.5 - (panels.panel_angle[i + 1] - panels.panel_angle[i - 1]) / (8*pi)
+    end
 
 end
 
