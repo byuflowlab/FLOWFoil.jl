@@ -24,6 +24,7 @@ function generate_panels(::Martensen, coordinates::Matrix{TF}) where {TF}
     delta_angle = zeros(TF, npanels)
     sine_vector = zeros(TF. npanels)
     cosine_vector = zeros(TF, npanels)
+    ex = 0.000001 #term used to compute the panel angle (slope)
 
     ### --- Loop Through Coordinates --- ###
     for i in 1:npanels
@@ -35,7 +36,21 @@ function generate_panels(::Martensen, coordinates::Matrix{TF}) where {TF}
         panel_length[i] = sqrt((x[i + 1] - x[i])^2 + (y[i + 1] - y[i])^2)
         sine_vector[i] = (y[i + 1] - y[i]) / panel_length[i]
         cosine_vector[i] = (x[i + 1] - x[i]) / panel_length[i]
-        #panel_vector, panel_length[i] = get_d([x[i] y[i]; x[i + 1] y[i + 1]])
+        abscosine = abs(cosine_vector[i])
+        if abscosine > ex
+            t = atan(sine_vector[i] / cosine_vector[i])
+        end
+        if abscosine <= ex
+            panel_angle[i] = (sine_vector[i] / abs(sine_vector[i]))*pi / 2
+        end
+        if cosine_vector[i] > ex
+            panel_angle[i] = t
+        end
+        if cosine_vector[i] < -ex
+            panel_angle[i] = t - pi
+        end
+        
+        #panel_vector, panel_length[i] = get_d([x[i] y[i]; x[i + 1] y[i + 1]]) #not sure what this is supposed to be so I commented it out
 
         # Calculate panel unit normal
         panel_normal[i, :] = get_panel_normal(panel_vector, panel_length[i])
