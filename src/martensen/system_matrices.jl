@@ -16,6 +16,12 @@ end
 #       COEFFICIENT MATRIX        #
 #---------------------------------#
 
+#this function essentially takes in the panel geometry and outputs the coupling matrix
+#Important: panels need to include cascade pitch 
+function assemble_coupling_matrix(panels, mesh)
+
+end
+
 """
     assemble_periodic_influence_matrix(v::Vortex, body_of_revolution, panels, mesh)
 
