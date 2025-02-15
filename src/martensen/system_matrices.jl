@@ -30,6 +30,12 @@ function assemble_coupling_matrix(panels::TF, mesh, pitch, stagger)
         coup[i,i] = -0.5 - (panels.panel_angle[i + 1] - panels.panel_angle[i - 1]) / (8*pi)
     end
 
+    #add stagger to the cosine and sine vectors to follow Lewis
+    for i = 1:m
+        #here I re-evaluate the sine and cosine vectors
+        panels.sine_vector[i] = sin(stagger + panels.panel_angle[i])
+        panels.cosine_vector[i] = cos(stagger + panels.panel_angle[i])
+    end
 end
 
 """
