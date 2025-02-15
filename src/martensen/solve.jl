@@ -4,7 +4,10 @@ function solve(::Martensen, system_matrices)
     n = length(system_matrices.b[:, 1])
     x = Array{TF, 2}(undef, n, 2) #x is the solution to the system of linear equations
     
+    x[:, 1] = system_matrices.A \ system_matrices.b[:, 1]
+    x[:, 2] = system_matrices.A \ system_matrices.b[:, 2]
 
+    return x
 end
 
 ######################################################################
