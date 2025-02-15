@@ -30,7 +30,7 @@ Assembles the "A" matrix (left hand side coefficient matrix).
 - `stagger::TF` : The stagger of the airfoil cascade.
 
 # Returns:
-- coup::Matrix{Float}` : The influence coefficient matrix for the linear system
+- coup::Matrix{Float}` : The influence coefficient matrix for the linear system - note that this will be 1 row and column less than the number of panels due to the kutta condition
 """
 function assemble_coupling_matrix(panels::TF, pitch, stagger)
     m = panels.npanels
