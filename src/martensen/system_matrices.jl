@@ -254,6 +254,10 @@ end
 
 function assemble_periodic_boundary_conditions(::dirichlet, panels, mesh)
     
+    nbodies = panels.npanels #number of panels
+    TF = eltype(panels.panel_center)
+    bc = zeros(TF, nbodies, 3)
+
 end
 
 ######################################################################
