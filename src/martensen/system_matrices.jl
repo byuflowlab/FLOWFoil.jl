@@ -71,7 +71,18 @@ function assemble_coupling_matrix(panels::TF, mesh, pitch, stagger)
             end
         end
     end
-    
+
+    #apply the back-diagonal correction
+    sum = 0.0
+    for i = 1:m
+        sum = 0.0
+        for j = 1:m
+            if j != m + 1 - i
+                sum = sum + coup[j, i]*panels.panel_length[j]
+            end
+            coup[m + 1 - i, i] = -sum / panels.panel_length[m + 1 - i]
+        end
+    end
 end
 
 """
