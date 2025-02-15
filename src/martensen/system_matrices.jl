@@ -4,7 +4,7 @@ end
 
 function generate_system_matrices(method::Martensen, panels, mesh)
     # Get coeffiecient matrix (A, left hand side)
-    A = assemble_coupling_matrix(panels, mesh, method.pitch, method.stagger)
+    A = assemble_coupling_matrix(panels, method.pitch, method.stagger)
     #assemble_periodic_influence_matrix(method.singularity, panels, mesh) #not sure how this function works so I commented it out
 
     # Get boundary conditions (b, right hand side)
@@ -256,8 +256,21 @@ function assemble_periodic_boundary_conditions(::dirichlet, panels, mesh)
     
     nbodies = panels.npanels #number of panels
     TF = eltype(panels.panel_center)
-    bc = zeros(TF, nbodies, 3)
+    bc = zeros(TF, nbodies, 2) #have two columns because Lewis uses two unit solutions
 
+    #compute right hand sides
+    for i = 1:nbodies
+        bc[i, 1] = -cos(panels.panel_angle[i])
+        bc[i, 2] = -sin(panels.panel_angle[i])
+    end
+
+    #match left hand side for kutta conditions
+    #adjust right hand sides to match
+    bc[nbodies, 1] = bc[nbodies, 1] - bc[1, 1]
+    bc[nbodies, 2] = bc[nbodies, 2] - bc[1, 2]
+    bc = bc[1:end .!= 1, 1:end] #delete's te row and column
+    
+    return bc
 end
 
 ######################################################################
