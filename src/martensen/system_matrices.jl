@@ -252,6 +252,10 @@ function assemble_periodic_boundary_conditions(::Neumann, panels, mesh)
     return bc
 end
 
+function assemble_periodic_boundary_conditions(::dirichlet, panels, mesh)
+    
+end
+
 ######################################################################
 #                                                                    #
 #                        FROM CHATGPT TRANSLATION OF LEWIS                         #
