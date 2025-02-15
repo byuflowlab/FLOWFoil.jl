@@ -4,7 +4,8 @@ end
 
 function generate_system_matrices(method::Martensen, panels, mesh)
     # Get coeffiecient matrix (A, left hand side)
-    A = assemble_periodic_influence_matrix(method.singularity, panels, mesh)
+    A = assemble_coupling_matrix(panels, mesh, method.pitch, method.stagger)
+    #assemble_periodic_influence_matrix(method.singularity, panels, mesh) #not sure how this function works so I commented it out
 
     # Get boundary conditions (b, right hand side)
     b = assemble_periodic_boundary_conditions(method.boundary, panels, mesh)
@@ -18,7 +19,7 @@ end
 
 #this function essentially takes in the panel geometry and outputs the coupling matrix
 #Important: panels need to include cascade pitch 
-function assemble_coupling_matrix(panels::TF, mesh)
+function assemble_coupling_matrix(panels::TF, mesh, pitch, stagger)
     m = panels.npanels
     coup = Array{TF, 2}(undef, m, m) .= 0.0 #coup defined using number of panels from panel_geometry.jl
     
