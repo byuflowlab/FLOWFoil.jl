@@ -19,7 +19,20 @@ end
 
 #this function essentially takes in the panel geometry and outputs the coupling matrix
 #Important: panels need to include cascade pitch 
-function assemble_coupling_matrix(panels::TF, mesh, pitch, stagger)
+"""
+    assemble_coupling_matrix(panels::TF, mesh, pitch, stagger)
+
+Assembles the "A" matrix (left hand side coefficient matrix).
+
+# Arguments:
+- `panels::TF` : Named tuple with the panel geometry.
+- `pitch::TF` : The pitch of the airfoil cascade.
+- `stagger::TF` : The stagger of the airfoil cascade.
+
+# Returns:
+- coup::Matrix{Float}` : The influence coefficient matrix for the linear system
+"""
+function assemble_coupling_matrix(panels::TF, pitch, stagger)
     m = panels.npanels
     coup = Array{TF, 2}(undef, m, m) .= 0.0 #coup defined using number of panels from panel_geometry.jl
     
