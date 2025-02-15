@@ -1,4 +1,9 @@
 function solve(::Martensen, system_matrices)
+    #solve system
+    TF = eltype(system_matrices.b)
+    n = length(system_matrices.b[:, 1])
+    x = Array{TF, 2}(undef, n, 2) #x is the solution to the system of linear equations
+    
 
 end
 
