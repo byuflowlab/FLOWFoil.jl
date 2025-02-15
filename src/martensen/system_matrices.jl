@@ -36,6 +36,42 @@ function assemble_coupling_matrix(panels::TF, mesh, pitch, stagger)
         panels.sine_vector[i] = sin(stagger + panels.panel_angle[i])
         panels.cosine_vector[i] = cos(stagger + panels.panel_angle[i])
     end
+    #define convenience variables
+    xm = 0.0
+    ym = 0.0
+    xn = 0.0
+    yn = 0.0
+    chord = 1.0
+
+    for i = 1:m
+        for j = i:m
+            if j != i
+                #if pitch / chord is greater than 30, then the program will perform a single airfoil analysis
+                if pitch / chord > 30.0
+                    xm = panels.panel_center[i]
+                    xn = panels.panel_center[j]
+                    ym = panels.panel_center[i]
+                    yn = panels.panel_center[j]
+                    r = (xn - xm)^2 + (yn -m)^2
+                    u = (yn - ym) / (r*2*pi)
+                    v = -(xn - xm) / (r*2*pi)
+                    coup[j,i] = (u*panels.cosine_vector[j] + v*panels.sine_vector[j])*panels.panel_length[i]
+                    coup[i,j] = -(u*cosine_vector[i] + v*sine_vector[i])*panels.panel_length[j]
+                else
+                    xm = panels.panel_center[i]
+                    xn = panels.panel_center[j]
+                    ym = panels.panel_center[i]
+                    yn = panels.panel_center[j]
+                    a = ((xm - xn)*cos(stagger) - (ym - yn)*sin(stagger))*2*pi / pitch
+                    b = ((xm - xn)*sin(stagger) + (ym - yn)*cos(stagger))*2*pi / pitch
+                    k = 0.5 / pitch / (cosh(a) - cos(b))
+                    coup[j,i] = (sinh(a)*panels.sine_vector[j] - sin(b)*panels.cosine_vector[j])*k*panels.panel_length[i]
+                    coup[i,j] = (-sinh(a)*sine_vector[i] + sin(b)*cosine_vector[i])*k*panels.panel_length[j]
+                end
+            end
+        end
+    end
+    
 end
 
 """
