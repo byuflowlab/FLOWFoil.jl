@@ -1,3 +1,7 @@
+function solve(::Martensen, system_matrices)
+
+end
+
 ######################################################################
 #                                                                    #
 #                        FROM CHATGPT TRANSLATION OF LEWIS                         #
