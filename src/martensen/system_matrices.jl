@@ -83,6 +83,12 @@ function assemble_coupling_matrix(panels::TF, mesh, pitch, stagger)
             coup[m + 1 - i, i] = -sum / panels.panel_length[m + 1 - i]
         end
     end
+
+    #impose the kutta condition assuming that the mth row is the trailing edge and the 1st row is the trailing edge + 1
+    coup[:, m] = coup[:, m] - coup[:, 1]
+    coup[m, :] = coup[m, :] - coup[1, :]
+    coup = coup[1:end .!= 1, 1:end .!= 1] #delete's te row and column
+    return coup
 end
 
 """
