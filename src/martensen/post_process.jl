@@ -23,6 +23,7 @@ function post_process(
     # Surface Pressures
     p_surf = zeros(TF, nbodies, 2 * npanels - 1, naoa)
     xsmooth = zeros(TF, nbodies, 2 * npanels - 1, naoa)
+    cpi = zeros(TF, nbodies) #coefficient of pressure vector
 
     # vortex strengths
     gamma0 = solution.x[:, 1]
@@ -41,6 +42,7 @@ function post_process(
     
     #compute solution parameters
     pitch = 1.0 #not sure were pitch is going to be input yet
+    W1 = 1.0 #freestream velocity
     k1 = (1 - gamma_v / (2 * pitch)) / (1 + gamma_v / (2 * pitch))
     k2 = gamma_u / (pitch*(1 + gamma_v / (2*pitch)))
     beta2 = atan(k1*tan(flow_angle) - k2)
@@ -48,6 +50,11 @@ function post_process(
     Winf = W1*cos(flow_angle) / cos(betainf)
     Uinf = Winf*cos(betainf)
     Vinf = Winf*sin(betainf)
+
+    #compute pressure coefficient
+    for i = 1:nbodies
+        cpi[i] = cp[i] = 1 - ( (Uinf*ans1[i] + Vinf*ans2[i]) / W1)^2
+    end
 
     for m in 1:nbodies
         for a in 1:naoa
@@ -59,7 +66,7 @@ function post_process(
             # ]
 
             # - Calculate surface pressure - #
-            cpi = 1.0 .- (vti) .^ 2
+            #cpi = 1.0 .- (vti) .^ 2
 
             ### --- Smooth Distributions --- ###
             #smooth_distributions functions are found in utils.jl
