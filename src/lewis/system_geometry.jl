@@ -28,8 +28,8 @@ function generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
     # Panel Length (contained in panel_geometry objects)
     panel_length = zeros(TF, (total_panels))
 
-    # x-component of normalized distance from influencing panel center to field point
-    x = zeros(TF, (total_panels, total_panels))
+    # z-component of normalized distance from influencing panel center to field point
+    z = zeros(TF, (total_panels, total_panels))
 
     # r-component of normalized distance from influencing panel center to field point
     r = zeros(TF, (total_panels, total_panels))
@@ -37,7 +37,7 @@ function generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
     # variable used in elliptic function calculations
     k2 = zeros(TF, (total_panels, total_panels))
 
-    system_geometry = (; nbodies, panel_indices, mesh2panel, x, r, k2)
+    system_geometry = (; nbodies, panel_indices, mesh2panel, z, r, k2)
 
     return generate_system_geometry!(method, system_geometry, panel_geometry)
 end
@@ -45,7 +45,7 @@ end
 function generate_system_geometry!(method::Lewis, system_geometry, panel_geometry)
 
     # extract fields
-    (; nbodies, panel_indices, mesh2panel, x, r, k2) = system_geometry
+    (; nbodies, panel_indices, mesh2panel, z, r, k2) = system_geometry
 
     ### --- Loop through bodies --- ###
     for m in 1:nbodies
@@ -54,20 +54,20 @@ function generate_system_geometry!(method::Lewis, system_geometry, panel_geometr
             for i in panel_indices[m]
                 for j in panel_indices[n]
 
-                    # Get x-locations of influencing and influenced panel_geometry
-                    xi = panel_geometry[m].panel_center[mesh2panel[i], 1]
-                    xj = panel_geometry[n].panel_center[mesh2panel[j], 1]
+                    # Get z-locations of influencing and influenced panel_geometry
+                    zi = panel_geometry[m].panel_center[mesh2panel[i], 1]
+                    zj = panel_geometry[n].panel_center[mesh2panel[j], 1]
 
                     # Get r-locations of influencing and influenced panel_geometry
                     ri = panel_geometry[m].panel_center[mesh2panel[i], 2]
                     rj = panel_geometry[n].panel_center[mesh2panel[j], 2]
 
                     # Calculate normalized distance components for current set of panel_geometry
-                    x[i, j] = (xi - xj) / rj
+                    z[i, j] = (zi - zj) / rj
                     r[i, j] = ri / rj
 
                     # Calculate the k^2 value for the elliptic integrals
-                    k2[i, j] = 4.0 * r[i, j] / (x[i, j]^2 + (r[i, j] + 1.0)^2)
+                    k2[i, j] = 4.0 * r[i, j] / (z[i, j]^2 + (r[i, j] + 1.0)^2)
                 end #for jth influencing panel
             end #for ith influenced panel
         end #for nth influencing body

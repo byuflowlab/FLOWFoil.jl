@@ -1,84 +1,76 @@
 function post_process(
-    method::Martensen, problem, panels::TP, mesh, solution; npanels=80, debug=false
+    method::Martensen, panel_geometry, system_geometry, strengths, flow_angles
 ) where {TP<:Panel}
     return post_process(
-        method::Martensen, problem, [panels], mesh, solution; npanels=80, debug=false
+        method::Martensen, [panel_geometry], system_geometry, strengths, flow_angles
     )
 end
 
 function post_process(
-    ::Martensen, problem, panels, mesh, solution; npanels=80, debug=false
+    method::Martensen,
+    panel_geometry::AbstractVector,
+    system_geometry,
+    strengths,
+    flow_angles,
 )
 
     # - Rename for Convenience - #
-    idx = mesh.panel_indices
-    nbodies = mesh.nbodies
-    flow_angle = problem.flow_angle
-    naoa = length(flow_angle)
+    idx = system_geometry.panel_indices
+    nbodies = system_geometry.nbodies
+    naoa = length(flow_angles)
 
     # - Initialize Outputs - #
-    TF = eltype(mesh.x)
+    TF = eltype(system_geometry.x)
     # Surface Velocities
-    v_surf = zeros(TF, nbodies, 2 * npanels - 1, naoa)
-    # Surface Pressures
-    p_surf = zeros(TF, nbodies, 2 * npanels - 1, naoa)
-    xsmooth = zeros(TF, nbodies, 2 * npanels - 1, naoa)
-    cpi = zeros(TF, nbodies) #coefficient of pressure vector
+    tangential_velocities = zeros(TF, nbodies, 2 * npanels - 1, naoa)
+    surface_pressures = zeros(TF, nbodies, 2 * npanels - 1, naoa)
 
     # vortex strengths
-    gamma0 = solution.x[:, 1]
-    gamma90 = solution.x[:, 2]
+    gamma0 = strengths[:, 1]
+    gamma90 = strengths[:, 2]
+
+    #TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO>>>>>
+    #WHAT IS THIS???
     gamma_u = 0.0
     gamma_v = 0.0
-
     #compute unit solutions gamma_u and gamma_v
-    for i = 1:nbodies
-        gamma_u = gamma_u + x[i, 1]*panels.panel_length[i]
-        gamma_v = gamma_v + x[i, 2]*panels.panel_length[i]
+    for i in 1:nbodies
+        #WHAT'S GOING ON HERE???
+        gamma_u = gamma_u + x[i, 1] * panel_geometry.panel_length[i]
+        gamma_v = gamma_v + x[i, 2] * panel_geometry.panel_length[i]
     end
+    #<<<<<TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO
 
-    # Flow angles
-    flow_angle = problem.flow_angle
-    
-    #compute solution parameters
-    pitch = 1.0 #not sure were pitch is going to be input yet
+    #compute strengths parameters
+    pitch = method.pitch
     W1 = 1.0 #freestream velocity
+    #TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO>>>>>
+    #should gamma_u and gamma_v actually be gamma0 and gamma90, respectively?
+    #<<<<<TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO
     k1 = (1 - gamma_v / (2 * pitch)) / (1 + gamma_v / (2 * pitch))
-    k2 = gamma_u / (pitch*(1 + gamma_v / (2*pitch)))
-    beta2 = atan(k1*tan(flow_angle) - k2)
-    betainf = atan(0.5*(sin(flow_angle) / cos(flow_angle) + sin(beta2) / cos(beta2)))
-    Winf = W1*cos(flow_angle) / cos(betainf)
-    Uinf = Winf*cos(betainf)
-    Vinf = Winf*sin(betainf)
-
-    #compute pressure coefficient
-    for i = 1:nbodies
-        cpi[i] = cp[i] = 1 - ( (Uinf*ans1[i] + Vinf*ans2[i]) / W1)^2
-    end
+    k2 = gamma_u / (pitch * (1 + gamma_v / (2 * pitch)))
 
     for m in 1:nbodies
         for a in 1:naoa
-            # - Extract surface velocity - #
-            vti = solution.x[1:idx[end][end]]
-            # vti = [
-            #     gamma0[i] * cosd(flow_angle[a]) + gamma90[i] * sind(flow_angle[a]) for
-            #     i in idx[m]
-            # ]
+
+            # - Calculate Velocity Components - #
+            beta2 = atan(k1 * tan(flow_angles[a]) - k2)
+            betainf = atan(
+                0.5 * (sin(flow_angles[a]) / cos(flow_angles[a]) + sin(beta2) / cos(beta2))
+            )
+            Winf = W1 * cos(flow_angles[a]) / cos(betainf)
+            Uinf = Winf * cos(betainf)
+            Vinf = Winf * sin(betainf)
+
+            # - Calculate surface velocity - #
+            tangential_velocities[m, :, a] = [
+                (Uinf * gamma0[i] + Vinf * gamma90[i]) / W1 for i in idx[m]
+            ]
 
             # - Calculate surface pressure - #
-            #cpi = 1.0 .- (vti) .^ 2
-
-            ### --- Smooth Distributions --- ###
-            #smooth_distributions functions are found in utils.jl
-            #smooth_distributions functions are found in utils.jl
-            v_surf[m, :, a], xsmooth[m, :, a] = smooth_distributions(
-                Constant(), panels[m].panel_center, vti, npanels
-            )
-            p_surf[m, :, a], _ = smooth_distributions(
-                Constant(), panels[m].panel_center, cpi, npanels
-            )
+            surface_pressures[m, :, a] = 1.0 .- (tangential_velocities) .^ 2
         end
     end
 
-    return PeriodicPolar(v_surf, p_surf, xsmooth)
+    return (; tangential_velocities, surface_pressures)
 end

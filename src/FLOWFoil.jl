@@ -45,11 +45,11 @@ include("lewis/post_process.jl")
 # # Martensen (Periodic)
 include("martensen/method.jl")
 # include("martensen/geometry_utils.jl")
-# include("martensen/panel_geometry.jl")
-# include("martensen/system_geometry.jl")
-# include("martensen/singularities.jl")
-# include("martensen/system_matrices.jl")
-# include("martensen/solve.jl")
+include("martensen/panel_geometry.jl")
+include("martensen/system_geometry.jl")
+include("martensen/singularities.jl")
+include("martensen/system_matrices.jl")
+include("martensen/solve.jl")
 # include("martensen/post_process.jl")
 
 # # Hess-Smith (Educational)
@@ -80,7 +80,7 @@ include("universal_geometry_utilities.jl")
 
 ##### ----- TYPES ----- #####
 
-export Mfoil, Xfoil, Lewis#, Martensen, #HessSmith
+export Mfoil, Xfoil, Lewis, Martensen#, HessSmith
 
 ##### ----- FUNCTIONS ----- #####
 

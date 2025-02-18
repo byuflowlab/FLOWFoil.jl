@@ -102,3 +102,15 @@ function get_panel_normal(d, dmag)
 
     return nhat
 end
+
+"""
+"""
+function calculate_chord(panel_geometry)
+    minx = Inf
+    maxx = -Inf
+    for pg in panel_geometry
+        maxx = max(maxx, maximum(pg.panel_center[:, 1]))
+        minx = min(minx, minimum(pg.panel_center[:, 1]))
+    end
+    return maxx - minx
+end

@@ -7,18 +7,12 @@ function generate_panel_geometry(method::Lewis, coordinates::Matrix{TF}) where {
 
     ### --- SETUP --- ###
 
-    # Separate coordinates
-    x = coordinates[:, 1]
-    r = coordinates[:, 2]
-
     # Check if any r coordinates are negative (not allowed in axisymmetric method)
-    @assert all(x -> x >= -eps(), r)
+    @assert all(x -> x >= -eps(), coordinates[:, 2])
 
-    npanels = length(x) - 1
+    npanels = size(coordinates, 1) - 1
 
     panel_geometry = (;
-
-        # - Rename for Convenience - #
         npanels=npanels,
         # - Initialize Outputs - #
         panel_center=zeros(TF, npanels, 2),
