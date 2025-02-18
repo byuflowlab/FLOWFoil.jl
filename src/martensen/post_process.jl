@@ -38,6 +38,16 @@ function post_process(
 
     # Flow angles
     flow_angle = problem.flow_angle
+    
+    #compute solution parameters
+    pitch = 1.0 #not sure were pitch is going to be input yet
+    k1 = (1 - gamma_v / (2 * pitch)) / (1 + gamma_v / (2 * pitch))
+    k2 = gamma_u / (pitch*(1 + gamma_v / (2*pitch)))
+    beta2 = atan(k1*tan(flow_angle) - k2)
+    betainf = atan(0.5*(sin(flow_angle) / cos(flow_angle) + sin(beta2) / cos(beta2)))
+    Winf = W1*cos(flow_angle) / cos(betainf)
+    Uinf = Winf*cos(betainf)
+    Vinf = Winf*sin(betainf)
 
     for m in 1:nbodies
         for a in 1:naoa
