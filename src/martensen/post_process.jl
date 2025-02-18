@@ -27,6 +27,8 @@ function post_process(
     # vortex strengths
     gamma0 = solution.x[:, 1]
     gamma90 = solution.x[:, 2]
+    gamma_u = 0.0;
+    gamma_v = 0.0
 
     # Flow angles
     flow_angle = problem.flow_angle
