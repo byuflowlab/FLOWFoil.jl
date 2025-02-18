@@ -15,5 +15,8 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 FLOWMath = "0.4"
 LsqFit = "0.15"
+NURBS = "0.7"
+ImplicitAD = "0.3"
 SpecialFunctions = "2"
+StaticArrays = "1"
 julia = "1.6"
