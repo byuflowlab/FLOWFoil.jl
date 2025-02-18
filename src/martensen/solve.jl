@@ -1,3 +1,20 @@
+function solve(::Martensen, system_matrices)
+    #solve system
+    TF = eltype(system_matrices.b)
+    n = length(system_matrices.b[:, 1])
+    x = Array{TF, 2}(undef, n, 2) #x is the solution to the system of linear equations
+    
+    x[:, 1] = system_matrices.A \ system_matrices.b[:, 1]
+    x[:, 2] = system_matrices.A \ system_matrices.b[:, 2]
+
+    #apply the kutta condition
+    pushfirst!(x, [0.0, 0.0])
+    x[1,1] = -x[m, 1]
+    x[1,2] = -x[m, 2]
+
+    return x
+end
+
 ######################################################################
 #                                                                    #
 #                        FROM CHATGPT TRANSLATION OF LEWIS                         #
