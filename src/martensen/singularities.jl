@@ -71,7 +71,6 @@ end
 
 function calculate_periodic_self_vortex_influence(panel, i)
     #compute self-inducing coupling coefficients
-    # return -0.5 - (2.0 * panel.delta_angle[i] - 2.0 * pi) / (8 * pi)
-    return 0.5 - (panel.delta_angle[i] - pi) / (4.0 * pi)
-    # return 0.5
+    # return 0.5 - (panel.delta_angle[i] - pi) / (4.0 * pi)
+    return 0.5
 end
