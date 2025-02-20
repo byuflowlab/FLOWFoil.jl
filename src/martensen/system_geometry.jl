@@ -28,17 +28,21 @@ function generate_system_geometry(method::Martensen, panel_geometry::AbstractVec
     panel_length = zeros(TF, (total_panels))
 
     # x-component of distance from influencing panel center to field point
-    x = zeros(TF, (total_panels, total_panels))
+    r_x = zeros(TF, (total_panels, total_panels))
 
-    # r-component of distance from influencing panel center to field point
-    y = zeros(TF, (total_panels, total_panels))
+    # y-component of distance from influencing panel center to field point
+    r_y = zeros(TF, (total_panels, total_panels))
+
+    # total distance
+    r_squared = zeros(TF, (total_panels, total_panels))
 
     system_geometry = (;
         nbodies,
         panel_indices,
         mesh2panel,
-        x,
-        y,
+        r_x,
+        r_y,
+        r_squared,
         pitch_to_chord=method.pitch / calculate_chord(panel_geometry),
     )
 
@@ -48,7 +52,7 @@ end
 function generate_system_geometry!(
     method::Martensen, system_geometry, panel_geometry::AbstractVector
 )
-    (; nbodies, panel_indices, mesh2panel, x, y) = system_geometry
+    (; nbodies, panel_indices, mesh2panel, r_x, r_y, r_squared) = system_geometry
 
     ### --- Loop through bodies --- ###
     for m in 1:nbodies
@@ -66,8 +70,9 @@ function generate_system_geometry!(
                     yj = panel_geometry[m].panel_center[mesh2panel[j], 2]
 
                     # Calculate distance components for current set of panel_geometry
-                    x[i, j] = xi - xj
-                    y[i, j] = yi - yj
+                    r_x[i, j] = xj - xi
+                    r_y[i, j] = yj - yi
+                    r_squared[i, j] = r_x[i, j]^2 + r_y[i, j]^2
                 end #for jth influencing panel
             end #for ith influenced panel
         end #for nth influencing body

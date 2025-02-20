@@ -1,6 +1,6 @@
 function post_process(
     method::Martensen, panel_geometry, system_geometry, strengths, flow_angles
-) where {TP<:Panel}
+)
     return post_process(
         method::Martensen, [panel_geometry], system_geometry, strengths, flow_angles
     )
@@ -20,55 +20,53 @@ function post_process(
     naoa = length(flow_angles)
 
     # - Initialize Outputs - #
-    TF = eltype(system_geometry.x)
-    # Surface Velocities
-    tangential_velocities = zeros(TF, nbodies, 2 * npanels - 1, naoa)
-    surface_pressures = zeros(TF, nbodies, 2 * npanels - 1, naoa)
+    TF = eltype(system_geometry.r_x)
 
-    # vortex strengths
-    gamma0 = strengths[:, 1]
-    gamma90 = strengths[:, 2]
-
-    #TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO>>>>>
-    #WHAT IS THIS???
-    gamma_u = 0.0
-    gamma_v = 0.0
-    #compute unit solutions gamma_u and gamma_v
-    for i in 1:nbodies
-        #WHAT'S GOING ON HERE???
-        gamma_u = gamma_u + x[i, 1] * panel_geometry.panel_length[i]
-        gamma_v = gamma_v + x[i, 2] * panel_geometry.panel_length[i]
-    end
-    #<<<<<TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO
-
-    #compute strengths parameters
-    pitch = method.pitch
-    W1 = 1.0 #freestream velocity
-    #TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO>>>>>
-    #should gamma_u and gamma_v actually be gamma0 and gamma90, respectively?
-    #<<<<<TODO:TODO:TODO:TODO:TODO:TODO:TODO:TODO
-    k1 = (1 - gamma_v / (2 * pitch)) / (1 + gamma_v / (2 * pitch))
-    k2 = gamma_u / (pitch * (1 + gamma_v / (2 * pitch)))
+    tangential_velocities = [
+        zeros(idx[m][end] - idx[m][1] + 1, length(flow_angles)) for m in 1:nbodies
+    ]
+    surface_pressures = [
+        zeros(idx[m][end] - idx[m][1] + 1, length(flow_angles)) for m in 1:nbodies
+    ]
 
     for m in 1:nbodies
+
+        # vortex strengths per unit length
+        # gamma0 = strengths[:, 1]
+        gamma0 = [strengths[idx[m][1:(end - 1)], 1]; -strengths[idx[m][1], 1]]
+        # gamma90 = strengths[:, 2]
+        gamma90 = [strengths[idx[m][1:(end - 1)], 2]; -strengths[idx[m][1], 2]]
+
+        # total circulation
+        gamma_u = dot(panel_geometry[m].panel_length, gamma0)
+        gamma_v = dot(panel_geometry[m].panel_length, gamma90)
+
+        #compute strengths parameters
+        Vinf = 1.0 #freestream velocity
+        if method.cascade
+            k1 = (1.0 - gamma_v / 2.0 / method.pitch) / (1.0 + gamma_v / 2.0 / method.pitch)
+            k2 = gamma_u / method.pitch / (1.0 + gamma_v / 2.0 / method.pitch)
+        else
+            k1 = 1.0
+            k2 = 0.0
+        end
+
         for a in 1:naoa
 
             # - Calculate Velocity Components - #
             beta2 = atan(k1 * tan(flow_angles[a]) - k2)
-            betainf = atan(
-                0.5 * (sin(flow_angles[a]) / cos(flow_angles[a]) + sin(beta2) / cos(beta2))
-            )
-            Winf = W1 * cos(flow_angles[a]) / cos(betainf)
-            Uinf = Winf * cos(betainf)
-            Vinf = Winf * sin(betainf)
+            betainf = atan(0.5 * (tan(flow_angles[a]) + tan(beta2)))
+            W = Vinf * cos(flow_angles[a]) / cos(betainf)
+            w_x = W * cos(betainf)
+            w_y = W * sin(betainf)
 
             # - Calculate surface velocity - #
-            tangential_velocities[m, :, a] = [
-                (Uinf * gamma0[i] + Vinf * gamma90[i]) / W1 for i in idx[m]
+            tangential_velocities[m][:, a] = [
+                (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m]
             ]
 
             # - Calculate surface pressure - #
-            surface_pressures[m, :, a] = 1.0 .- (tangential_velocities) .^ 2
+            surface_pressures[m][:, a] = 1.0 .- tangential_velocities[m][:, a] .^ 2
         end
     end
 

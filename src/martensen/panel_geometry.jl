@@ -28,7 +28,7 @@ function generate_panel_geometry(method::Martensen, coordinates::Matrix{TF}) whe
 end
 
 function generate_panel_geometry!(
-    ::Martensen, panel_geometry, coordinates::Matrix{TF}
+    method::Martensen, panel_geometry, coordinates::Matrix{TF}
 ) where {TF}
 
     # Separate coordinates
@@ -60,18 +60,10 @@ function generate_panel_geometry!(
         cosine_vector[i] = (x[i + 1] - x[i]) / panel_length[i]
 
         # Calculate panel unit normal
-        # TODO: is normal used?
         panel_normal[i, :] = get_panel_normal(panel_vector, panel_length[i])
 
         # - Calculate Panel Angles - #
-        # Find minimum x point (i.e. the leading edge point) to distinguish between top and bottome of airfoil
-        _, minx = findmin(x)
-
-        # NOTE: use standard atan rather than atan2.  For some reason atan2 is not giving the correct angles we want.
-        beta = atan(panel_vector[2] / panel_vector[1])
-
-        # Apply corrections as needed based on orientation of panel in coordinate frame.
-        #compute the panel angle using Lewis' method of doing so (See program 1.1 data preperation in Lewis 1991)
+        # compute the panel angle using Lewis' method of doing so (See program 1.1 data preparation in Lewis 1991)
         abscosine = abs(cosine_vector[i])
         tol = sqrt(eps()) # lewis uses 0.000001 #term used to compute the panel angle (slope)
         if abscosine > tol

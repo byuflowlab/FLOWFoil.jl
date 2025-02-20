@@ -72,7 +72,7 @@ function smooth_distributions(method::Mfoil, panel_geometry, distribution, npoin
 
     # - Get smooth 'x' values from cosine spacing - #
     # Get cosine spaced values from zero to one.
-    xcosine = at.split_cosine_spacing((npoints+1)/2)
+    xcosine = at.split_cosine_spacing((npoints + 1) / 2)
 
     # - Transform the cosine spaced values to the minimum and maximum points - #
     # Get the maximum x value
@@ -126,7 +126,7 @@ function smooth_distributions(
     if body_of_revolution
         xcosine = cosine_spacing(npoints)
     else
-        xcosine = cosine_spacing((npoints+1)/2)
+        xcosine = cosine_spacing((npoints + 1) / 2)
     end
 
     # - Transform the cosine spaced values to the minimum and maximum points - #
@@ -155,3 +155,11 @@ function smooth_distributions(
     # - Return - #
     return dist, xs
 end
+
+"""
+    dot(A, B) = sum(a * b for (a, b) in zip(A, B))
+
+A faster dot product.
+"""
+dot(A, B) = sum(a * b for (a, b) in zip(A, B))
+

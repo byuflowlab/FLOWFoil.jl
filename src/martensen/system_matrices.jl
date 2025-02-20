@@ -21,7 +21,7 @@ function generate_system_matrices(
     # Get boundary conditions (b, right hand side)
     b = assemble_periodic_right_hand_side(panel_geometry, system_geometry)
 
-    return (; A, b)#, system_geometry.panel_indices)
+    return (; A, b)
 end
 
 #---------------------------------#
@@ -47,9 +47,9 @@ function assemble_periodic_vortex_matrix(
     kutta_idxs = get_kutta_indices(system_geometry)
 
     ## -- Apply Kutta Condition Subtractions -- ##
-    for i in 1:length(kutta_idxs[:, 1])
-        amat[kutta_idxs[i, 1], :] .-= amat[kutta_idxs[i, 2], :]
-        amat[:, kutta_idxs[i, 1]] .-= amat[:, kutta_idxs[i, 2]]
+    for kid in eachrow(kutta_idxs)
+        amat[kid[1], :] .-= amat[kid[2], :]
+        amat[:, kid[1]] .-= amat[:, kid[2]]
     end
 
     return amat[1:end .∉ [kutta_idxs[:, 2]], 1:end .∉ [kutta_idxs[:, 2]]]
@@ -98,7 +98,7 @@ function assemble_periodic_vortex_matrix_raw(
     nbodies = system_geometry.nbodies
 
     # initialize coefficient matrix
-    TF = eltype(system_geometry.x)
+    TF = eltype(system_geometry.r_x)
     amat = zeros(TF, (N, N))
 
     # Loop through system
@@ -123,7 +123,12 @@ function assemble_periodic_vortex_matrix_raw(
 
                         # Calculate planar influence coefficient
                         K_planar = calculate_planar_vortex_influence(
-                            panel_geometry[m], panel_geometry[n], system_geometry, i, j
+                            panel_geometry[m],
+                            panel_geometry[n],
+                            system_geometry,
+                            i,
+                            j,
+                            cascade_parameters,
                         )
 
                         # if desired to include high solidity cascade effects:
@@ -183,8 +188,8 @@ function assemble_periodic_right_hand_side(panel_geometry, system_geometry)
     kutta_idxs = get_kutta_indices(system_geometry)
 
     ## -- Apply Kutta Condition Subtractions -- ##
-    for i in 1:length(kutta_idxs[:, 1])
-        bc[kutta_idxs[i, 1], :] .-= bc[kutta_idxs[i, 2], :]
+    for kid in eachrow(kutta_idxs)
+        bc[kid[1], :] .-= bc[kid[2], :]
     end
 
     return bc[1:end .∉ [kutta_idxs[:, 2]], :]
@@ -201,7 +206,7 @@ function assemble_periodic_boundary_conditions_raw(panel_geometry, system_geomet
     mesh2panel = system_geometry.mesh2panel
 
     # initialize boundary condition array
-    TF = eltype(system_geometry.x)
+    TF = eltype(system_geometry.r_x)
     bc = zeros(TF, N, 2)
 
     ### --- Loop through bodies --- ###
