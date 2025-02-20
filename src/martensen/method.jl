@@ -9,9 +9,9 @@
 - `transition_hardness::Float` : FLOWMath.sigmoid_blend hardness for blend between planar and cascade influence coefficients
 """
 @kwdef struct Martensen{TB,TF,TP,TS} <: Method
-    cascade::TB = true
-    pitch::TP
-    stagger::TS
+    cascade::TB = false
+    pitch::TP = 0.0
+    stagger::TS = 0.0
     transition_value::TF = 30.0
     transition_hardness::TF = 100.0
 end
