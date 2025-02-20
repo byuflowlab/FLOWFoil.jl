@@ -24,9 +24,6 @@ function generate_system_geometry(method::Martensen, panel_geometry::AbstractVec
     TF = typeof(sum([panel_geometry[i].panel_length[1] for i in 1:nbodies]))
 
     ### --- General Mesh Fields --- ###
-    # Panel Length (contained in panel_geometry objects)
-    panel_length = zeros(TF, (total_panels))
-
     # x-component of distance from influencing panel center to field point
     r_x = zeros(TF, (total_panels, total_panels))
 
