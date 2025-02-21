@@ -53,7 +53,7 @@ include("martensen/post_process.jl")
 
 # Hess-Smith (Educational)
 include("hess_smith/method.jl")
-# include("hess_smith/panel_geometry.jl")
+include("hess_smith/panel_geometry.jl")
 # include("hess_smith/system_geometry.jl")
 # include("hess_smith/singularities.jl")
 # include("hess_smith/system_matrices.jl")
