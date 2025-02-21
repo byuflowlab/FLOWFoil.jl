@@ -15,6 +15,7 @@ function generate_system_matrices(
             method.cascade,
             method.transition_value,
             method.transition_hardness,
+            method.curvature_correction,
         ),
     )
 
@@ -115,7 +116,7 @@ function assemble_periodic_vortex_matrix_raw(
                     # - Self-induced coefficient - #
                     if i == j
                         amat[i, j] = calculate_periodic_self_vortex_influence(
-                            panel_geometry[m], i
+                            panel_geometry[m], i, cascade_parameters.curvature_correction
                         )
 
                     else

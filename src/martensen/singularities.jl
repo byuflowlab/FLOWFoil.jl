@@ -69,8 +69,11 @@ function calculate_planar_vortex_influence(
     return (u * cosine_panel_angle_i + v * sine_panel_angle_i) * panelj.panel_length[j]
 end
 
-function calculate_periodic_self_vortex_influence(panel, i)
+function calculate_periodic_self_vortex_influence(panel, i, curvature_correction)
     #compute self-inducing coupling coefficients
-    # return 0.5 - (panel.delta_angle[i] - pi) / (4.0 * pi)
-    return 0.5
+    output = 0.5
+    if curvature_correction == true
+        output = 0.5 - (panel.delta_angle[i] - pi) / (4.0 * pi)
+    end
+    return output
 end
