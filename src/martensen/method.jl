@@ -3,7 +3,7 @@
 
 # Fields:
 - `cascade::Bool` : flag to apply cascade treatment or not
-- `pitch::Float` : distance between airfoils (can be measured as the distance between chordlines) in the cascade per unit chord length
+- `pitch::Float` : Ratio of pitch to chord (best to have a unit length chord). In other words it is the distance between airfoils (can be measured as the distance between chordlines) divided by the ratio.
 - `stagger::Float` : < add description >
 - `transition_value::Float` : pitch_to_chord ratio at which we stop applying cascade effects
 - `transition_hardness::Float` : FLOWMath.sigmoid_blend hardness for blend between planar and cascade influence coefficients
