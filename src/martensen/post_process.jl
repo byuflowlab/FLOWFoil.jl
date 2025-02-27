@@ -28,6 +28,9 @@ function post_process(
     surface_pressures = [
         zeros(idx[m][end] - idx[m][1] + 1, length(flow_angles)) for m in 1:nbodies
     ]
+    lift_coefficients = [
+        zeros(1, length(flow_angles)) for m in 1:nbodies
+    ]
 
     for m in 1:nbodies
 
@@ -67,8 +70,16 @@ function post_process(
 
             # - Calculate surface pressure - #
             surface_pressures[m][:, a] = 1.0 .- tangential_velocities[m][:, a] .^ 2
+
+            #compute cascade lift if cascade model is true, else use planar lift
+            if method.cascade
+                lift_coefficients[m][a] = 2*method.pitch*(tan(flow_angles[a]) - tan(beta2))*cos(betainf) #Important: This equation assumes that the chord length is 1.0
+            else
+                lift_coefficients[m][a] = 2*(cos(flow_angles[a])*sum(gamma0 .* panel_geometry.panel_length)
+                + sin(flow_angles[a])*sum(gamma90 .* panel_geometry.panel_length)) #Important: This equation assumes that the chord length is 1.0
+            end
         end
     end
 
-    return (; tangential_velocities, surface_pressures)
+    return (; tangential_velocities, surface_pressures, lift_coefficients)
 end

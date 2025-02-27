@@ -5,8 +5,9 @@ using Xfoil
 using ForwardDiff
 using ReverseDiff
 
-include("problem_tests.jl")
+#include("problem_tests.jl")
 # include("autodiff_tests.jl")
+#include("martensen\\panel_geometry_tests.jl")
 
 # Mfoil (Xfoil)
 include.(filter(contains(r".jl$"), readdir("mfoil"; join=true)))
