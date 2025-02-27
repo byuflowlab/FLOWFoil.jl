@@ -23,9 +23,6 @@ function generate_panel_geometry(method::HessSmith, coordinates::AbstractMatrix{
         y=zeros(TF, npanels+1),
         panel_center=zeros(TF, npanels, 2),
         panel_length=zeros(TF, npanels),
-        # panel_normal=zeros(TF, npanels, 2),
-        panel_angle=zeros(TF, npanels),
-        # delta_angle=zeros(TF, npanels),
         sine_vector=zeros(TF, npanels),
         cosine_vector=zeros(TF, npanels),
     )
@@ -42,12 +39,8 @@ function generate_panel_geometry!(
         npanels,
         x,
         y,
-        panel_nodes,
         panel_center,
         panel_length,
-        # panel_normal,
-        # delta_angle,
-        panel_angle,
         sine_vector,
         cosine_vector,
     ) = panel_geometry
@@ -63,38 +56,9 @@ function generate_panel_geometry!(
 
         # Calculate panel length
         panel_vector, panel_length[i] = get_d([x[i] y[i]; x[i + 1] y[i + 1]])
-        panel_length[i] = sqrt((x[i + 1] - x[i])^2 + (y[i + 1] - y[i])^2)
         sine_vector[i] = (y[i + 1] - y[i]) / panel_length[i]
         cosine_vector[i] = (x[i + 1] - x[i]) / panel_length[i]
-
-        # Calculate panel unit normal
-        # panel_normal[i, :] = get_panel_normal(panel_vector, panel_length[i])
-
-        # - Calculate Panel Angles - #
-        # compute the panel angle using Lewis' method of doing so (See program 1.1 data preparation in Lewis 1991)
-        abscosine = abs(cosine_vector[i])
-        tol = sqrt(eps()) # lewis uses 0.000001 #term used to compute the panel angle (slope)
-        if abscosine > tol
-            t = atan(sine_vector[i] / cosine_vector[i])
-        end
-        if abscosine <= tol
-            panel_angle[i] = (sine_vector[i] / abs(sine_vector[i])) * pi / 2
-        end
-        if cosine_vector[i] > tol
-            panel_angle[i] = t
-        end
-        if cosine_vector[i] < -tol
-            panel_angle[i] = t - pi
-        end
     end
-
-    # for i in 1:npanels
-    #     if i == 1 || i == npanels
-    #         delta_angle[i] = (panel_angle[i]) / 2.0
-    #     else
-    #         delta_angle[i] = (panel_angle[i + 1] - panel_angle[i - 1]) / 2.0
-    #     end
-    # end
 
     # - Return Panel Object - #
     return panel_geometry

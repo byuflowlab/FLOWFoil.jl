@@ -18,4 +18,5 @@ using ReverseDiff
 # include.(filter(contains(r".jl$"), readdir("martensen"; join=true)))
 
 # Hess-Smith (Educational)
-include.(filter(contains(r".jl$"), readdir("hess_smith"; join=true)))
+# include.(filter(contains(r".jl$"), readdir("hess_smith"; join=true)))
+include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\panel_geometry_test.jl")

@@ -78,7 +78,7 @@ include("universal_geometry_utilities.jl")
 
 ##### ----- TYPES ----- #####
 
-export Mfoil, Xfoil, Lewis, Martensen#, HessSmith
+export Mfoil, Xfoil, Lewis, Martensen, HessSmith
 
 ##### ----- FUNCTIONS ----- #####
 

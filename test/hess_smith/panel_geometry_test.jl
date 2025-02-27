@@ -1,7 +1,6 @@
-using Test
-using ..HessSmith
-
 @testset "Hess Smith" begin
+
+    include("src\\hess_smith\\panel_geometry.jl")
 
     x = [1.0, 0.5, 0.0, 0.5, 1.0]
     y = [0.0, -0.5, 0.0, 0.5, 0.0]
@@ -14,5 +13,4 @@ using ..HessSmith
     @test isapprox(panel_geometry.panel_length, ones(4) * 0.70710678, atol=1e-4)
     @test isapprox(panel_geometry.sine_vector, [-0.7071067811865475, 0.7071067811865475, 0.7071067811865475, -0.7071067811865475], atol=1e-6)
     @test isapprox(panel_geometry.cosine_vector, [-0.7071067811865475, -0.7071067811865475, 0.7071067811865475, 0.7071067811865475], atol=1e-6)
-
 end

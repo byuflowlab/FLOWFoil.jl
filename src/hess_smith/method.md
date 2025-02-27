@@ -1,6 +1,0 @@
-"""
-    Martensen{} <: Method
-
-# Fields:
-
-"""
