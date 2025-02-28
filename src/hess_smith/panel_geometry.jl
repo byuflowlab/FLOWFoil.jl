@@ -2,12 +2,12 @@
 panel_geometry = (; control_points, panel_lengths, panel_angles, ??)
 copy and paste from martensen and change.
 =#
-function generate_panel_geometry(method::HessSmith, coordinates)
+function generate_panel_geometry(method::HessSmith, AoA, coordinates)
     #broadcast for multiple airfoils
-    return generate_panel_geometry.(Ref(method), coordinates)
+    return generate_panel_geometry.(Ref(method), AoA, coordinates)
 end
 
-function generate_panel_geometry(method::HessSmith, coordinates::AbstractMatrix{TF}) where {TF}
+function generate_panel_geometry(method::HessSmith, AoA=1.0, coordinates::AbstractMatrix{TF}) where {TF}
 
     ### --- SETUP --- ###
 
@@ -18,11 +18,13 @@ function generate_panel_geometry(method::HessSmith, coordinates::AbstractMatrix{
 
     panel_geometry = (;
         npanels=npanels,
+        AoA,
         # - Initialize Outputs - #
         x=zeros(TF, npanels+1),
         y=zeros(TF, npanels+1),
         panel_center=zeros(TF, npanels, 2),
         panel_length=zeros(TF, npanels),
+        panel_angle=zeros(TF, npanels),
         sine_vector=zeros(TF, npanels),
         cosine_vector=zeros(TF, npanels),
     )
@@ -31,16 +33,18 @@ function generate_panel_geometry(method::HessSmith, coordinates::AbstractMatrix{
 end
 
 function generate_panel_geometry!(
-    method::HessSmith, panel_geometry, coordinates::Matrix{TF}
+    method::HessSmith, panel_geometry, AoA, coordinates::Matrix{TF}
 ) where {TF}
 
     # Unpack Tuple
     (;
         npanels,
+        AoA, # Angle of Attack in degrees
         x,
         y,
         panel_center,
         panel_length,
+        panel_angle,
         sine_vector,
         cosine_vector,
     ) = panel_geometry
@@ -58,6 +62,7 @@ function generate_panel_geometry!(
         panel_vector, panel_length[i] = get_d([x[i] y[i]; x[i + 1] y[i + 1]])
         sine_vector[i] = (y[i + 1] - y[i]) / panel_length[i]
         cosine_vector[i] = (x[i + 1] - x[i]) / panel_length[i]
+        panel_angle[i] = asind(sine_vector[i])
     end
 
     # - Return Panel Object - #

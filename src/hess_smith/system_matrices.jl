@@ -6,20 +6,16 @@ function generate_system_matrices(
     method::HessSmith, panel_geometry::AbstractVector, system_geometry
 )
     # Get coeffiecient matrix (A, left hand side)
-    A = assemble_periodic_vortex_matrix(
+    A = assemble_vortex_matrix(
         panel_geometry,
-        system_geometry,
-        (;
-            method.pitch,
-            method.stagger,
-            method.cascade,
-            method.transition_value,
-            method.transition_hardness,
-        ),
-    )
+        system_geometry
+        )
 
     # Get boundary conditions (b, right hand side)
-    b = assemble_periodic_right_hand_side(panel_geometry, system_geometry)
+    b = assemble_b_matrix(
+        panel_geometry,
+        system_geometry
+        )
 
     return (; A, b)
 end
@@ -27,55 +23,8 @@ end
 #---------------------------------#
 #       COEFFICIENT MATRIX        #
 #---------------------------------#
-function assemble_periodic_vortex_matrix(
-    panel_geometry, system_geometry, cascade_parameters
-)
-    amat = assemble_periodic_vortex_matrix_raw(
-        panel_geometry, system_geometry, cascade_parameters
-    )
-
-    for m in 1:(system_geometry.nbodies)
-        #NOTE: this back diagonal correction is defined in src/lewis/system_matrices.jl
-        apply_back_diagonal_correction!(
-            amat,
-            panel_geometry[m],
-            system_geometry.panel_indices[m],
-            system_geometry.mesh2panel,
-        )
-    end
-
-    kutta_idxs = get_kutta_indices(system_geometry)
-
-    ## -- Apply Kutta Condition Subtractions -- ##
-    for kid in eachrow(kutta_idxs)
-        amat[kid[1], :] .-= amat[kid[2], :]
-        amat[:, kid[1]] .-= amat[:, kid[2]]
-    end
-
-    return amat[1:end .∉ [kutta_idxs[:, 2]], 1:end .∉ [kutta_idxs[:, 2]]]
-end
-
 """
-"""
-function get_kutta_indices(system_geometry)
-
-    # Count number of bodies requiring a Kutta Condition
-    nk = system_geometry.nbodies
-    kutta_idxs = zeros(Int, nk, 2)
-
-    for m in 1:nk
-        ### --- GetKutta Condition Indices --- ###
-        kutta_idxs[m, :] = [
-            system_geometry.panel_indices[m][1]
-            system_geometry.panel_indices[m][end]
-        ]
-    end
-
-    return kutta_idxs
-end
-
-"""
-    assemble_periodic_vortex_matrix_raw(panel_geometry, system_geometry)
+    assemble_vortex_matrix(panel_geometry, system_geometry)
 
 Assembles the coefficient matrix for a given order of singularity.
 
@@ -86,8 +35,8 @@ Assembles the coefficient matrix for a given order of singularity.
 # Returns:
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
-function assemble_periodic_vortex_matrix_raw(
-    panel_geometry, system_geometry, cascade_parameters
+function assemble_vortex_matrix(
+    panel_geometry, system_geometry
 )
 
     ### --- SETUP --- ###
@@ -108,56 +57,14 @@ function assemble_periodic_vortex_matrix_raw(
         for n in 1:nbodies
             ### --- Loop through panel_geometry --- ###
             for i in idx[m]
+                k1 = system_geometry[m].beta[1, i] * system_geometry[m].sine_angle_panels[1, i] - log(system_geometry[m].r_influence[1, i+1] / system_geometry[m].r_influence[1, i]) * system_geometry[m].cosine_angle_panels[1, i]
+                kn = system_geometry[m].beta[end, i] * system_geometry[m].sine_angle_panels[end, i] - log(system_geometry[m].r_influence[end, i+1] / system_geometry[m].r_influence[end, i]) * system_geometry[m].cosine_angle_panels[end, i]
+                A[end, i] = k1 + kn
+                A[end, end] = system_geometry[m].beta[end, i] * system_geometry[m].cosine_angle_panels[end, i] + log(system_geometry[m].r_influence[end, i+1] / system_geometry[m].r_influence[end, i]) * system_geometry[m].sine_angle_panels[end, i] + system_geometry[m].beta[1, i] * system_geometry[m].cosine_angle_panels[1, i] + log(system_geometry[m].r_influence[1, i+1] / system_geometry[m].r_influence[1, i]) * system_geometry[m].sine_angle_panels[1, i]
+                
                 for j in idx[n]
-
-                    ### --- Calculate influence coefficient --- ###
-
-                    # - Self-induced coefficient - #
-                    if i == j
-                        amat[i, j] = calculate_periodic_self_vortex_influence(
-                            panel_geometry[m], i
-                        )
-
-                    else
-                        # - Non self-induced coefficient - #
-
-                        # Calculate planar influence coefficient
-                        K_planar = calculate_planar_vortex_influence(
-                            panel_geometry[m],
-                            panel_geometry[n],
-                            system_geometry,
-                            i,
-                            j,
-                            cascade_parameters,
-                        )
-
-                        # if desired to include high solidity cascade effects:
-                        if cascade_parameters.cascade
-
-                            # Calculate periodic influence coefficient
-                            K_periodic = calculate_periodic_vortex_influence(
-                                panel_geometry[m],
-                                panel_geometry[n],
-                                system_geometry,
-                                i,
-                                j,
-                                cascade_parameters,
-                            )
-
-                            # blend coefficients based on transition value
-                            amat[i, j] = FLOWMath.sigmoid_blend(
-                                K_periodic,
-                                K_planar,
-                                system_geometry.pitch_to_chord,
-                                cascade_parameters.transition_value,
-                                cascade_parameters.transition_hardness,
-                            )
-                        else
-
-                            # if only planar analysis is desired, skip periodic stuff
-                            amat[i, j] = K_planar
-                        end
-                    end
+                    A[i, j] = log(system_geometry[m].r_influence[i, j+1] / system_geometry[m].r_influence[i, j]) * system_geometry[m].sine_angle_panels[i, j] + system_geometry[m].beta[i, j] * system_geometry[m].cosine_angle_panels[i, j]
+                    A[i, end] += log(system_geometry[m].r_influence[i, j+1] / system_geometry[m].r_influence[i, j]) * system_geometry[m].cosine_angle_panels[i, j] - system_geometry[m].beta[i, j] * system_geometry[m].sine_angle_panels[i, j] 
                 end
             end
         end
@@ -166,56 +73,35 @@ function assemble_periodic_vortex_matrix_raw(
     return amat
 end
 
-#---------------------------------#
-#    BOUNDARY CONDITION MATRIX    #
-#---------------------------------#
-
 """
-    assemble_right_hand_side(panel_geometry, system_geometry)
-
-Assemble boundary condition vector.
-
-# Arguments:
-- `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
-- `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
-
-# Returns
- - `b::Matrix{Float}` : Boundary condition matrix
 """
-function assemble_periodic_right_hand_side(panel_geometry, system_geometry)
-    bc = assemble_periodic_boundary_conditions_raw(panel_geometry, system_geometry)
-
-    kutta_idxs = get_kutta_indices(system_geometry)
-
-    ## -- Apply Kutta Condition Subtractions -- ##
-    for kid in eachrow(kutta_idxs)
-        bc[kid[1], :] .-= bc[kid[2], :]
-    end
-
-    return bc[1:end .∉ [kutta_idxs[:, 2]], :]
-end
-
-function assemble_periodic_boundary_conditions_raw(panel_geometry, system_geometry)
-
+function assemble_b_matrix(panel_geometry, system_geometry)
     ### --- SETUP --- ###
 
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
     N = idx[end][end]
     nbodies = system_geometry.nbodies
-    mesh2panel = system_geometry.mesh2panel
 
-    # initialize boundary condition array
+    # initialize coefficient matrix
     TF = eltype(system_geometry.r_x)
-    bc = zeros(TF, N, 2)
+    bmat = zeros(TF, N)
+    V_inf = 1.0
+
+    # Loop through system
 
     ### --- Loop through bodies --- ###
     for m in 1:nbodies
-
-        # generate portion of boundary condition array associated with mth body
-        bc[idx[m], 1] = [-cos(panel_geometry[m].panel_angle[mesh2panel[i]]) for i in idx[m]]
-        bc[idx[m], 2] = [-sin(panel_geometry[m].panel_angle[mesh2panel[i]]) for i in idx[m]]
+        for n in 1:nbodies
+            ### --- Loop through panel_geometry --- ###
+            for i in idx[m]
+                bmat[i] = 2 * π * V_inf * (panel_geometry[m].sine_vector[i] * cos(panel_geometry.AoA) - panel_geometry[m].cosine_vector[i] * sin(panel_geometry.AoA)) 
+            end
+            bmat[end] = -2 * π * V_inf * ((panel_geometry[m].cosine_vector[1] * cos(panel_geometry.AoA) + panel_geometry[m].sine_vectorl[1] * sin(panel_geometry.AoA)) + (panel_geometry[m].cosine_vector[end] * cos(panel_geometry.AoA) + panel_geometry[m].sine_vector[end] * sin(panel_geometry.AoA)))
+        end
     end
 
-    return bc
+    return bmat
 end
+### I still need to figure out where we input V_inf and panel_geometry.AoA, though to be honest, V_inf doesn't matter since it gets non-dimensionalized later.
+### AoA is currently input as an argument into the generate_panel_geometry function
