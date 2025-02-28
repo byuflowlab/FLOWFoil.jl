@@ -7,8 +7,11 @@ using ReverseDiff
 
 #include("problem_tests.jl")
 # include("autodiff_tests.jl")
-#include("martensen\\panel_geometry_tests.jl")
+include("martensen/panel_geometry_tests.jl")
+include("martensen/system_geometry_tests.jl")
+include("martensen/system_matrix_tests.jl")
 
+#=
 # Mfoil (Xfoil)
 include.(filter(contains(r".jl$"), readdir("mfoil"; join=true)))
 
@@ -20,3 +23,4 @@ include.(filter(contains(r".jl$"), readdir("martensen"; join=true)))
 
 # Hess-Smith (Educational)
 include.(filter(contains(r".jl$"), readdir("hess_smith"; join=true)))
+=#

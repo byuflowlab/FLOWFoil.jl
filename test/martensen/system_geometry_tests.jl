@@ -11,7 +11,7 @@
         system_geometry_method,
         coordinates
     )
-    mesh = FLOWFOil.generate_system_geometry(
+    mesh = FLOWFoil.generate_system_geometry(
         system_geometry_method,
         panels
     )

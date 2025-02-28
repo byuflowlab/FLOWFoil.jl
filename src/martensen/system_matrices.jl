@@ -10,7 +10,6 @@ function generate_system_matrices(
         panel_geometry,
         system_geometry,
         (;
-            method.pitch,
             method.stagger,
             method.cascade,
             method.transition_value,
@@ -149,7 +148,7 @@ function assemble_periodic_vortex_matrix_raw(
                             amat[i, j] = FLOWMath.sigmoid_blend(
                                 K_periodic,
                                 K_planar,
-                                system_geometry.pitch_to_chord,
+                                method.solidity,
                                 cascade_parameters.transition_value,
                                 cascade_parameters.transition_hardness,
                             )

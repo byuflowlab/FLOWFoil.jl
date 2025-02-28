@@ -40,7 +40,7 @@ function generate_system_geometry(method::Martensen, panel_geometry::AbstractVec
         r_x,
         r_y,
         r_squared,
-        pitch_to_chord=method.pitch / calculate_chord(panel_geometry),
+        pitch=method.solidity * calculate_chord(panel_geometry),
     )
 
     return generate_system_geometry!(method, system_geometry, panel_geometry)

@@ -21,7 +21,7 @@ function calculate_periodic_vortex_influence(
 
     # cascade stuff
     stagger = cascade_parameters.stagger
-    pitch = cascade_parameters.pitch
+    pitch = system_geometry.pitch
 
     # adjusted angles
     sine_panel_angle_i = sin(stagger + paneli.panel_angle[i])
