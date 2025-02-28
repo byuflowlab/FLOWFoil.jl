@@ -11,7 +11,7 @@
 
     #test planar (method 1) and cascade(method 2)
     system_geometry_method_1 = FLOWFoil.Martensen(false, 0.0, 0.0, 30.0, 100.0, false)
-    system_geometry_method_2 = FLOWFoil.Martensen(true, 1.0, 0.0, 30.0, 100.0, false)
+    system_geometry_method_2 = FLOWFoil.Martensen(true, 2.0, 0.0, 30.0, 100.0, false)
 
     panels_1 = FLOWFoil.generate_panel_geometry(
         system_geometry_method_1,
