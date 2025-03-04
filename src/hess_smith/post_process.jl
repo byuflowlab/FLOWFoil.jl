@@ -33,7 +33,7 @@ function post_process(
             set1 += strengths[j] * (system_geometry.beta[i, j] * system_geometry.sine_angle_panels[i, j] - log(system_geometry.r_influence[i, j+1] / system_geometry.r_influence[i, j]) * system_geometry.cos_angle_panels[i, j])
             set2 += system_geometry.beta[i, j] * system_geometry.cos_angle_panels[i, j] + log(system_geometry.r_influence[i, j+1] / system_geometry.r_influence[i, j]) * system_geometry.sine_angle_panels[i, j]
         end
-        tangential_velocity[m][:] = V_inf * (panel_geometry.cosine_vector[i] * cos(panel_geometry.AoA) + panel_geometry.sine_vector[i] * sin(panel_geometry.AoA)) + (set1 / (2 * π)) + (strengths[end] / (2 * π)) * set2
+        tangential_velocity[m][:] = (panel_geometry.cosine_vector[i] * cos(panel_geometry.AoA) + panel_geometry.sine_vector[i] * sin(panel_geometry.AoA)) + (set1 / (2 * π)) + (strengths[end] / (2 * π)) * set2
 
         # - Calculate surface pressure - #
         surface_pressures[m][:] = 1.0 .- (tangential_velocities[m][:]) .^ 2
