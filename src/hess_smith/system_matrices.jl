@@ -26,7 +26,7 @@ end
 """
     assemble_vortex_matrix(panel_geometry, system_geometry)
 
-Assembles the coefficient matrix for a given order of singularity.
+Assembles the coefficient matrix.
 
 # Arguments:
 - `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
@@ -86,20 +86,42 @@ function assemble_b_matrix(panel_geometry, system_geometry)
     # initialize coefficient matrix
     TF = eltype(system_geometry.r_x)
     bmat = zeros(TF, N)
-    V_inf = 1.0
 
     # Loop through system
 
+    # ### --- Loop through bodies --- ###
+    # for m in 1:nbodies
+    #     for n in 1:nbodies
+    #         ### --- Loop through panel_geometry --- ###
+    #         for i in idx[m]
+    #             bmat[i] = 2 * π * V_inf * (panel_geometry[m].sine_vector[i] * cos(panel_geometry.AoA) - panel_geometry[m].cosine_vector[i] * sin(panel_geometry.AoA)) 
+    #         end
+    #         bmat[end] = -2 * π * V_inf * ((panel_geometry[m].cosine_vector[1] * cos(panel_geometry.AoA) + panel_geometry[m].sine_vectorl[1] * sin(panel_geometry.AoA)) + (panel_geometry[m].cosine_vector[end] * cos(panel_geometry.AoA) + panel_geometry[m].sine_vector[end] * sin(panel_geometry.AoA)))
+    #     end
+    # end
+
     ### --- Loop through bodies --- ###
     for m in 1:nbodies
-        for n in 1:nbodies
+        for n in 1:system_geometry.panel_indices
             ### --- Loop through panel_geometry --- ###
             for i in idx[m]
-                bmat[i] = 2 * π * V_inf * (panel_geometry[m].sine_vector[i] * cos(panel_geometry.AoA) - panel_geometry[m].cosine_vector[i] * sin(panel_geometry.AoA)) 
+                bmat[i, :] = [
+                    panel_geometry[m].sine_vector[i], -panel_geometry[m].cosine_vector[i]
+                ]
             end
-            bmat[end] = -2 * π * V_inf * ((panel_geometry[m].cosine_vector[1] * cos(panel_geometry.AoA) + panel_geometry[m].sine_vectorl[1] * sin(panel_geometry.AoA)) + (panel_geometry[m].cosine_vector[end] * cos(panel_geometry.AoA) + panel_geometry[m].sine_vector[end] * sin(panel_geometry.AoA)))
+            bmat[end, :] =
+                -[
+                    panel_geometry[m].cosine_vector[1] + panel_geometry[m].cosine_vector[end],
+                    panel_geometry[m].sine_vectorl[1] + panel_geometry[m].sine_vector[end]
+                ]
         end
     end
+    #=
+    pass V_inf into post-process and multiply solution by 2.0*pi*Vinf all at once
+    multiply column 1 of strengths by cos(panel_geometry.AoA)
+    multiply column 2 of strenths by sin(panel_geometry.AoA)
+    =#
+
 
     return bmat
 end

@@ -2,12 +2,12 @@
 panel_geometry = (; control_points, panel_lengths, panel_angles, ??)
 copy and paste from martensen and change.
 =#
-function generate_panel_geometry(method::HessSmith, AoA, coordinates)
+function generate_panel_geometry(method::HessSmith, coordinates)
     #broadcast for multiple airfoils
-    return generate_panel_geometry.(Ref(method), AoA, coordinates)
+    return generate_panel_geometry.(Ref(method), coordinates)
 end
 
-function generate_panel_geometry(method::HessSmith, AoA=1.0, coordinates::AbstractMatrix{TF}) where {TF}
+function generate_panel_geometry(method::HessSmith, coordinates::AbstractMatrix{TF}) where {TF}
 
     ### --- SETUP --- ###
 
@@ -18,7 +18,6 @@ function generate_panel_geometry(method::HessSmith, AoA=1.0, coordinates::Abstra
 
     panel_geometry = (;
         npanels=npanels,
-        AoA,
         # - Initialize Outputs - #
         x=zeros(TF, npanels+1),
         y=zeros(TF, npanels+1),
@@ -33,13 +32,12 @@ function generate_panel_geometry(method::HessSmith, AoA=1.0, coordinates::Abstra
 end
 
 function generate_panel_geometry!(
-    method::HessSmith, panel_geometry, AoA, coordinates::Matrix{TF}
+    method::HessSmith, panel_geometry, coordinates::Matrix{TF}
 ) where {TF}
 
     # Unpack Tuple
     (;
         npanels,
-        AoA, # Angle of Attack in degrees
         x,
         y,
         panel_center,
