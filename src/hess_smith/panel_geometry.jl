@@ -37,9 +37,9 @@ function generate_panel_geometry!(
 
     # Unpack Tuple
     (;
-        npanels,
         x,
         y,
+        npanels,
         panel_center,
         panel_length,
         panel_angle,
@@ -47,8 +47,11 @@ function generate_panel_geometry!(
         cosine_vector,
     ) = panel_geometry
 
-    x = coordinates[:, 1]
-    y = coordinates[:, 2]
+    for i in 1:npanels+1
+        # Define the coordinates
+        x[i]=coordinates[i, 1]
+        y[i]=coordinates[i, 2]
+    end
 
     ### --- Loop Through Coordinates --- ###
     for i in 1:npanels
@@ -57,7 +60,7 @@ function generate_panel_geometry!(
         panel_center[i, :] = [0.5 * (x[i] + x[i + 1]); 0.5 * (y[i] + y[i + 1])]
 
         # Calculate panel length
-        panel_vector, panel_length[i] = get_d([x[i] y[i]; x[i + 1] y[i + 1]])
+        _, panel_length[i] = get_d([x[i] y[i]; x[i + 1] y[i + 1]])
         sine_vector[i] = (y[i + 1] - y[i]) / panel_length[i]
         cosine_vector[i] = (x[i + 1] - x[i]) / panel_length[i]
         panel_angle[i] = asind(sine_vector[i])
