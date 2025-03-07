@@ -48,35 +48,32 @@ function assemble_vortex_matrix(
 
     # initialize coefficient matrix
     TF = eltype(system_geometry.r_x)
-    amat = zeros(TF, (N, N))
+    amat = zeros(TF, (N+1, N+1))
 
     # Loop through system
 
-    ### --- Loop through bodies --- ###
+    ### --- Loop through panel_geometry --- ###
     for m in 1:nbodies
         for n in 1:nbodies
-            ### --- Loop through panel_geometry --- ###
-            for i in idx[m]
-                k1 = system_geometry[m].beta[1, i] * system_geometry[m].sine_angle_panels[1, i] - log(system_geometry[m].r_influence[1, i+1] / system_geometry[m].r_influence[1, i]) * system_geometry[m].cosine_angle_panels[1, i]
-                kn = system_geometry[m].beta[end, i] * system_geometry[m].sine_angle_panels[end, i] - log(system_geometry[m].r_influence[end, i+1] / system_geometry[m].r_influence[end, i]) * system_geometry[m].cosine_angle_panels[end, i]
-                A[end, i] = k1 + kn
-                A[end, end] = system_geometry[m].beta[end, i] * system_geometry[m].cosine_angle_panels[end, i] + log(system_geometry[m].r_influence[end, i+1] / system_geometry[m].r_influence[end, i]) * system_geometry[m].sine_angle_panels[end, i] + system_geometry[m].beta[1, i] * system_geometry[m].cosine_angle_panels[1, i] + log(system_geometry[m].r_influence[1, i+1] / system_geometry[m].r_influence[1, i]) * system_geometry[m].sine_angle_panels[1, i]
-                
-                for j in idx[n]
-                    A[i, j] = log(system_geometry[m].r_influence[i, j+1] / system_geometry[m].r_influence[i, j]) * system_geometry[m].sine_angle_panels[i, j] + system_geometry[m].beta[i, j] * system_geometry[m].cosine_angle_panels[i, j]
-                    A[i, end] += log(system_geometry[m].r_influence[i, j+1] / system_geometry[m].r_influence[i, j]) * system_geometry[m].cosine_angle_panels[i, j] - system_geometry[m].beta[i, j] * system_geometry[m].sine_angle_panels[i, j] 
+            for i in 1:N
+                k1 = system_geometry.beta[1, i] * system_geometry.sine_angle_panels[1, i] - log(system_geometry.r_influence[1, i+1] / system_geometry.r_influence[1, i]) * system_geometry.cos_angle_panels[1, i]
+                kn = system_geometry.beta[end, i] * system_geometry.sine_angle_panels[end, i] - log(system_geometry.r_influence[end, i+1] / system_geometry.r_influence[end, i]) * system_geometry.cos_angle_panels[end, i]
+                amat[end, i] = k1 + kn
+                amat[end, end] = system_geometry.beta[end, i] * system_geometry.cos_angle_panels[end, i] + log(system_geometry.r_influence[end, i+1] / system_geometry.r_influence[end, i]) * system_geometry.sine_angle_panels[end, i] + system_geometry.beta[1, i] * system_geometry.cos_angle_panels[1, i] + log(system_geometry.r_influence[1, i+1] / system_geometry.r_influence[1, i]) * system_geometry.sine_angle_panels[1, i]
+
+                for j in 1:N
+                    amat[i, j] = log(system_geometry.r_influence[i, j+1] / system_geometry.r_influence[i, j]) * system_geometry.sine_angle_panels[i, j] + system_geometry.beta[i, j] * system_geometry.cos_angle_panels[i, j]
+                    amat[i, end] += log(system_geometry.r_influence[i, j+1] / system_geometry.r_influence[i, j]) * system_geometry.cos_angle_panels[i, j] - system_geometry.beta[i, j] * system_geometry.sine_angle_panels[i, j] 
                 end
             end
         end
     end
-
     return amat
 end
 
 """
 """
-function assemble_b_matrix(panel_geometry, system_geometry)
-    ### --- SETUP --- ###
+function assemble_b_matrix(panel_geometry, system_geometry)   ### --- SETUP --- ###
 
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
@@ -85,43 +82,24 @@ function assemble_b_matrix(panel_geometry, system_geometry)
 
     # initialize coefficient matrix
     TF = eltype(system_geometry.r_x)
-    bmat = zeros(TF, N)
-
-    # Loop through system
+    bmat = [zeros(2) for _ in 1:(N+1)]
 
     # ### --- Loop through bodies --- ###
-    # for m in 1:nbodies
-    #     for n in 1:nbodies
-    #         ### --- Loop through panel_geometry --- ###
-    #         for i in idx[m]
-    #             bmat[i] = 2 * π * V_inf * (panel_geometry[m].sine_vector[i] * cos(panel_geometry.AoA) - panel_geometry[m].cosine_vector[i] * sin(panel_geometry.AoA)) 
-    #         end
-    #         bmat[end] = -2 * π * V_inf * ((panel_geometry[m].cosine_vector[1] * cos(panel_geometry.AoA) + panel_geometry[m].sine_vectorl[1] * sin(panel_geometry.AoA)) + (panel_geometry[m].cosine_vector[end] * cos(panel_geometry.AoA) + panel_geometry[m].sine_vector[end] * sin(panel_geometry.AoA)))
-    #     end
-    # end
-
-    ### --- Loop through bodies --- ###
     for m in 1:nbodies
-        for n in 1:system_geometry.panel_indices
-            ### --- Loop through panel_geometry --- ###
-            for i in idx[m]
-                bmat[i, :] = [
-                    panel_geometry[m].sine_vector[i], -panel_geometry[m].cosine_vector[i]
-                ]
+        for n in 1:nbodies
+            for i in 1:N
+                bmat[i] = [panel_geometry[m].sine_vector[i], -panel_geometry[m].cosine_vector[i]]
             end
-            bmat[end, :] =
-                -[
-                    panel_geometry[m].cosine_vector[1] + panel_geometry[m].cosine_vector[end],
-                    panel_geometry[m].sine_vectorl[1] + panel_geometry[m].sine_vector[end]
-                ]
+            
+            bmat[end] = [-(panel_geometry[m].cosine_vector[1] + panel_geometry[m].cosine_vector[end]), -(panel_geometry[m].sine_vector[1] + panel_geometry[m].sine_vector[end])]
         end
     end
+
     #=
     pass V_inf into post-process and multiply solution by 2.0*pi*Vinf all at once
     multiply column 1 of strengths by cos(panel_geometry.AoA)
     multiply column 2 of strenths by sin(panel_geometry.AoA)
     =#
-
 
     return bmat
 end

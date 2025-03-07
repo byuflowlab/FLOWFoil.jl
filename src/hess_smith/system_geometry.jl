@@ -62,8 +62,9 @@ function generate_system_geometry(method::HessSmith, panel_geometry::AbstractVec
 end
 
 function generate_system_geometry!(
-    method::HessSmith, system_geometry, panel_geometry::AbstractVector
-)
+    method::HessSmith, system_geometry, panel_geometry)
+    
+    # extract fields
     (; nbodies, panel_indices, mesh2panel, sine_angle_panels, cos_angle_panels, beta, r_x, r_y, r_squared, r_influence) = system_geometry
 
     ### --- Loop through bodies --- ###
@@ -75,11 +76,11 @@ function generate_system_geometry!(
 
                     # Get x-locations of influencing and influenced panel_geometry
                     xi_control = panel_geometry[m].panel_center[mesh2panel[i], 1]
-                    xj_field = panel_geometry[m].x[j]
+                    xj_field = panel_geometry[n].x[j]
 
                     # Get y-locations of influencing and influenced panel_geometry
                     yi_control = panel_geometry[m].panel_center[mesh2panel[i], 2]
-                    yj_field = panel_geometry[m].y[j]
+                    yj_field = panel_geometry[n].y[j]
 
                     # Calculate distance components for current set of panel_geometry
                     r_x[i, j] = xj_field - xi_control
@@ -91,15 +92,15 @@ function generate_system_geometry!(
                 for j in panel_indices[m]
 
                     # Calculate the difference in sine and cos for each panel
-                    sine_angle_panels[i, j] = panel_geometry[m].sine_vector[i] * panel_geometry[m].cosine_vector[j] - panel_geometry[m].cosine_vector[i] * panel_geometry[m].sine_vector[j]
-                    cos_angle_panels[i, j] = panel_geometry[m].cosine_vector[i] * panel_geometry[m].cosine_vector[j] + panel_geometry[m].sine_vector[i] * panel_geometry[m].sine_vector[j]
+                    sine_angle_panels[i, j] = panel_geometry[m].sine_vector[i] * panel_geometry[n].cosine_vector[j] - panel_geometry[m].cosine_vector[i] * panel_geometry[n].sine_vector[j]
+                    cos_angle_panels[i, j] = panel_geometry[m].cosine_vector[i] * panel_geometry[n].cosine_vector[j] + panel_geometry[m].sine_vector[i] * panel_geometry[n].sine_vector[j]
 
                     if j == i
                         beta[i, j] = π
                     else
                         # Equation 2.212 on pg. 69 of *Computational Aerodynamics* by Dr. Ning.
-                        numerator = (panel_geometry[m].x[j] - panel_geometry[m].panel_center[i, 1]) * (panel_geometry[m].y[j+1] - panel_geometry[m].panel_center[i, 2]) - (panel_geometry[m].y[j] - panel_geometry[m].panel_center[i, 2]) * (panel_geometry[m].x[j+1] - panel_geometry[m].panel_center[i, 1])
-                        denominator = ((panel_geometry[m].x[j] - panel_geometry[m].panel_center[i, 1]) * (panel_geometry[m].x[j+1] - panel_geometry[m].panel_center[i, 1]) + (panel_geometry[m].y[j] - panel_geometry[m].panel_center[i, 2]) * (panel_geometry[m].y[j+1] - panel_geometry[m].panel_center[i, 2]))
+                        numerator = (panel_geometry[m].x[j] - panel_geometry[n].panel_center[i, 1]) * (panel_geometry[m].y[j+1] - panel_geometry[n].panel_center[i, 2]) - (panel_geometry[m].y[j] - panel_geometry[n].panel_center[i, 2]) * (panel_geometry[m].x[j+1] - panel_geometry[n].panel_center[i, 1])
+                        denominator = ((panel_geometry[m].x[j] - panel_geometry[n].panel_center[i, 1]) * (panel_geometry[m].x[j+1] - panel_geometry[n].panel_center[i, 1]) + (panel_geometry[m].y[j] - panel_geometry[n].panel_center[i, 2]) * (panel_geometry[m].y[j+1] - panel_geometry[n].panel_center[i, 2]))
                         beta[i, j] = atan(numerator, denominator)
                     end
                 end
