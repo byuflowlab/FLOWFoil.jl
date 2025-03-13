@@ -19,7 +19,7 @@ using ReverseDiff
 
 # Hess-Smith (Educational)
 # include.(filter(contains(r".jl$"), readdir("hess_smith"; join=true)))
-# include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\panel_geometry_test.jl")
-# include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\system_geometry_tests.jl")
-# include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\system_matrix_tests.jl")
+include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\panel_geometry_test.jl")
+include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\system_geometry_tests.jl")
+include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\system_matrix_tests.jl")
 include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\post_process_tests.jl")

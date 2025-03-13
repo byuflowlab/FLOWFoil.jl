@@ -82,16 +82,17 @@ function assemble_b_matrix(panel_geometry, system_geometry)   ### --- SETUP --- 
 
     # initialize coefficient matrix
     TF = eltype(system_geometry.r_x)
-    bmat = [zeros(2) for _ in 1:(N+1)]
+    # bmat = [zeros(2) for _ in 1:(N+1)]
+    bmat = zeros(TF, (N+1, 2))
 
     # ### --- Loop through bodies --- ###
     for m in 1:nbodies
         for n in 1:nbodies
             for i in 1:N
-                bmat[i] = [panel_geometry[m].sine_vector[i], -panel_geometry[m].cosine_vector[i]]
+                bmat[i, :] = [panel_geometry[m].sine_vector[i]; -panel_geometry[m].cosine_vector[i]]
             end
             
-            bmat[end] = [-(panel_geometry[m].cosine_vector[1] + panel_geometry[m].cosine_vector[end]), -(panel_geometry[m].sine_vector[1] + panel_geometry[m].sine_vector[end])]
+            bmat[end, :] = [-(panel_geometry[m].cosine_vector[1] + panel_geometry[m].cosine_vector[end]); -(panel_geometry[m].sine_vector[1] + panel_geometry[m].sine_vector[end])]
         end
     end
 
