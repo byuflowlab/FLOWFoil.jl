@@ -1,10 +1,10 @@
 
 @testset "Post Processing Tests" begin
 
-    x = [1.0, 0.5, 0.0, 0.5, 1.0]
-    y = [0.0, -0.5, 0.0, 0.5, 0.0]
-    xy = [x y]
-    flow_angles = [4.0]
+    # x = [1.0, 0.5, 0.0, 0.5, 1.0]
+    # y = [0.0, -0.5, 0.0, 0.5, 0.0]
+    # xy = [x y]
+    # flow_angles = [4.0]
 
     # Generate Panel Geometry
     panel_geometry = FLOWFoil.generate_panel_geometry(FLOWFoil.HessSmith(), xy)

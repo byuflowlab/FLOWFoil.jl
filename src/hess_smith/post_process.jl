@@ -60,7 +60,7 @@ function post_process(
     tangential_velocities = [
         zeros(length(flow_angles), idx[m][end] - idx[m][1] + 1) for m in 1:nbodies
     ]
-    pressure_coefficient = [
+    surface_pressures = [
         zeros(length(flow_angles), idx[m][end] - idx[m][1] + 1) for m in 1:nbodies
     ]
     
@@ -81,14 +81,14 @@ function post_process(
                 end
                 # Swap indices to make AoA (a) the row and panel index (i) the column
                 tangential_velocities[m][a, i - idx[m][1] + 1] = method.V_inf * (panel_geometry[m].cosine_vector[i] * cosd(flow_angles[a]) + panel_geometry[m].sine_vector[i] * sind(flow_angles[a])) + (set1 / (2 * π)) + (summed_strengths[a, end] / (2 * π)) * set2
-                pressure_coefficient[m][a, i - idx[m][1] + 1] = 1.0 - (tangential_velocities[m][a, i - idx[m][1] + 1] / method.V_inf)^2
+                surface_pressures[m][a, i - idx[m][1] + 1] = 1.0 - (tangential_velocities[m][a, i - idx[m][1] + 1])^2
             end
         end
     end
 
     # @show tangential_velocities
 
-    return (; tangential_velocities, pressure_coefficient)
+    return (; tangential_velocities, surface_pressures)
 end
 
 # Loop bodies, angles of attack, and panels
