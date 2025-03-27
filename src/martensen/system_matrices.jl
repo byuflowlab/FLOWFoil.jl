@@ -10,11 +10,12 @@ function generate_system_matrices(
         panel_geometry,
         system_geometry,
         (;
-            method.pitch,
+            method.solidity,
             method.stagger,
             method.cascade,
             method.transition_value,
             method.transition_hardness,
+            method.curvature_correction,
         ),
     )
 
@@ -115,7 +116,7 @@ function assemble_periodic_vortex_matrix_raw(
                     # - Self-induced coefficient - #
                     if i == j
                         amat[i, j] = calculate_periodic_self_vortex_influence(
-                            panel_geometry[m], i
+                            panel_geometry[m], i, cascade_parameters.curvature_correction
                         )
 
                     else
@@ -148,7 +149,7 @@ function assemble_periodic_vortex_matrix_raw(
                             amat[i, j] = FLOWMath.sigmoid_blend(
                                 K_periodic,
                                 K_planar,
-                                system_geometry.pitch_to_chord,
+                                cascade_parameters.solidity,
                                 cascade_parameters.transition_value,
                                 cascade_parameters.transition_hardness,
                             )

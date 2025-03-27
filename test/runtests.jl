@@ -5,21 +5,25 @@ using Xfoil
 using ForwardDiff
 using ReverseDiff
 
-# include("problem_tests.jl")
-# include("autodiff_tests.jl")
+# include("martensen/panel_geometry_tests.jl")
+# include("martensen/system_geometry_tests.jl")
+# include("martensen/system_matrix_tests.jl")
 
-# Mfoil (Xfoil)
+dir = "martensen/"
+for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
+    include(joinpath(dir, file))
+end
+
+# TODO: update lewis tests
+# dir = "lewis/"
+# for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
+#     include(joinpath(dir, file))
+# end
+
+dir = "hess_smith/"
+for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
+    include(joinpath(dir, file))
+end
+
+# # Mfoil (Xfoil)
 # include.(filter(contains(r".jl$"), readdir("mfoil"; join=true)))
-
-# Lewis (Axisymmetric)
-# include.(filter(contains(r".jl$"), readdir("lewis"; join=true)))
-
-# Martensen (Periodic)
-# include.(filter(contains(r".jl$"), readdir("martensen"; join=true)))
-
-# Hess-Smith (Educational)
-# include.(filter(contains(r".jl$"), readdir("hess_smith"; join=true)))
-include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\panel_geometry_test.jl")
-include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\system_geometry_tests.jl")
-include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\system_matrix_tests.jl")
-include("C:\\Users\\nlehn\\.julia\\packages\\FLOWFoil\\test\\hess_smith\\post_process_tests.jl")

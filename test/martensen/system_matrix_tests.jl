@@ -3,34 +3,46 @@
     #---------------------------------#
     #             PERIODIC            #
     #---------------------------------#
-    # - Very Basic Test - #
 
+    # 4 panel diamond test
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
-    y = [-0.01; -0.5; 0.0; 0.5; 0.01] .+ 1.0
-    coordinates = [x y]
-    pt = PeriodicProblem(Vortex(Constant()), Neumann(), 1.0, 0.0)
+    z = [0.0; -1.0; 0.0; 1.0; 0.0]
+    coordinates = [x z]
 
-    # Generate Panel Geometry
-    panels = generate_panels(pt, coordinates)
+    #test planar (method 1) and cascade(method 2)
+    system_geometry_method_1 = FLOWFoil.Martensen(false, 0.0, 0.0, 30.0, 100.0, false)
+    system_geometry_method_2 = FLOWFoil.Martensen(true, 2.0, 0.0, 30.0, 100.0, false)
 
-    # Generate Influence Mesh
-    mesh = generate_mesh(pt, panels)
+    panels_1 = FLOWFoil.generate_panel_geometry(
+        system_geometry_method_1,
+        coordinates
+    )
+    panels_2 = FLOWFoil.generate_panel_geometry(
+        system_geometry_method_2,
+        coordinates
+    )
+
+    mesh_1 = FLOWFoil.generate_system_geometry(
+        system_geometry_method_1,
+        panels_1
+    )
+    mesh_2 = FLOWFoil.generate_system_geometry(
+        system_geometry_method_2,
+        panels_2
+    )
 
     # Assemble Linear System
-    system = generate_inviscid_system(pt, panels, mesh)
+    system_1_matrices = FLOWFoil.generate_system_matrices(system_geometry_method_1, panels_2, mesh_1)
+    system_2_matrices = FLOWFoil.generate_system_matrices(system_geometry_method_2, panels_2, mesh_2)
 
-    # check that it's not invertable
-    @test !isapprox(LinearAlgebra.det(system.A), 0.0)
+    #test A matrices
+    @test isapprox(system_1_matrices.A, [2.891268 0.190986 -0.190986; 0.19099 0.5 -0.9456; -0.19099 -0.9456 0.5], atol = 0.001)
+    @test isapprox(system_2_matrices.A, [4.18066 0.0 0.0; 0.0 0.5 -1.59033; 0.0 -1.59033 0.5], atol = 0.001)
+    #old matrix system 2[-0.68060082 0.0 0.0; 0.0 -0.5 -0.5903; 0.0 -0.5903 -0.5]
 
-    # check that the kutta condition is in the right place
-    @test system.A[end, 1] == 1.0
-    @test system.A[end, end - 1] == 1.0
-    @test system.A[end, end] == 0.0
-    @test all(system.A[end, 2:(end - 2)] .== 0.0)
+    #test right hand side vectors
+    @test isapprox(system_1_matrices.b, [0.894423 1.18672e-6; 0.447215 -0.89442658; -0.44721 -0.89442776], atol = 0.001)
+    @test isapprox(system_2_matrices.b, [0.894423 1.18672e-6; 0.447215 -0.89442658; -0.44721 -0.89442776], atol = 0.001)
 
-    # check that the stream function values are in the right places
-    @test all(system.A[1:(end - 1), end] .== 1.0)
-    @test all(system.A[end, end] .== 0.0)
-
-    # TODO: multi-airfoil test
 end
+
