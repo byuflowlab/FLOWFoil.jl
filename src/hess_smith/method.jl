@@ -1,5 +1,7 @@
 """
-    HessSmith{} <: Method
+    HessSmith <: Method
 
 """
-@kwdef struct HessSmith{TB} <: Method end
+@kwdef struct HessSmith{TF} <: Method 
+    V_inf::TF=1.0
+end
