@@ -14,7 +14,9 @@ function post_process(
     flow_angles,
 )
 
-    flow_angles = (pi/180)*flow_angles
+    # Convert to radians
+    flow_angles = (pi / 180.0) * flow_angles
+
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
     nbodies = system_geometry.nbodies
@@ -29,16 +31,12 @@ function post_process(
     surface_pressures = [
         zeros(idx[m][end] - idx[m][1] + 1, length(flow_angles)) for m in 1:nbodies
     ]
-    lift_coefficients = [
-        zeros(1, length(flow_angles)) for m in 1:nbodies
-    ]
+    lift_coefficients = [zeros(1, length(flow_angles)) for m in 1:nbodies]
 
     for m in 1:nbodies
 
         # vortex strengths per unit length
-        # gamma0 = strengths[:, 1]
         gamma0 = [strengths[idx[m][1:(end - 1)], 1]; -strengths[idx[m][1], 1]]
-        # gamma90 = strengths[:, 2]
         gamma90 = [strengths[idx[m][1:(end - 1)], 2]; -strengths[idx[m][1], 2]]
 
         # total circulation
@@ -46,10 +44,16 @@ function post_process(
         gamma_v = dot(panel_geometry[m].panel_length, gamma90)
 
         #compute strengths parameters
+
         Vinf = 1.0 #freestream velocity
+
         if method.cascade
-            k1 = (1.0 - gamma_v / 2.0 / system_geometry.pitch) / (1.0 + gamma_v / 2.0 / system_geometry.pitch)
-            k2 = gamma_u / system_geometry.pitch / (1.0 + gamma_v / 2.0 / system_geometry.pitch)
+            k1 =
+                (1.0 - gamma_v / 2.0 / system_geometry.pitch) /
+                (1.0 + gamma_v / 2.0 / system_geometry.pitch)
+            k2 =
+                gamma_u / system_geometry.pitch /
+                (1.0 + gamma_v / 2.0 / system_geometry.pitch)
         else
             k1 = 1.0
             k2 = 0.0
@@ -74,18 +78,15 @@ function post_process(
 
             #compute cascade lift if cascade model is true, else use planar lift
             if method.cascade
-                cl_cascade = 2*system_geometry.pitch*(tan(flow_angles[a]) - tan(beta2))*cos(betainf) #Important: This equation assumes that the chord length is 1.0
-                cl_planar = 2*(cos(flow_angles[a])*sum(gamma0 .* panel_geometry[m].panel_length)
-                    + sin(flow_angles[a])*sum(gamma90 .* panel_geometry[m].panel_length))
-                lift_coefficients[m][a] = FLOWMath.sigmoid_blend(
-                    cl_cascade,
-                    cl_planar,
-                    method.solidity,
-                    method.transition_value,
-                    method.transition_hardness
-                )
+                lift_coefficients[m][a] =
+                    2.0 *
+                    system_geometry.pitch *
+                    (tan(flow_angles[a]) - tan(beta2)) *
+                    cos(betainf) #Important: This equation assumes that the chord length is 1.0
             else
-                lift_coefficients[m][a] = 2*(gamma_u*w_x + gamma_v*w_y) / (W*calculate_chord(panel_geometry))
+                lift_coefficients[m][a] =
+                    2.0 * (gamma_u * w_x + gamma_v * w_y) /
+                    (W * calculate_chord(panel_geometry))
                 #=
                 lift_coefficients[m][a] = 2*(cos(flow_angles[a])*sum(gamma0 .* panel_geometry[m].panel_length)
                 + sin(flow_angles[a])*sum(gamma90 .* panel_geometry[m].panel_length)) #Important: This equation assumes that the chord length is 1.0

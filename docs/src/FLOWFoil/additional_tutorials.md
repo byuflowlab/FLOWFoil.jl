@@ -12,6 +12,7 @@ FLOWFoil.Mfoil
 ```
 
 Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results.
+Currently, this method only includes the inviscid parts of Xfoil/Mfoil.
 
 ```@julia
 using FLOWFoil
@@ -56,8 +57,6 @@ outputs = analyze(x, r; method=method)
 
 ## Martensen's Method for Periodic Bodies (Cascades)
 
-TODO: add this functionality
-
 A periodic method for cascade analysis based on that developed by [Martensen](https://archive.org/details/nasa_techdoc_19710021012) can be accessed using the `Martensen` method type:
 
 ```@docs
@@ -71,16 +70,14 @@ using FLOWFoil
 
 x, y = AirfoilTools.naca4(6,4,12)
 
-angles_of_attack = range(-5.0, 15.0, step=1)
+inflow_angles = range(-5.0, 15.0, step=1)
 
-method = Martensen(pitch=2.0*pi/15.0)
+method = Martensen(solidity=0.5, stagger=30.0*pi/180.0)
 
-outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
+outputs = analyze(x, y, inflow_angles; method=method)
 ```
 
 ## Hess-Smith 2D Method for Educational Purposes
-
-TODO: Add this functionality
 
 We also have a version of the Hess-Smith method primarily for educational use that can be accessed with the `HessSmith` method type:
 
@@ -99,5 +96,5 @@ angles_of_attack = range(-5.0, 15.0, step=1)
 
 method = HessSmith()
 
-outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
+outputs = analyze(x, y, angles_of_attack; method=method)
 ```

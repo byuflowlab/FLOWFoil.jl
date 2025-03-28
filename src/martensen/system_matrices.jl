@@ -14,7 +14,6 @@ function generate_system_matrices(
             method.stagger,
             method.cascade,
             method.transition_value,
-            method.transition_hardness,
             method.curvature_correction,
         ),
     )
@@ -112,28 +111,16 @@ function assemble_periodic_vortex_matrix_raw(
 
                     # - Self-induced coefficient - #
                     if i == j
+                        # same for both cascade and non-cascade, just needed a unique function name
                         amat[i, j] = calculate_periodic_self_vortex_influence(
                             panel_geometry[m], i, cascade_parameters.curvature_correction
                         )
 
                     else
                         # - Non self-induced coefficient - #
-
-                        # Calculate planar influence coefficient
-                        K_planar = calculate_planar_vortex_influence(
-                            panel_geometry[m],
-                            panel_geometry[n],
-                            system_geometry,
-                            i,
-                            j,
-                            cascade_parameters,
-                        )
-
-                        # if desired to include high solidity cascade effects:
                         if cascade_parameters.cascade
-
                             # Calculate periodic influence coefficient
-                            K_periodic = calculate_periodic_vortex_influence(
+                            amat[i, j] = calculate_periodic_vortex_influence(
                                 panel_geometry[m],
                                 panel_geometry[n],
                                 system_geometry,
@@ -142,18 +129,16 @@ function assemble_periodic_vortex_matrix_raw(
                                 cascade_parameters,
                             )
 
-                            # blend coefficients based on transition value
-                            amat[i, j] = FLOWMath.sigmoid_blend(
-                                K_periodic,
-                                K_planar,
-                                cascade_parameters.solidity,
-                                cascade_parameters.transition_value,
-                                cascade_parameters.transition_hardness,
-                            )
                         else
-
-                            # if only planar analysis is desired, skip periodic stuff
-                            amat[i, j] = K_planar
+                            # Calculate planar influence coefficient
+                            amat[i, j] = calculate_planar_vortex_influence(
+                                panel_geometry[m],
+                                panel_geometry[n],
+                                system_geometry,
+                                i,
+                                j,
+                                cascade_parameters,
+                            )
                         end
                     end
                 end

@@ -1,6 +1,6 @@
 name = "FLOWFoil"
 uuid = "fb58ae67-a5c0-4a90-8078-890ae2c2e65e"
-authors = ["Judd Mehr"]
+authors = ["Judd Mehr", "Ayden Bennett", "Nathan Lehnhoff", "Tyler Critchfield"]
 version = "0.1.0"
 
 [deps]
@@ -18,7 +18,6 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 FLOWMath = "0.4"
 LsqFit = "0.15"
-NURBS = "0.7"
 ImplicitAD = "0.3"
 NURBS = "0.8"
 SpecialFunctions = "2"
