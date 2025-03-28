@@ -1,0 +1,80 @@
+\section{Panel Method Post Processing}
+\label{sec:panelmethodpostprocessing}
+
+\subsection{Surface Velocity}
+
+For the inviscid panel methods using vortex distributions, the vortex strengths solved for in the linear system are synonymous with the surface velocity magnitudes.
+
+\subsection{Surface Pressure}
+
+The pressure coefficient is defined as
+
+\begin{equation}
+	C_p = \frac{p_1 - p_\infty}{\frac{1}{2} \rho_\infty V_\infty^2}
+\end{equation}
+
+\noindent where \(p = p_1-p_\infty\) is the gage pressure, and \(\rho_\infty\) and \(V_\infty\) are the freestream density and velocity, respectively.
+
+If we assume incompressible and irrotational flow conditions\sidenote{along with the other four required assumptions for Bernoulli's equation}, the we can apply Bernoulli's equation to simplify our expression for the pressure coefficient by putting things in terms of the gage pressure:
+
+\begin{equation}
+\begin{aligned}
+	p_\infty + \frac{1}{2} \rho_\infty V_\infty^2 &= p_1 + \frac{1}{2} \rho_\infty V^2 \\
+	p_1 - p_\infty  &= \frac{1}{2} \rho_\infty V_\infty^2 - \frac{1}{2} \rho_\infty V^2,
+\end{aligned}
+\end{equation}
+
+\noindent then substituting into our coefficient expression and simplifying:
+
+\begin{equation}
+\begin{aligned}
+	C_p =& \frac{\frac{1}{2} \rho_\infty V_\infty^2 - \frac{1}{2} \rho_\infty V^2}{\frac{1}{2} \rho_\infty V_\infty^2} \\
+	C_p =& \frac{\frac{1}{2} \rho_\infty V_\infty^2}{\frac{1}{2} \rho_\infty V_\infty^2} - \frac{\frac{1}{2} \rho_\infty V^2}{\frac{1}{2} \rho_\infty V_\infty^2} \\
+	C_p =& 1 - \left(\frac{V}{V_\infty}\right)^2.
+\end{aligned}
+\end{equation}
+
+\noindent Thus we can use the surface velocity as \(V\) and find the surface pressure of the body in question (usually an airfoil).
+
+\subsection{Forces and Moments}
+
+We can integrate the inviscid surface pressure to find forces, such as lift, inviscid drag, and moments.
+After we have calculated the surface pressure coefficients for each panel using the panel surface velocity, we can dimensionalize the pressure in preparation to get the dimensional loads.
+
+\begin{equation}
+	p = C_p \frac{1}{2} \rho_\infty V_\infty^2
+\end{equation}
+
+We also know that pressure acts normal to the surface, and we know the normal vectors associated with each panel.
+By integrating the pressure over the surface, taking into account the panel directional components, we can obtain the loads on the body.
+
+\begin{equation}
+	\begin{aligned}
+	F'_x &= \int_s -p \hat{n}_x \d s   \\
+	F'_y &= \int_s p \hat{n}_y \d s 
+	\end{aligned}
+\end{equation}
+
+\noindent Since we have used flat panels for the methods presented thus far, we can evaluate the integral using a sum:
+
+\begin{equation}
+	\begin{aligned}
+		f'_x &= \sum_i^N -p_{i} \hat{n}_{x_i} d_i  \\
+	 	f'_y &= \sum_i^N p_{i} \hat{n}_{y_i} d_i
+	\end{aligned}
+\end{equation}
+
+For the axisymmetric, annular airfoil case, we may also want to find the total duct loads.
+For this case, we use cylindrical coordinates, so the \(y\) subscripts become \(r\)'s.
+We can immediately see that by symmetry the integral around the axis of rotation yields a net zero load in the radial direction.
+For the axial direction (still the x-direction) we have
+
+\begin{equation}
+	\begin{aligned}
+		F_x &= \int_s \int_0^{2\pi} -p \hat{n}_x r \d \theta \d s \\
+		F_x &= 2\pi \sum_i^N -p_{i} \hat{n}_{x_i} r_i d_i ,
+	\end{aligned}
+\end{equation}
+
+\noindent where \(r_i\) is the radial position of the ith panel control point, relative to the axis of rotation.
+Since the x-direction is traditionally downstream, if we want to find the thrust, \(T\), of an annular airfoil (duct) we simply take the negative of the axial force, thus \(T = -F_x\).

@@ -1,0 +1,277 @@
+\section{Axisymmetric Panel Method}
+%\label{sec:axisymmetricpanelmethod}
+%
+%\subsection{Theory}
+%
+%\subsubsection{Basics}
+%
+%The fundamental mathematics for the axisymmetric panel method are identical to the methods covered previously in that we wish to solve for the singularity strengths that satisfy the no flow through condition, \(\vect{V} \cdot ~\hat{n} = 0\).
+%To be clear, for bodies of revolution, we want to solve the following set of equations
+%
+%\begin{equation}
+%    \left( \vect{V}_\infty - \vect{V}_{ij} \right) \cdot \hat{n}_i = 0
+%\end{equation}
+%
+%\noindent where \(\vect{V}_\infty\) is the freestream velocity vector, \(\vect{V}_{ij}\) is the velocity induced on the ith panel by the singularities distributed across all of the jth panels, and \(\hat{n}_i\) is the vector normal to the ith panel.
+%
+%It is often conceptually convenient to place the freestream on the right hand side of the equation and consider it as boundary conditions for the system
+%
+%\begin{equation}
+%	\vect{V}_{ij} \cdot \hat{n}_i = \vect{V}_\infty \cdot \hat{n}_i
+%\end{equation}
+%
+%\subsubsection{Ring Vortices}
+%
+%We now come to the major difference in axisymmetric panel methods, the use of ring singularities instead of point or line singularities.
+%It may be helpful to think of these as point singularities in the 2D plane that in fact, wrap around the axis of rotation (thus rings).
+%For our application, we will focus on ring vortices.
+%
+%\todo{add preliminary maths and probably figure 4.3 from book}
+%
+%The components of unit velocity induced by a ring vortex are:
+%
+%\begin{equation}
+%	\label{eqn:vortexringcoefficient}
+%	\begin{aligned}
+%	u_{ij} &= - \frac{1}{2 \pi r_j \left(x^2 + (r+1)^2 \right)^{1/2}} \left[ K(m) -   \left( 1 + \frac{2(r-1)}{x^2 + (r-1)^2} \right) E(m)  \right] \\
+%	v_{ij} &= \frac{x/r}{2 \pi r_j \left(x^2 + (r+1)^2 \right)^{1/2}}  \left[ K(m) -   \left( 1 + \frac{2r}{x^2 + (r-1)^2} \right) E(m)  \right]
+%\end{aligned}
+%\end{equation}
+%
+%
+%\noindent where \(K(m)\) and \(E(m)\)\sidenote{Our implementation uses the value, \(m\) as an input to the elliptic integrals, but we will soon need to know about the \(\phi\) defined below.} are complete elliptic integrals of the first and second kind, respectively, and
+%
+%\begin{equation}
+%	\begin{aligned}
+%	m &= \left( \frac{4r}{x^2 + (r+1)^2} \right) = k^2 = \sin^2(\phi)\\
+%	x &= \frac{x_i - x_j}{r_j} \\
+%	r &= \frac{r_i}{r_j}
+%	\end{aligned}
+%\end{equation}
+%
+%
+%\noindent where \(x_i\) is the x location of the ith panel control point in cylindrical coordinates, and \(r_i\) is the r location of the ith ring vortex (i.e. the jth panel control point) in cylindrical coordinates.
+%It is safe enough to think of these as analogous to the x,y coordinates in a 2D panel method.
+%
+%
+%As \(\phi\) approaches \(\pi/2\), \(K\) becomes singular.
+%For the case where \(\phi = \pi/2\), we set \(K\) and \(E\) using the asymptotic expressions:
+%
+%\begin{equation}
+%	\begin{aligned}
+%	K(\phi) &= \ln \frac{4}{\cos \phi} \\
+%	E(\phi) &= 1 + \frac{1}{2} \left( K(\phi) - \frac{1}{1.2}\right) \cos^2 \phi,
+%	\end{aligned}
+%\end{equation}
+%
+%\noindent respectively. \sidenote{Note that we use available code packages for the calculation of the elliptic integrals that include similar treatment for these singular cases.}
+%It may also be noted that, for these singular cases, we could use alternative expressions for \(u\) and \(v\) when \(\left[ x^2 + (r-1)^2 \right]^{1/2} \lesssim 0.01\):
+%
+%\begin{equation}
+%	\begin{aligned}
+%		u_{ij} = \frac{r-1}{2 \pi \left[ x^2 + (r-1)^2 \right]^{1/2}} \\
+%		v_{ij} = -\frac{x}{2 \pi \left[ x^2 + (r-1)^2 \right]^{1/2}},
+%	\end{aligned}
+%\end{equation}
+%
+%\noindent but applying these alterations is unnecessary if we are already applying special treatment to the elliptic integrals.
+%
+%\subsubsection{Aerodynamic Influence Coefficients}
+%
+%The final step is to apply the unit velocities at constant strength across each panel giving us the aerodynamic influence coefficients:
+%
+%\begin{equation}
+%\label{eqn:vringaij}
+%	a_{ij} = \left( u_{ij} \cos \beta_i + v_{ij}\sin \beta_i \right) d_j
+%\end{equation}
+%
+%\noindent where \(d_j\) is the length of the jth panel, and \(\beta_i\) is the slope of the ith panel.
+%The panel slopes are calculated by
+%
+%%\begin{equation}
+%%	\beta = 
+%%	\begin{cases}
+%%		sign(\Delta \hat{r}) \frac{pi}{2}~~~&\mathrm{if}~~~ |\Delta \hat{x}| < 1e-5 \\
+%%		\tan^{-1}\frac{\Delta \hat{r}}{\Delta \hat{x}}~~~&\mathrm{if}~~~ \Delta \hat{x} > 1e-5
+%%	\end{cases}
+%%\end{equation}
+%
+%\begin{equation}
+%	\beta = \tan^{-1}\frac{\Delta \hat{r}}{\Delta \hat{x}}
+%\end{equation}
+%
+%\noindent where
+%
+%\begin{equation}
+%	\begin{aligned}
+%		 \Delta \hat{r} &= \frac{r_{i + 1} - r_{i}}{d_i} \\
+%		\Delta \hat{x} &= \frac{x_{i + 1} - x_{i}}{d_i}.
+%	\end{aligned}
+%\end{equation}
+%
+%\noindent For cases when the panels have negative \(\Delta x\) values in our reference frame, we provide corrections to the arctangent calculation.\sidenote{Note that if the geometry proceeds clockwise as we have assumed before, then we really only need to apply the correction to the bottom of the airfoil.}
+%
+%\begin{equation}
+%	\beta = 
+%	\begin{cases}
+%		\beta + \pi ~~~&\mathrm{if~panel~is~on~bottom~of~geometry}\\ 
+%		\beta - \pi ~~~&\mathrm{if~panel~is~on~top~half~of~geometry}
+%	\end{cases}
+%\end{equation}
+%
+%In addition, \cref{eqn:vringaij} is only true for \(i \neq j\) for the self-induced case, that is when \(i=j\) and the panel is inducing velocity on itself, the self-influence coefficient is
+%
+%\begin{equation}
+%	a_{ii} = -\frac{1}{2} - \left[ \ln \left(\frac{8 \pi r_i}{d_i}\right) - \frac{1}{4} \right] \frac{\cos\left(\beta_i\right)d_i}{4\pi r_i} - R_i,
+%\end{equation}
+%\todo{probably need to add the math details here too or it definitely won't make sense (for sure at least need to cite book)}
+%
+%\noindent where \(R_i\) is the radius of curvature of the ith panel, defined as 
+%
+%\begin{equation}
+%	R_i = \frac{\beta_{i+1} - \beta_{i-1}}{8\pi}
+%\end{equation}
+%
+%\noindent for all but the trailing edge panels.  
+%We set \(R_i = 0\) for the the trailing edge panels.
+%
+%\subsection{Implementation for Bodies of Revolution}
+%
+%Now that we have the elements to assemble our system of equations, we can do so as follows:
+%
+%\begin{equation}
+%	\sum_j a_{ij} \gamma_j = - V_\infty \cos \beta_i
+%\end{equation}
+%
+%\noindent Noting that on the right hand side, the freestream is only in the x-direction for the axisymmetric case, so the simple freestream magnitude and panel angle are sufficient to describe the boundary conditions.
+%
+%Thus, similar to previous sections we end up with the matrix equation:
+%
+%\begin{equation}
+%	\begin{pmatrix}
+%		& & & &  \\
+%		& & \multirow{3}{*}{\Huge $a_{ij}$}  & &  \\
+%		& & & &  \\
+%		& & & &  \\
+%		& & & &  
+%	\end{pmatrix}
+%	%
+%	\begin{pmatrix}
+%		\gamma_1 \\
+%		\gamma_2 \\
+%		\vdots \\
+%		\gamma_N
+%	\end{pmatrix}
+%	=
+%	\begin{pmatrix}
+%		 -V_\infty\cos \beta_1 \\
+%		 -V_\infty\cos \beta_2 \\
+%		\vdots \\
+%		 -V_\infty\cos \beta_N \\
+%	\end{pmatrix}
+%\end{equation}
+%
+%\noindent Note that there is no need, therefore we do not, include the Kutta condition for the case of bodies of revolution. 
+%
+%\subsection{Implementation for Annular Airfoils (Ducts)}
+%
+%The implementation for an axisymmetric body offset from the axis of rotation is nearly identical to that for bodies of revolution with the exception that the Kutta condition is required, and we apply a back diagonal correction factor.
+%
+%The back diagonal correction, applied to each element of the back diagonal is calculated as
+%
+%\begin{equation}
+%	a_{N-i+1,i} = - \frac{1}{d_{N-i+1}} \sum\limits^N_{\substack{j=1\\ j\neq N-i+1}} a_{ji} d_j
+%\end{equation}
+%
+%To apply the Kutta condition, we set the first and last vortex strengths (those on the upper and lower trailing edge panels) to be equal.
+%
+%\[\gamma_1 + \gamma_N = 0\]
+%
+%\noindent Adding this equation to the system requires us to add an additional ``unknown,'' which we will choose in this case to be a unit bound vortex, \(\Gamma_b = \sum_{i=1}^N \gamma_i d_i = 1.0\).\sidenote{We've basically just added 1 to both sides of each of the original equations in the system.}
+%Thus our augmented system becomes:
+%
+%\begin{equation}
+%	\begin{pmatrix}
+%		& & & & & 1 \\
+%		& & \multirow{3}{*}{\Huge $a_{ij}$}  & & & 1 \\
+%		& & & & & 1 \\
+%		& & & & & 1 \\
+%		& & & & & 1 \\
+%		1 & 0 & \cdots & 0 & 1 & 0
+%	\end{pmatrix}
+%		%
+%	\begin{pmatrix}
+%		\gamma_1 \\
+%		\gamma_2 \\
+%		\vdots \\
+%		\gamma_N \\
+%		\Gamma_b
+%	\end{pmatrix}
+%	=
+%	\begin{pmatrix}
+%		V_\infty \hat{n} _{x_1} + 1 \\
+%		V_\infty \hat{n} _{x_2} + 1 \\
+%		\vdots \\
+%		V_\infty \hat{n} _{x_N} + 1 \\
+%		0
+%	\end{pmatrix}
+%\end{equation}
+%
+%\subsection{Duct + Hub System}
+%
+%Putting a body of revolution and annular airfoil together is a natural extension, just as the multi-body system of 2D airfoils.
+%In this case, the combined system is assembled in the same manner as a multi-body 2D system, with the exception that the body of revolution does not include the Kutta condition.
+%
+%For the system \(\vect{A} \vect{\gamma} = \vect{b}\):
+%
+%\setcounter{MaxMatrixCols}{20}
+%\begin{align}
+%	\label{eqn:multiaxisym}
+%	\vect{A} &= \begin{pmatrix}
+%		& & & & & 1 & & & &&   \\
+%		%
+%		& & \multirow{2}{*}{\Large $a_{ij}^{dd}$} & & & 1 & & &\multirow{2}{*}{\Large $a_{ij}^{dh}$} & &  \\
+%		%
+%		& & & & & 1 & & & & & \\
+%		%
+%		& & & & & 1 & & & & & \\
+%		%
+%		1 & 0 & \cdots & 0 & 1 & 0 & 0 & 0 & \cdots & 0 & 0  \\
+%		%
+%		& & & & & 0& & & & & \\
+%		%
+%		& & \multirow{2}{*}{\Large $a_{ij}^{hd}$} & & & 0& & & \multirow{2}{*}{\Large $a_{ij}^{hh}$} & & \\
+%		%
+%		& & & & & 0& & & & & \\
+%		%
+%		& & & & & 0& & & & & \\
+%		%
+%	\end{pmatrix} \\
+%	%
+%	\vect{\gamma} &= \begin{pmatrix}
+%		\gamma^d_{1}  \\
+%		\gamma^d_{2} \\
+%		\vdots \\
+%		\gamma^d_{N}  \\
+%		\Gamma_b \\
+%		%
+%		\gamma^h_{1}  \\
+%		\gamma^h_{2} \\
+%		\vdots \\
+%		\gamma^h_{N}  \\
+%	\end{pmatrix} \\
+%	%
+%	\vect{b} &= \begin{pmatrix}
+%		1 - V_\infty \cos \beta^d_1 \\
+%		1 - V_\infty \cos \beta^d_2 \\
+%		\vdots \\
+%		1 - V_\infty \cos \beta^d_N \\
+%		0  \\
+%		- V_\infty \cos \beta^h_1 \\
+%		- V_\infty \cos \beta^h_2 \\
+%		\vdots \\
+%		- V_\infty \cos \beta^h_N \\
+%	\end{pmatrix}
+%\end{align}
+%
+%\noindent where the superscripts \(d\) and \(h\) represent the duct (annular airfoil) and hub (body of revolution), respectively.

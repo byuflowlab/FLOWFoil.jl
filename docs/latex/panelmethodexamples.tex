@@ -1,0 +1,181 @@
+\section{Singularity Distributions}
+\label{sec:singularitydistributions}
+
+%TODO: explain what a line distribution is first as an intro before getting into panel specific stuff.
+
+As will be discussed in greater detail in \cref{chp:bem}, the applications of potential flow theory presented in this dissertation are based on finding flow disturbances due to solid bodies.  
+We approximate (or ideally represent exactly) arbitrary body geometries with panels.  
+Here we will limit our discussion to a single panel from which we can glean quite a bit of understanding that will be applied in subsequent chapters.
+
+\begin{marginfigure}
+	\centering
+	\begin{tikzpicture}[scale=1.0]
+		\draw[ultra thick, color=white] (0,-0.5) -- (0,2);
+		\draw[ultra thick,color=navy,mark=square*] plot coordinates {(-1.5,-0.10)} -- plot[mark=square*] coordinates {(1.5,.25)};
+		\draw[color=plotsred,fill=plotsred] (0.2,1.25) circle (.5ex);
+		\draw[color=plotsred] (0.5,1.5) node {$\mathbf{P}$};
+		\draw[thick, color=plotsgray] (-0.9,-0.15) -- (-0.9,0.1);
+		\draw[color=plotsgray] (-0.65,-0.3) node {${ds}$};
+		\draw[decorate,decoration={brace,amplitude=10pt},yshift=2pt,xshift=-3pt] (-0.85,-0.05) -- (0.2,1.25) node [black,midway,xshift=-11pt,yshift=8pt] {$r$};
+		%		\draw[ultra thick, color=black] (-0.9,0) -- (0.2,1.25);
+	\end{tikzpicture}
+\end{marginfigure}
+
+
+
+Let us begin with a single, flat, two-dimensional ``panel'' of finite length and with arbitrary orientation, and some arbitrary point in space \(\mathbf{P}\). 
+In general terms, the potential at some point of interest due to an arbitrary distribution of singularities along the panel is
+
+\[\phi(\mathbf{P}) = \int_s \phi_s(r) \d s\]
+
+\noindent where \(s\) is the curvilinear length along the panel, \(\phi_s(r)\) is the formula for the given singularity distributed along the panel, and \(r\) is the distance from the point, \(s\), along the panel to the point of interest.
+
+
+
+
+
+\subsection{Source Distributions}
+
+For potential sources, which are defined as \(\phi_s(r) = \frac{q(s)}{2\pi}\ln(r)\) this yields the potential due to a source distribution of
+
+\[\phi_{source}(\mathbf{P}) =  \int_s \frac{q(s)}{2\pi} \ln(r) \d s\]
+
+\noindent where \(q(s)\) is the source strength distribution along the panel as a function of \(s\).
+
+
+
+\subsubsection{Constant Strength Distribution}
+
+\begin{marginfigure}
+	\input{./panelmethodcontents/panelmethodfigures/constantsourcedist.tikz}
+\end{marginfigure}
+
+
+If \(q(s) = {\color{navy}q_0} = \mathrm{const}\) is constant, we can pull the source strength out of the integral, simplifying the calculation:
+
+\begin{equation}
+\label{eqn:constantsourcedist}
+	\phi_{source}(\mathbf{P}) = \frac{\color{navy}q_0}{2\pi} \int_s \ln(r) \d s
+\end{equation}
+
+\noindent For distributions of higher order than constant, we must leave the source strength inside the integral, which can require extra considerations when calculating [probably reference numeric integration stuff later].
+
+
+\subsubsection{Linear Strength Distribution}
+
+For example, when \(q(s)\) is distributed linearly we end up with
+
+\[\phi_{source}(\mathbf{P}) = \frac{1}{2\pi} \int_s ({\color{plotsred}q_1}s + {\color{navy}q_0}) \ln(r) \d s.\]
+
+\begin{marginfigure}
+	\input{./panelmethodcontents/panelmethodfigures/linearsourcedist.tikz}
+\end{marginfigure}
+
+\noindent In this case, and subsequent higher orders, we can split out the integral, taking advantage of the simpler calculation for the constant portion of the integrand
+
+\begin{equation}
+\label{eqn:linearsourcedist}
+	\phi_{source}(\mathbf{P}) = \frac{1}{2\pi} \left[ \int_s {\color{plotsred}q_1}s \ln(r) \d s + {\color{navy}q_0} \int_s \ln(r) \d s \right].
+\end{equation}
+
+
+\subsubsection{NURBS Strength Distribution}
+\toadd{need a margin plot here}
+
+
+\begin{equation}
+\label{eqn:nurbssourcedist}
+	\phi_{source}(\mathbf{P}) = \frac{1}{2\pi} \int_s \sum_{i=1}^n  \left[ R_{i,p}(s) q_i \right] \ln(r) \d s.
+\end{equation}
+
+\noindent where \(R_{i,p}\) is the \(i\)th NURBS basis function for the \(p\)th order NURBS curve\footnote{We'll typically be using p=3, or cubic splines in this dissertation.} associated with the analysis geometry, and \(q_i\) are the coefficients for the NURBS definition.
+Due to the nature of the NURBS basis functions, the integral can be split, but not quite as cleanly as can be done for standard polynomials as mentioned above.
+This will be explained more fully as we look at some examples.
+
+\subsection{Examples: Single Panels}
+
+
+\subsubsection{Linear Source Distribution}
+
+\toremove{all the parentheses here are a mess.  figure out a notation that cleans them up.}
+
+In the linear source distribution case, we will use \cref{eqn:linearsourcedist} to calculate the potential at point \(\mathbf{P}\).
+As can be seen, we can split our integral into the constant and linear portions.
+We'll start with the simpler, constant portion of the integral.
+
+First, let us define \(\xi\) on the range \(0 \leq \xi \leq 1\), where \(\xi\) is a parametric value input into the definition of our panel.
+That is to say, let us define our integral as
+
+\[ \frac{q_0}{2\pi} \int_0^1 \ln(r(s(\xi))) J(s(\xi)) \d\xi \]
+
+\noindent where
+
+\[ r(s(\xi)) = || \mathbf{P} - s(\xi) ||, \]
+
+\noindent \(s(\xi)\) is the position along our panel at the parametric point, \(\xi\), and 
+
+\[J(s(\xi)) = \norm{\frac{\d s}{\d\xi}}\] 
+
+\noindent is required for the transformation from \(\xi\) to \(s\) in the integration bounds.
+
+Remember that our numerical integration methods require bounds (-1,1), so we will have to perform another transformation using \cref{eqn:linearboundstransform}.
+Doing so gives
+
+\[ \frac{q_0}{2\pi} \int_{-1}^1 \ln(r(s(\xi(t)))) J(s(\xi(t))) \d t, \]
+
+\noindent where
+
+\[J(s(\xi(t))) = \norm{\pd{ s}{ \xi}} \pd{ \xi}{ t} .\]
+
+\noindent If the point of interest, \(\mathbf{P}\), is on the panel itself, we need to also apply the Monegato-Sloan transformation of \cref{eqn:mstransformint}:
+
+\[ \frac{q_0}{2\pi} \int_{-1}^1 \ln(r(s(\xi(\gamma(t))))) ~J(s(\xi(\gamma(t)))) ~\d t, \]
+%Now we'll move on to the linear portion of the integral.
+
+\noindent where
+
+\[ r(s(\xi(\gamma(t)))) = || s(\xi(\gamma(t_P))) - s(\xi(\gamma(t))) ||, \]
+
+\noindent where \(t_P\) is the parametric value associated with \(\mathbf{P}\).
+
+\noindent and
+
+\[J(s(\xi(\gamma(t)))) = \norm{\pd{ s}{ \xi}} \pd{ \xi}{ \gamma} \pd{ \gamma}{ t}  .\]
+
+We can now look at the linear portion of the integral.  It is nearly identical, with the exception that the linear strength coefficient, \(q_1\), is multiplied by the parametric distance along the curve:
+
+\[ \frac{1}{2\pi} \int_{-1}^1 (q_1\xi(\gamma(t))) ~\ln(r(s(\xi(\gamma(t))))) ~J(s(\xi(\gamma(t)))) ~\d t, \]
+
+\noindent All together, then we have the full integral of a linear distribution along an arbitrary panel:
+
+\[
+\begin{split}
+	\phi_{source}(\mathbf{P}) =& \frac{1}{2\pi} \biggr[
+	q_0 \int_{-1}^1 \ln(r(s(\xi(\gamma(t))))) ~J(s(\xi(\gamma(t)))) ~\d t \\
+	&+ \int_{-1}^1 (q_1\xi(\gamma(t))) ~\ln(r(s(\xi(\gamma(t))))) ~J(s(\xi(\gamma(t)))) ~\d t \biggr].
+\end{split}
+\]
+
+\noindent If there are no weak singularities to deal with, then we simply remove the Monegato-Sloan transformation terms.
+
+\[
+\begin{split}
+	\phi_{source}(\mathbf{P}) =& \frac{1}{2\pi} \biggr[
+	q_0 \int_{-1}^1 \ln(r(s(\xi(t)))) ~J(s(\xi(t))) ~\d t \\
+	&+ \int_{-1}^1 (q_1\xi(t)) ~\ln(r(s(\xi(t)))) ~J(s(\xi(t))) ~\d t \biggr]
+\end{split}
+\]
+
+\noindent where
+
+\[ r(s(\xi(t))) = || s(\xi(t_P)) - s(\xi(t)) ||, \]
+
+\noindent and
+
+\[J(s(\xi(\gamma(t)))) = \norm{\pd{ s}{ \xi}} \pd{ \xi}{ t} .\]
+
+
+
+\subsubsection{Curved Panel, NURBS Source Distribution}
+\toadd{write this section}
+

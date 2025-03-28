@@ -1,0 +1,172 @@
+% NOTE: this is the boundary integral equation development based on Martensen's paper
+
+\subsubsection{Boundary Integral Equation}
+
+For a given aerodynamic body, representable by a simply connected contour (for example, \(\mathcal{S}\) as shown in \cref{fig:simplyconnectedairfoil}) we want to be able to find the velocity (and thereby pressure) distribution on that body surface.
+%
+One way to find the surface velocity distribution is to leverage potential flow theory by constructing a boundary integral equation by which we can solve the boundary value problem for the unknown surface velocity distribution.
+%
+Before doing so, we introduce the vector potential, \(\vect{\psi}\), which we define such that\sidenote{We note that this definition for \(\vect{\psi}\) satisfies \cref{asm:incompressible} by definition, due to the vector identity \(\nabla \cdot \nabla \times A = 0\) for any vector, \(A\).}
+
+\begin{equation}
+    \label{eqn:generalstream}
+    \vect{V} = \nabla \times \vect{\psi},
+\end{equation}
+
+\noindent or expressed another way
+
+\begin{equation}
+    \label{eqn:generalstream2}
+    \left|\vect{V}\right| = \left|\pd{\vect{\psi}}{\hat{\vect{n}}}\right|.
+\end{equation}
+
+\where the flow direction is \(90^\circ\) counter-clockwise to the direction of decreasing \(\vect{\psi}\).
+
+We will utilize the vector potential in the construction of our boundary integral equation.
+%
+Specifically, we want to obtain a boundary integral expression for the vector potential that satisfies the following three conditions as enumerated by Martensen\scite{Martensen_1971}
+
+\begin{enumerate}
+\item The Laplace equation, \(\nabla^2 \vect{\psi} = 0\), holds within the domain, \(\mathcal{V}\).\sidenote{This is an equivalent way to express \cref{asm:irrotational} since \(\nabla \times \nabla \times A = \nabla(\nabla\cdot A)-\nabla^2A\) for any vector \(A\), and \cref{asm:incompressible} already holds for \(\vect{\psi}\).}
+    \item \(|\vect{U}|_\infty = \left|\pd{\vect{\psi}}{\hat{\vect{n}}}\right|_\infty\)
+    \item \(\vect{\psi}\) is constant along the boundary, \(\mathcal{S}\).\sidenote{That is to say, a streamline runs along the body.}
+\end{enumerate}
+
+\begin{figure}[h!]
+    \centering
+        \input{ductape/figures/simply_connected_airfoil.tikz}
+        \caption{An example of a simply connected contour, \(\mathcal{S}\), representing, in this case, an airfoil. The dashed arrows represent the direction about which the contour is traversed, with \(\hat{\vect{n}}\) being the unit surface normal associated with the direction of travel.}
+    \label{fig:simplyconnectedairfoil}
+\end{figure}
+
+\noindent An integral equation that immediately satisfies conditions 1 and 2 is
+
+\begin{equation}
+    \label{eqn:bie1}
+    \vect{\psi} = \vect{\psi}_\infty - \oint_\mathcal{S} \gamma_s \vect{\psi}_s \d s + \text{Constant}
+\end{equation}
+
+\where the integral term\sidenote{In our case, we take the integral in the clockwise (negative) direction, leading to the negative out front.} represents a distribution of elementary vortices along the boundary, \(\mathcal{S}\), for which \(\vect{\psi}_s\) is the unit vector potential associated with said distribution and \(\gamma_s\) is the distribution of strengths (per unit length).
+%
+The \(\vect{\psi}_\infty\) term is the vector potential of the freestream.
+
+
+% \(v\) is a surface distribution (which we will shortly see to be velocity).
+Now it can be shown\scite{Martensen_1971,Courant_1962,Prager_1928} that the values of the normal derivative of \(\vect{\psi}\) jump across the boundary \(\mathcal{S}\) such that the jumps outside (in \(\mathcal{V}\)) to the boundary, and from the boundary to inside (the body) are respectively
+
+\begin{subequations}
+\label{eqn:jumpdn}
+\begin{align}
+    \left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\mathcal{V} - \left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\mathcal{S} &= -\frac{\gamma}{2} \\
+    \left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\mathcal{S} - \left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\text{in} &= -\frac{\gamma}{2}.
+\end{align}
+\end{subequations}
+
+\noindent In addition, the tangential derivatives are continuous across the boundary such that
+
+\begin{subequations}
+    \label{eqn:jumpdt}
+\begin{align}
+    \left[\pd{\vect{\psi}}{\hat{\vect{t}}}\right]_\mathcal{V} - \left[\pd{\vect{\psi}}{\hat{\vect{t}}}\right]_\mathcal{S} &= 0 \\
+    \left[\pd{\vect{\psi}}{\hat{\vect{t}}}\right]_\mathcal{S} - \left[\pd{\vect{\psi}}{\hat{\vect{t}}}\right]_\text{in} &= 0.
+\end{align}
+\end{subequations}
+
+We will utilize these jump relations in order to satisfy requirement 3 for our desired boundary integral equation.
+%
+We start with the requirement that the velocity field vanishes inside the body; that is to say, the individual components of the vector potential are zero inside the body.\sidenote{We will see shortly that this is equivalent to requirement 3.}
+%
+By this assertion, it follows that
+
+\begin{equation}
+    \label{eqn:reqdpdn}
+    \left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\text{in} = 0.
+\end{equation}
+
+\noindent Taking the normal derivative of \cref{eqn:bie1} and plugging into our jump relation expression for the normal derivative along with \cref{eqn:reqdpdn}, we have
+
+\begin{equation}
+    \begin{split}
+        \bigg[\pd{\vect{\psi}_\infty}{\hat{\vect{n}}} & -   \oint_\mathcal{S} \gamma_s\pd{\vect{\psi}_s}{\hat{\vect{n}}} \d s \\
+        &+ \cancelto{0}{\pd{\text{(Constant)}}{\hat{\vect{n}}}}\bigg] - \cancelto{0}{\left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\text{in}} = -\frac{\gamma}{2}.
+    \end{split}
+\end{equation}
+
+\noindent Simplifying, we arrive at
+
+\begin{equation}
+    \label{eqn:bie2}
+    \eqbox{
+        \frac{\gamma}{2} -  \oint_\mathcal{S} \gamma_s \pd{\vect{\psi}_s}{\hat{\vect{n}}} \d s  = -\pd{\vect{\psi}_\infty}{\hat{\vect{n}}}.
+}
+\end{equation}
+
+So how does this meet our 3rd requirement for a boundary integral expression?
+%
+If the velocity field vanishes inside the body, we can also conclude that
+
+\begin{equation}
+    \left[\pd{\vect{\psi}}{\hat{\vect{t}}}\right]_\text{in} = 0,
+\end{equation}
+
+\noindent hence, by \cref{eqn:jumpdt},
+
+\begin{equation}
+    \left[\pd{\vect{\psi}}{\hat{\vect{t}}}\right]_\mathcal{V} = 0.
+\end{equation}
+
+\noindent Which is to say that requirement 3 (that \(\vect{\psi}\) is constant along the boundary) holds for \cref{eqn:bie2}.
+%
+Thus \cref{eqn:bie2} meets all of our requirements for a boundary integral equation.
+
+We also see that by \cref{eqn:reqdpdn,eqn:jumpdn} that
+
+\begin{equation}
+    \left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\mathcal{S} = -\frac{\gamma}{2},
+\end{equation}
+
+\noindent and therefore,
+
+\begin{equation}
+    \begin{aligned}
+        \gamma &= -\left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\mathcal{V} \\
+          &= \frac{\gamma}{2} + \left[\pd{\vect{\psi}}{\hat{\vect{n}}}\right]_\mathcal{S} \\
+          & = \frac{\gamma}{2} -  \oint_\mathcal{S} \gamma_s\pd{\vect{\psi}_s}{\hat{\vect{n}}} \d s  + \pd{\vect{\psi}_\infty}{\hat{\vect{n}}};
+\end{aligned}
+\end{equation}
+
+\noindent which, by \cref{eqn:generalstream2}, tells us that \(\gamma\) is the magnitude of the tangential velocity around \(\mathcal{S}\) and that \(\gamma\) is positive in the counter-clockwise direction (or negative in the clockwise direction as indicated in \cref{fig:simplyconnectedairfoil}).
+%
+Therefore, in order to obtain usable expressions for the normal derivatives of \(\vect{\psi}_s\) and \(\vect{\psi}_\infty\), we simply need to obtain the unit tangent velocities on the boundary, \(\mathcal{S}\).
+%
+We can do so by taking to dot product of the induced velocities and the local tangent vector on the boundary.
+
+\begin{align}
+    \pd{\vect{\psi}_\infty}{\hat{\vect{n}}} &= \vect{V}_\infty \cdot \hat{\vect{t}}\\
+    \pd{\vect{\psi}_s}{\hat{\vect{n}}} &= \hat{\vect{V}}_s \cdot \hat{\vect{t}}
+\end{align}
+
+For the axisymmetric case, we note that the freestream velocity only has a component in the axial direction, thus the dot product simply becomes the magnitude of the freestream multiplied by the cosine of the local surface angle relative to the axial direction, \(\beta\):
+
+\begin{equation}
+    \begin{aligned}
+        \pd{\vect{\psi}_\infty}{\hat{\vect{n}}} &= \vect{V}_\infty \cdot \hat{\vect{t}} \\
+    &= |\vect{V}_\infty|\cancelto{1}{|\hat{\vect{t}}|} \cos\beta\\
+    &= V_{\infty} \cos\beta
+    \end{aligned}
+\end{equation}
+
+For the velocities in the integral, we have both axial and radial components of induced velocity.
+%
+The dot product then becomes
+
+\begin{equation}
+    \begin{aligned}
+        \pd{\vect{\psi}_s}{\hat{\vect{n}}} &= \hat{\vect{V}}_s \cdot \hat{\vect{t}} \\
+         &= v_z t_z + v_r t_r \\
+         &= v_z \cos\beta + v_r \sin\beta
+    \end{aligned}
+\end{equation}
+
+\where we will derive expressions for the unit induced velocity components, \(v_z\) and \(v_r\), next, in \cref{ssec:ringvortices}.
+\toadd{Consider adding a section on physical meaning of what was just presented, or perhaps include it throughout if that makes things clearer.}

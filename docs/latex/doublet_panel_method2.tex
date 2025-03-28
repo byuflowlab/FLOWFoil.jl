@@ -1,0 +1,334 @@
+\section{doublet stuff to replace panel method eventually}
+
+Let us begin with a single, arbitrary, axisymmetric doublet panel (band)
+with constant strength, \(\mu\),
+endpoints (nodes) at \(p_1\) and \(p_2\),
+center (control point), \(\bar{p}=0.5(p_1+p_2)\),
+and with normal vector, \(\hat{n}=\hat{k}\times\hat{t}\),
+defined such that \(\hat{k}\) is the unit vector positive out of the page according to the right hand rule,
+and \(\hat{t}\) is the unit tangent to the panel from \(p_1\) to \(p_2\)
+such that \(\hat{t} = (p_2-p_1)/||p_2-p_1||\).
+Such a panel is equivalent to a combination of two vortex rings of opposite sign,
+one at each panel node, oriented such that a postivive vortex strength,
+\(\gamma\) is aligned with positive \(\hat{k}\).
+\Cref{fig:doublet_panel} shows the panel under consideration with the equivalent vortex rings.
+
+\begin{figure}[h!]
+    \centering
+    \input{./ductape/figures/margin_doublet_panel.tikz}
+    \caption{Doublet panel definition and equivalent vortex ring representation.}
+    \label{fig:doublet_panel}
+\end{figure}
+
+We can ``link'' some number of these bands together in order to form some arbitrary shape,
+in our case, we are interested in aerodynamic bodies of revolution as well as annular airfoils.
+Individually, each band induces a velocity, \(\vect{u}\), at some point,
+\(\vect{q}\) in space, relative to the band strength \(\mu\)
+
+\begin{equation}
+    \vect{u}(\vect{p},\vect{q}) = \mu \vect{g}(\vect{p},\vect{q}).
+\end{equation}
+
+\where \(\vect{g}\) is the function describing the unit induced velocity of panel, p, on point, q.
+We express \(\vect{g}\) in terms of the equivalent vortex ring pair such that
+
+\begin{equation}
+    \begin{aligned}
+        g_x &= v_x(\mu, \vect{p_1}, \vect{q}) + v_x(-\mu, \vect{p_2}, \vect{q}) \\
+        g_r &= v_r(\mu, \vect{p_1}, \vect{q}) + v_r(-\mu, \vect{p_2}, \vect{q}).
+    \end{aligned}
+\end{equation}
+%TODO: need to add full derivation of induced velocities due to vortex rings
+
+For a given grouping of panels (linked, or otherwise),
+we can find the total induced velocity at any point in space as
+
+\begin{equation}
+    \vect{u}(\vect{q}) = \sum_{i=1}^N \vect{u}_i(\vect{q})    =\sum_{i=1}^N \mu_i \vect{g}(\vect{p}_i,\vect{q})
+\end{equation}
+
+\noindent For a set of linked bands forming aerodynamic bodies of interest,
+we would like to be able to solve for the doublet and/or vortex strengths that result in
+an inviscid flow field containing the bodies we have created with our linked bands.
+This process is commonly called a panel method.
+There are several appraoches to a panel method, but here we choose to apply a
+Neumann boundary condition such that the induced velocity of each band on each
+control point leads to zero velocity at, and normal to, each band.
+At the ith band, we state mathematically that
+
+\begin{equation}
+    \vect{u}(\vect{p}_i) \cdot \hat{n}_i + \vect{u}_\infty \cdot \hat{n}_i = 0,
+\end{equation}
+
+%TODO: need to discuss assumptions made here.  decide if you need to derive the panel method stuff from scratch before this entire section or not.
+\where we have immersed our geometry in a freestream, \(\vect{u}_\infty\),
+and thus we would like to solve for the panel strengths that induce velocities such that
+the freestream does not pass through the bodies we have created.
+Assembling a system of equations to satisfy these conditions at every panel yields the
+following expression for the jth panel.
+
+\begin{equation}
+    \sum_{i=1}^N \mu_i \vect{g}(\vect{p}_i,\vect{p}_j) \cdot \hat{n}_j = - \vect{u}_\infty \cdot \hat{n}_j.
+\end{equation}
+
+\noindent we can also write this system in matrix form as
+
+\begin{equation}
+    G \vect{\mu} = \vect{b}
+\end{equation}
+
+\where \(G\) is an NxN matrix containing the unit induced normal velocity expressions,
+such that \(G_{ji} = \vect{g}(\vect{p}_i, \vect{p}_j) \cdot \hat{n}_j \).
+The vector, \(\vect{\mu}\), contains the panel doublet strengths, and the vector,
+\(\vect{b}\) contains the right hand side expressions such that
+\(b_j = -\vect{u}_\infty \cdot \hat{n}_j \).
+
+At this point, we can solve the linear system for the panel strengths,
+but due to our assumption of an inviscid flow field, the solution will not represent reality very well for geometries that are not bodies of revolution.
+We require the addition of some extra condition that will force the flow over bodies such as annular airfoils to approximate reality better.
+One condition that we could add is that the pressure on the outer side of the body trailing edge and the pressure on the inner side of the body trailing edge are equal,
+or in other words, we demand that there be a stagnation point at the body trailing edge.
+This condition is known as the Kutta condition.
+Because pressure is depending on velocity squared, however, the Kutta condition is a non-linear equation that we cannot apply directly to our linear system.
+As such, we can approximate the Kutta condition by assuming that the normal velocity components at the trailing edge are close enough to equal, and we can simply equate the tangential velocities at the trailing edge.
+We can approximate futher by assuming that for a sufficiently thin trailing edge, such as those seen on many airfoil cross-sections, the unit tangents at the trailing edge are nearly equal enough that we can equate the panel strengths alone as an approximation to the Kutta condition.
+Noting the equivalence of doublet panels to a pair of ring vortices, we can express this second approxmiation of the Kutta condition as \(\gamma_{TE} = 0\), or the vortex strength at the trailing edge is zero.
+Historically, this has proven to be a good approximation.
+
+Adding the kutta condition to our system adds an equation, which requires an additional unknown to maintain the square dimensions of the system.
+Fortunately, if we assume steady conditions, the Kutta condition introduces a starting vortex which adds a semi-infinite wake doublet panel of constant, but unknown, strength.
+At the trailing edge for a given body, we then have the superposition of three vortex rings such that the total vortex strength at the trailing edge is
+%TODO: add an image of the trailing edge panel junctions
+
+\begin{equation}
+    \gamma_{TE} = \mu_\text{inner} - \mu_\text{outer} + \mu_\text{wake}
+\end{equation}
+
+\noindent Because we are already approximating the Kutta condition by setting \(\gamma_{TE}=0\), we see that the unknown wake strength is
+
+\begin{equation}
+    \mu_\text{wake}= \mu_\text{outer} - \mu_\text{inner}
+\end{equation}
+
+\noindent which is easly introduced into our linear system.
+Given M number of bodies being modeled (and therefore M trailing edges), we can create one large system as
+
+\begin{equation}
+    \sum_{i=1}^N \mu_i \vect{g}(\vect{p}_i,\vect{p}_j) \cdot \hat{n}_j
+        + \sum_{k=1}^M \mu^\text{wake}_k \vect{g}_1(p_k, p_j) \cdot \hat{n}_j
+        = - \vect{u}_\infty \cdot \hat{n}_j.
+\end{equation}
+
+\where \(\vect{g}_1\) indicates that we only include the wake panel node at the
+trailing edge in our induced velocity calculation.
+Since the influence of a vortex ring infinitely far away is zero,
+we do not need to include the other wake panel node (though we could with the same result).
+We then apply the Kutta condition, \(\mu_\text{wake}= \mu_\text{outer} - \mu_\text{inner}\),
+
+\begin{equation}
+    \sum_{i=1}^N \mu_i \vect{g}(\vect{p}_i,\vect{p}_j) \cdot \hat{n}_j
+        + \sum_{k=1}^M (\mu^\text{outer}_k - \mu^\text{inner}_k) \vect{g}_1(p_k, p_j) \cdot \hat{n}_j
+        = - \vect{u}_\infty \cdot \hat{n}_j.
+\end{equation}
+
+\noindent In matrix form, we now have
+
+\begin{equation}
+    G \vect{\mu} + G_\text{wake} \vect{\mu} = \vect{b};
+\end{equation}
+
+\noindent or, combining terms such that \(G^* = G + G_\text{wake}\):
+
+\begin{equation}
+    G^* \vect{\mu} = \vect{b};
+\end{equation}
+
+\noindent by which we see that our approximation of the Kutta condition requires only a modification of the original \(G\) matrix, allowing us to continue using a linear solution method.
+
+\subsection{Least Squares Solver}
+
+Both before and after the addition of the kutta condition, if we have a water-tight geometry, that is to say if the trailing edge points coincide, then the system is not actually full rank, causing the system to be ill-conditioned.
+In order to remedy this problem, we will reduce the degrees of freedom of the system by one.
+We do so by prescribing one of the doublet strengths.
+Since we are not actually concerned with the overall magnitude of the doublet strengths (since we only need the inducded velocities), we can actually prescribe an arbitrary panel strength to an arbitrary value.
+That being said, it seems an itelligent choice to prescribe the panel nearest the leading edge stagnation point to be zero, since in reality it should be anyway.
+
+Removing a degree of freedom, however, disqualifies us from solving directly, as removing a degree of freedom leads to an over-determined system.
+Thus we take a least-squares approach to solve.
+We set things up as follows.
+First, to remove a degree of freedom, we take the left-hand side matrix, \(G\), and remove the column associated with the panel strength we are prescribing.
+Similarly, we remove that unknown from the vector, \(\vect{\mu}\).
+We keep the right-hand side vector, \(\vect{b}\), the same length, but subtract the velocity induced by the prescribed panel (since it is now known).
+We then set up a typical least-squares solve: Let \(\underline{G}\), \(\underline{\vect{\mu}}\), and \(\underline{\vect{b}}\) be the modified matrix and vectors of our linear system.
+We solve the least-squares problem in the typical way as
+
+\begin{equation}
+    \underline{\vect{\mu}} = \left( \underbar{G}^\top  \underline{G} \right)^{-1} \underbar{G}^\top  \underline{\vect{b}}.
+\end{equation}
+
+
+\section{so called internal panel stuff }
+
+Internal panel has same boundary condition as the surface panels.
+By applying the no flow through condition on an internal panel, the hope is to better enforce the numerics to avoid ``leakage'' of velocity inside the bodies.
+So for the internal panel we have
+
+\begin{equation}
+    \sum_j \left(\vect{V}^b_j \cdot \hat{n}_i\right)\mu_j - s\sigma_{it} = - \left[ \vect{V}_\infty \cdot \hat{n}_i +%
+    \sum_k \vect{V}^w_k \cdot \hat{n}_i +%
+    \sum_\ell \vect{V}^r_\ell \cdot \hat{n}_i \right]
+\end{equation}
+
+where \(s\) is defined to be -1 for all equations except for the one including the self-induction on the internal panel itself, in which case \(s=0\).
+
+
+\section{Green-Gauss Gradient Calculation}
+
+our goal is to caluclate \(\nabla \mu / 2\) to add to the surface velocity.
+In order to do so, we need a way to calculate the gradient.  We might do this using the Green-Gauss theorem.
+
+We'll begin with Stokes' theorem:
+
+\begin{equation}
+    \int_S \left[\nabla \times \vect{G} \cdot \hat{n}\right] dA = \oint_{\partial S}  \left[\vect{G}\cdot \hat{t}\right]ds;
+\end{equation}
+
+\where \(\hat{n}\) is the unit normal out of the surface, \(S\), and \(\hat{t}\) is the unit tangent along the boundary of the surface, \(\partial S\), with \(\vect{G}\) being some vector field passing through the surface.
+
+Now let us define a vector field, \(\vect{F}\) to be a ``rotation'' of \(\vect{G}\) such that
+
+\begin{equation}
+    \vect{G} = \hat{n} \times \vect{F}.
+\end{equation}
+
+\noindent Plugging this expression in for \(\vect{G}\) yields
+
+\begin{equation}
+    \int_S \left[\nabla \times (\hat{n} \times \vect{F}) \cdot \hat{n}\right] dA = \oint_{\partial S}  \left[(\hat{n} \times \vect{F})\cdot \hat{t}\right]ds.
+\end{equation}
+
+\noindent It can be shown that
+
+\begin{equation}
+    \nabla_S \cdot \vect{F} = \nabla \times \left( \hat{n} \times \vect{F}\right)\cdot \hat{n};
+\end{equation}
+
+\noindent and replacing this expression on the left hand side gives
+
+
+\begin{equation}
+    \int_S \left[\nabla \cdot \vect{F} \right] dA = \oint_{\partial S}  \left[(\hat{n} \times \vect{F})\cdot \hat{t}\right]ds,
+\end{equation}
+
+\noindent or equivalently
+
+\begin{equation}
+    \int_S \left[\nabla \cdot \vect{F} \right] dA = \oint_{\partial S}  \left[ \vect{F}\cdot (\hat{t} \times \hat{n})\right]ds,
+\end{equation}
+
+\noindent which we can see is effectively the divergence theorem for a surface, where the right hand side represents the flux through the boundary curve (edge) of the surface.
+The term \(\hat{t} \times \hat{n}\) is the unit vector tangent to the surface, perpendicular to the boundary curve pointing "out," away from the surface.
+
+Now we don't have an arbitrary vector field, but rather a specific scalar field, \(\mu\).
+To remedy this mismatch, let \(\vect{F} = \mu \vect{C}\) where \(\vect{C}\) also happens to be an arbitrary vector field such that
+
+\begin{equation}
+    \int_S \left[\nabla \cdot (\mu \vect{C}) \right] dA = \oint_{\partial S} \left[(\mu \vect{C})\cdot(\hat{t}\times\hat{n})\right] ds.
+\end{equation}
+
+\noindent If we now apply the product rule to the left hand side, we have
+
+\begin{equation}
+    \int_S \left[\mu (\nabla \cdot \vect{C}) \right] dA +
+    \int_S \left[(\nabla \mu) \vect{C} \right] dA
+    = \oint_{\partial S} \left[(\mu \vect{C})\cdot(\hat{t}\times\hat{n})\right] ds.
+\end{equation}
+
+\noindent Since the vector field \(\vect{C}\) is arbitrary, let us choose it to be constant.
+By choosing \(\vect{C}\) to be constant, the divergence thereof is zero: \(\nabla \cdot \vect{C}=0\)
+In addition, by choosing a constant vector field, we can pull the constant out of the integrals we are then left with
+
+\begin{equation}
+    \vect{C} \int_S \left[\nabla \mu \right] dA
+    = \vect{C}\oint_{\partial S} \left[\mu (\hat{t} \times \hat{n})\right] ds.
+\end{equation}
+
+\noindent Again, since we have chosen \(\vect{C}\) to be constant, we can now simply divide it out from both sides leaving a scalar form of the divergence theorm
+
+\begin{equation}
+    \int_S \left[\nabla \mu \right] dA = \oint_{\partial S} \left[\mu (\hat{t} \times \hat{n})\right] ds.
+\end{equation}
+
+Now this is true for a surface enclosed by a simple closed contour, but we want to apply this to the doublet bands we are using to model our surface.
+Therefore, we have a surface \textit{between} two closed contours.
+As such, we need to properly ``close'' our surface by taking the contour integrals in opposite directions.
+This is because we always want to traverse the line integral in the same way relative to the surface, so if we traverse clock-wise in one side, we need to go counter-clockwise on the other side.
+% In other words, the \(\hat{t}\times\hat{n}\) vector that points ``out'' from the surface bounday is in opposite directions, so we need to obtain the difference of the two boundary integrals.
+
+\begin{equation}
+    \int_S \left[\nabla \mu \right] dA = \oint_{\partial S_1} \left[\mu_1 (\hat{t}_1 \times \hat{n})\right] ds_1 - \oint_{\partial S_2} \left[\mu_2 (\hat{t}_2 \times \hat{n})\right] ds_2.
+\end{equation}
+
+To take the integrals on the right hand side, we can remember that \(\mu\) is constant in the \(\theta\) direction due to the axisymmetry of our problem.
+Therefore the right hand side integrals simply become products of the value of \(\mu\) at the surface edge, the length of the boundary curve (\(2\pi r\)), and the unit vector.
+
+\begin{equation}
+    \int_S \left[\nabla \mu \right] dA = 2 \pi r_1 \mu_1 (\hat{t}_1 \times \hat{n}) - 2 \pi r_2 \mu_2 (\hat{t}_2 \times \hat{n}).
+\end{equation}
+
+\noindent We can follow a similar procedure for the left hand side if we assume the gradient of \(\mu\) varies linearly across the panel length (and is constant about the circumfrence).
+
+\begin{equation}
+    \nabla \mu A = 2 \pi r_1 \mu_1 (\hat{t}_1 \times \hat{n}) - 2 \pi r_2 \mu_2 (\hat{t}_2 \times \hat{n}),
+\end{equation}
+
+\where \(A\) is area of the lampshade shaped surface of our axisymmetric doublet band.
+Because we are usingt flat panels, to get this surface area, we can simply take the average of the circumferences at the band edges and multiply by the band length, \(\ell\):
+
+\begin{equation}
+    A = \frac{2\pi r_1 + 2 \pi r_2}{2} \ell = \pi\ell(r_1 + r_2).
+\end{equation}
+
+\noindent Dividing that area on both sides and simplifying finally leaves us with the gradient of \(\mu\) on a given doublet band.
+
+\begin{equation}
+    \nabla \mu  = \frac{2}{\ell(r_1+r_2)} \left[ r_1 \mu_1 (\hat{t}_1 \times \hat{n}) - r_2 \mu_2 (\hat{t}_2 \times \hat{n})\right],
+\end{equation}
+
+Now we need to address how to obtain the values for \(\mu\) on the panel edges, since these values are defined as constants on each panel.
+One method we could use is analogous to the cell-based method in CFD codes, that is, to use a linear interpolation of the values from the cell centers.
+
+\begin{equation}
+    \mu_{edge} \approx \mu_{center}f + \mu_{neighbor}(1-f)
+\end{equation}
+
+\where
+
+\begin{equation}
+    f = \frac{|\vect{x}_f-\vect{x}_{neighbor}|}{|\vect{x}_{center}-\vect{x}_{neighbor}|},
+\end{equation}
+
+\noindent which we could then apply to each side of the surface.
+For example, let the panel we are currently on be panel \(i\), with face 1 adjacent to panel \(i-1\) and face 2 adjacent to panel \(i+1\)
+Then we would have
+
+\begin{equation}
+    \begin{split}
+        \nabla \mu_i =& \frac{2}{\ell_i(r_{i_1} + r_{i_2})} \bigg( \left[ r_{i_1} (\hat{t}_{i_1} \times \hat{n}_i) (\mu_i f_{i_1} + \mu_{i-1}[1-f_{i_1}]) \right] \\
+                      &- \left[  r_{i_2} (\hat{t}_{i_2} \times \hat{n}_i) (\mu_i f_{i_2} + \mu_{i+1}[1-f_{i_2}]) \right] \bigg)
+    \end{split}
+\end{equation}
+
+\where
+
+\begin{equation}
+    \begin{aligned}
+        f_{i_1} &= \frac{|\vect{x}_{i_1}-\vect{\bar{x}}_{i-1}|}{|\vect{\bar{x}}_i-\vect{\bar{x}}_{i-1}|} \\
+        f_{i_2} &= \frac{|\vect{x}_{i_2}-\vect{\bar{x}}_{i+1}|}{|\vect{\bar{x}}_i-\vect{\bar{x}}_{i+1}|},
+    \end{aligned}
+\end{equation}
+
+\noindent and \(\vect{\bar{x}}\) are the panel centers and \(\vect{x}_{i_j}\) are the panel edges.
+
+The final question is what to do at the trailing edge, or for any panel that only has one adjacent panel.
+In this case, we simpy set the free edge strength to be the value of the center strength of the panel.
