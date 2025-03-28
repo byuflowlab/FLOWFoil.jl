@@ -65,7 +65,7 @@ function calculate_planar_vortex_influence(
 
     # v = -(x_j - x_i) / (r * 2 * pi)
     v = system_geometry.r_x[i, j] / (2.0 * pi * system_geometry.r_squared[i, j])
-
+    
     return (u * cosine_panel_angle_i + v * sine_panel_angle_i) * panelj.panel_length[j]
 end
 
@@ -75,7 +75,7 @@ function calculate_periodic_self_vortex_influence(panel, i, curvature_correction
     if curvature_correction
         return 0.5 - (panel.delta_angle[i] - pi) / (4.0 * pi)
     else 
-        return 0.5
+        return -0.5
     end
 
 end

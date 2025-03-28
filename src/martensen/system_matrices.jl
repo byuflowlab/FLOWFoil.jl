@@ -18,10 +18,8 @@ function generate_system_matrices(
             method.curvature_correction,
         ),
     )
-
     # Get boundary conditions (b, right hand side)
     b = assemble_periodic_right_hand_side(panel_geometry, system_geometry)
-
     return (; A, b)
 end
 
@@ -52,7 +50,6 @@ function assemble_periodic_vortex_matrix(
         amat[kid[1], :] .-= amat[kid[2], :]
         amat[:, kid[1]] .-= amat[:, kid[2]]
     end
-
     return amat[1:end .∉ [kutta_idxs[:, 2]], 1:end .∉ [kutta_idxs[:, 2]]]
 end
 
@@ -163,7 +160,6 @@ function assemble_periodic_vortex_matrix_raw(
             end
         end
     end
-
     return amat
 end
 
