@@ -20,10 +20,10 @@ end
 #     include(joinpath(dir, file))
 # end
 
-# dir = "hess_smith/"
-# for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
-#     include(joinpath(dir, file))
-# end
-#
+dir = "hess_smith/"
+for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
+    include(joinpath(dir, file))
+end
+
 # # Mfoil (Xfoil)
 # include.(filter(contains(r".jl$"), readdir("mfoil"; join=true)))

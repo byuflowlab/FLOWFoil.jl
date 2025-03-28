@@ -14,6 +14,7 @@ function post_process(
     flow_angles,
 )
 
+    flow_angles = (pi/180)*flow_angles
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
     nbodies = system_geometry.nbodies
@@ -47,8 +48,8 @@ function post_process(
         #compute strengths parameters
         Vinf = 1.0 #freestream velocity
         if method.cascade
-            k1 = (1.0 - gamma_v / 2.0 / method.pitch) / (1.0 + gamma_v / 2.0 / method.pitch)
-            k2 = gamma_u / method.pitch / (1.0 + gamma_v / 2.0 / method.pitch)
+            k1 = (1.0 - gamma_v / 2.0 / system_geometry.pitch) / (1.0 + gamma_v / 2.0 / system_geometry.pitch)
+            k2 = gamma_u / system_geometry.pitch / (1.0 + gamma_v / 2.0 / system_geometry.pitch)
         else
             k1 = 1.0
             k2 = 0.0
@@ -73,9 +74,9 @@ function post_process(
 
             #compute cascade lift if cascade model is true, else use planar lift
             if method.cascade
-                cl_cascade = 2*method.pitch*(tan(flow_angles[a]) - tan(beta2))*cos(betainf) #Important: This equation assumes that the chord length is 1.0
-                cl_planar = 2*(cos(flow_angles[a])*sum(gamma0 .* panel_geometry.panel_length)
-                    + sin(flow_angles[a])*sum(gamma90 .* panel_geometry.panel_length))
+                cl_cascade = 2*system_geometry.pitch*(tan(flow_angles[a]) - tan(beta2))*cos(betainf) #Important: This equation assumes that the chord length is 1.0
+                cl_planar = 2*(cos(flow_angles[a])*sum(gamma0 .* panel_geometry[m].panel_length)
+                    + sin(flow_angles[a])*sum(gamma90 .* panel_geometry[m].panel_length))
                 lift_coefficients[m][a] = FLOWMath.sigmoid_blend(
                     cl_cascade,
                     cl_planar,
@@ -84,8 +85,11 @@ function post_process(
                     method.transition_hardness
                 )
             else
-                lift_coefficients[m][a] = 2*(cos(flow_angles[a])*sum(gamma0 .* panel_geometry.panel_length)
-                + sin(flow_angles[a])*sum(gamma90 .* panel_geometry.panel_length)) #Important: This equation assumes that the chord length is 1.0
+                lift_coefficients[m][a] = 2*(gamma_u*w_x + gamma_v*w_y) / (W*calculate_chord(panel_geometry))
+                #=
+                lift_coefficients[m][a] = 2*(cos(flow_angles[a])*sum(gamma0 .* panel_geometry[m].panel_length)
+                + sin(flow_angles[a])*sum(gamma90 .* panel_geometry[m].panel_length)) #Important: This equation assumes that the chord length is 1.0
+                =#
             end
         end
     end

@@ -87,7 +87,6 @@ function generate_panel_geometry!(
             delta_angle[i] = (panel_angle[i + 1] - panel_angle[i - 1]) / 2.0
         end
     end
-
     # - Return Panel Object - #
     return panel_geometry
 end
