@@ -1,0 +1,98 @@
+\section{Preliminaries}
+\label{sec:potentialflowpreliminaries}
+
+\subsection{Elementary Flows}
+\label{ssec:elemflows}
+
+As we begin this section, it is important to note that the Laplace equation is a \textit{linear} equation.
+We will be taking advantage of that fact moving forward, as it allows us to describe complex flow fields through the superposition of many, much simpler flows.
+The following are a handful of useful elementary flow solutions.
+
+\subsubsection{Uniform Flow}
+Uniform flow is precisely that, a flow that uniformly moves in a single direction without variation in the flow field.
+Mathematically, we describe the potential of a uniform flow as\todo{redo all these margin plots in pure tikz...}
+
+\begin{marginfigure}
+	\input{./panelmethodcontents/panelmethodfigures/uniformflow.tikz}
+\end{marginfigure}
+
+\begin{equation}
+\label{eqn:uniformflow}
+	\phi_{u} = V_\infty \hat{r}
+\end{equation}
+
+\noindent where \(V_\infty\) is the magnitude of the flow and \(\hat{r}\) in a vector indicating the direction of the flow.
+
+
+\subsubsection{Source/Sink Flow}
+
+\begin{marginfigure}
+	\input{./panelmethodcontents/panelmethodfigures/sourceflow.tikz}
+\end{marginfigure}
+
+Source and sink flows are mathematically identical, with the exception of sign.
+A source can be described as a point \textit{from} which flow extends, and a sink is the opposite, a point \textit{to} which flow extends.
+The defining characteristics of these flows are that they have only radial, and no tangential, components.
+Expressed mathematically, the velocity potential for source/sink flow is
+
+\begin{marginfigure}
+	\input{./panelmethodcontents/panelmethodfigures/sinkflow.tikz}
+\end{marginfigure}
+
+
+\begin{equation}
+\label{eqn:sourceflow}
+	\phi_s = \frac{\pm\Lambda}{2\pi} \ln(r)
+\end{equation}
+
+\noindent where \(\Lambda\) is the strength of the source/sink and \(r\) is the radial distance from the source/sink.
+A positive sign indicates a source, and a negative, a sink.
+
+
+\subsubsection{Doublet Flow}
+
+\begin{marginfigure}
+	\input{./panelmethodcontents/panelmethodfigures/doubletflow.tikz}
+\end{marginfigure}
+
+Taking a source and sink with equal strengths and moving them toward each other until infinitesimally close together does not cancel them out, but rather induces a twin-lobbed flow field.
+Rather than treating them separately, this combination creates it's own elementary flow that we call a doublet.
+The velocity potential for a doublet is described by
+
+\begin{equation}
+\label{eqn:doubletflow}
+	\phi_d = \frac{\kappa}{2\pi} \frac{\cos\theta}{r}
+\end{equation}
+
+\noindent, where \(\kappa\) is the doublet strength and \(\theta\) is the angle relative to the doublet axis.
+
+\subsubsection{Vortex Flow}
+
+The final elementary flow that we will discuss here is the vortex.
+Vortex flow characteristics are the inverse of source/sink flows in that there is no radial, only tangential components to the flow.
+The velocity potential is therefore similar to that of a source/sink:
+
+\begin{marginfigure}
+	\input{./panelmethodcontents/panelmethodfigures/vortexflow.tikz}
+\end{marginfigure}
+
+\begin{equation}
+	\label{eqn:vortexflow}
+	\phi_v = \frac{\Gamma}{2\pi} \theta
+\end{equation}
+
+\noindent where \(\Gamma\) is the vortex strength.
+
+
+\subsection{Superposition Examples}
+
+\toadd{add in rankine oval example, and combine with non-lifting cylinder}
+\subsubsection{Rankine Oval}
+As a preview to next chapter, an interesting superposition of a uniform flow, a source, and a sink results in an oval shaped ``bubble'' in the flow field.
+
+[todo: explain the maths and how it's just addition.]
+
+[Also probably want to talk about how to get velocity or stream or something for plotting/postprocessing and show some figures.]
+
+\toadd{add in lifting cylinder example to show how vortices are superimposed}
+\subsubsection{Lifting Cylinder}

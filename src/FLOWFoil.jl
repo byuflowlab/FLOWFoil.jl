@@ -18,40 +18,58 @@ include("AirfoilTools/AirfoilTools.jl")
 const at = AirfoilTools
 export AirfoilTools
 
+##### ----- Methods ----- #####
+
+abstract type Method end
+
+# Mfoil (Xfoil)
+include("mfoil/method.jl")
+include("mfoil/geometry_utils.jl")
+include("mfoil/panel_geometry.jl")
+include("mfoil/system_geometry.jl")
+include("mfoil/singularities.jl")
+include("mfoil/system_matrices.jl")
+include("mfoil/solve.jl")
+include("mfoil/post_process.jl")
+
+# Lewis (Axisymmetric)
+include("lewis/method.jl")
+include("lewis/geometry_utils.jl")
+include("lewis/panel_geometry.jl")
+include("lewis/system_geometry.jl")
+include("lewis/singularities.jl")
+include("lewis/system_matrices.jl")
+include("lewis/solve.jl")
+include("lewis/post_process.jl")
+
+# Martensen (Planar AND/OR Periodic)
+include("martensen/method.jl")
+include("martensen/panel_geometry.jl")
+include("martensen/system_geometry.jl")
+include("martensen/singularities.jl")
+include("martensen/system_matrices.jl")
+include("martensen/solve.jl")
+include("martensen/post_process.jl")
+
+# Hess-Smith (Educational)
+include("hess_smith/method.jl")
+include("hess_smith/panel_geometry.jl")
+include("hess_smith/system_geometry.jl")
+include("hess_smith/system_matrices.jl")
+include("hess_smith/solve.jl")
+include("hess_smith/post_process.jl")
+
 ##### ----- CORE FUNCTIONALITY ----- #####
-
-# Dispatch Types
-include("dispatch_types.jl")
-
-# Problem Object Definition
-include("problem.jl")
-
-# Panel Definition
-include("panel.jl")
-
-# Mesh Generation
-include("mesh.jl")
-
-# Geometry Utilities
-include("geometry.jl")
-
-# Singularity Functions
-include("singularity.jl")
-
-# Linear System Generation
-include("system.jl")
-
-# Linear System Solve
-include("solve.jl")
-
-# Solution Post Processing
-include("post_process.jl")
 
 # Convenience Functions
 include("convenience_functions.jl")
 
+# Dispatch Functions
+include("universal_dispatch.jl")
+
 # Utility Functions
-include("utils.jl")
+include("universal_utilities.jl")
+include("universal_geometry_utilities.jl")
 
 #---------------------------------#
 #             EXPORTS             #
@@ -59,55 +77,11 @@ include("utils.jl")
 
 ##### ----- TYPES ----- #####
 
-# Singularities
-export Source, Doublet, Vortex
-export Constant, Linear, Quadratic, Spline
-
-# Boundary Conditions
-export Neumann, Dirichlet, Robin, Mixed
-
-# Problem
-export Problem, PlanarProblem, AxisymmetricProblem, PeriodicProblem
-
-# Panels
-export PlanarFlatPanel, AxisymmetricFlatPanel
-
-# System
-export InviscidSystem
+export Mfoil, Xfoil, Lewis, Martensen, HessSmith
 
 ##### ----- FUNCTIONS ----- #####
 
 # Convenience Functions
-export solve
-
-# Problem
-export define_problem
-
-# Panels
-export generate_panels
-
-# Mesh
-export generate_mesh
-
-# System
-export generate_inviscid_system
-
-# Post Process
-export post_process
-
-# Airfoil Parameterizations
-export naca4
-
-#---------------------------------#
-#       OVERLOADED FUNCTIONS      #
-#---------------------------------#
-
-#= NOTE:
-    Used in problem definition function to help count number of bodies, the coordinates of which are a tuple of vectors if multiple bodies are being analyzed together.
-=#
-import Base.size
-function size(t::Tuple)
-    return length(t)
-end
+export analyze
 
 end

@@ -1,0 +1,227 @@
+\subsubsection{Axisymmetric Doublet Panels}
+
+\begin{assumption}
+
+    \textit{The bodies can be represented by a discrete number of constant strength doublet bands.}
+
+\smallskip
+
+    \limit The main limitation here comes in the constant nature of the doublet bands.
+    Due to this lower order modeling, we will see that significantly refined discritization of the geometry is required for accurate solutions.
+    In addition, we will see that some care must be taken to solve the linear system in this case.
+
+\smallskip
+
+    \why By choosing a constant strength element, we can utilize the analytic expressions just presented, without having to rely on any numerical integration methods.
+    This simplifies the core implementation.  The underlying framework is the same however, so if greater accuracy is required later, developing, say, a linear vortex method would not require too many changes to the underlying code.
+
+\end{assumption}
+
+For our application, we employ a panel method comprized of axisymmetric doublet panels, which can be expressed in terms of vortex rings as follows.
+Let us begin with a single, arbitrary, axisymmetric doublet panel (band)
+with constant strength, \(\mu\),
+endpoints (nodes) at \(p_1\) and \(p_2\),
+center (control point), \(\bar{p}=0.5(p_1+p_2)\),
+and with normal vector, \(\hat{n}=\hat{k}\times\hat{t}\),
+defined such that \(\hat{k}\) is the unit vector positive out of the page according to the right hand rule,
+and \(\hat{t}\) is the unit tangent to the panel from \(p_1\) to \(p_2\)
+such that \(\hat{t} = (p_2-p_1)/||p_2-p_1||\).
+Such a panel is equivalent to a combination of two vortex rings of opposite sign,
+one at each panel node, oriented such that a postivive vortex strength,
+\(\gamma\) is aligned with positive \(\hat{k}\).
+\Cref{fig:doublet_panel} shows the panel under consideration with the equivalent vortex rings.
+
+\begin{figure}[h!]
+    \centering
+    \input{ductape/figures/margin_doublet_panel.tikz}
+    \caption{Doublet panel definition and equivalent vortex ring representation.}
+    \label{fig:doublet_panel}
+\end{figure}
+
+We can ``link'' some number of these bands together in order to form some arbitrary shape,
+in our case, we are interested in aerodynamic bodies of revolution as well as annular airfoils.
+Individually, each band induces a velocity, \(\vect{u}\), at some point,
+\(\vect{q}\) in space, relative to the band strength \(\mu\)
+
+\begin{equation}
+    \vect{u}(\vect{p},\vect{q}) = \mu \vect{g}(\vect{p},\vect{q}).
+\end{equation}
+
+\where \(\vect{g}\) is the function describing the unit induced velocity of panel, p, on point, q.
+We express \(\vect{g}\) in terms of the equivalent vortex ring pair such that
+
+\begin{equation}
+    \label{eqn:unitdoubletinducedvelocity}
+    \begin{aligned}
+        g_x &=  v^\gamma_x(\vect{p}_1, \vect{q}) -  v^\gamma_x(\vect{p}_2, \vect{q}) \\
+        g_r &=  v^\gamma_r(\vect{p}_1, \vect{q}) -  v^\gamma_r(\vect{p}_2, \vect{q}).
+    \end{aligned}
+\end{equation}
+
+\where \(v^\gamma_x\) and \(v^\gamma_r\) here are the induced velocities from \cref{eqn:ringvortexinducedvelocity}.
+
+For a given grouping of panels (linked, or otherwise),
+we can find the total induced velocity at any point in space as
+
+\begin{equation}
+    \vect{u}(\vect{q}) = \sum_{i=1}^N \vect{u}_i(\vect{q})    =\sum_{i=1}^N \mu_i \vect{g}(\vect{p}_i,\vect{q})
+\end{equation}
+
+\noindent For a set of linked bands forming aerodynamic bodies of interest,
+we would like to be able to solve for the doublet and/or vortex strengths that result in
+an inviscid flow field containing the bodies we have created with our linked bands.
+This process is commonly called a boundary element method, or panel method.
+
+\subsection{Panel Method Formulation}
+
+There are several approaches to formulating a panel method, all of which require some condition to be met on the boundary defined by the panels.
+Here we choose to apply a Neumann boundary condition such that the induced velocity (the derivative of the potential field) of each band on each
+control point leads to zero velocity normal to each band.
+In other words, we apply the no through flow condition that we would expect for a solid boundary in reality.
+If we immerse our geometry in a freestream, \(\vect{u}_\infty\),
+we would like to solve for the panel strengths that induce velocities such that
+the freestream does not pass through the bodies we have created.
+Assembling a system of equations to satisfy these conditions at every panel yields the
+following expression for the jth panel.
+
+\begin{equation}
+    \sum_{i=1}^N \mu_i \vect{g}(\vect{p}_i,\vect{p}_j) \cdot \hat{n}_j = - \vect{u}_\infty \cdot \hat{n}_j.
+\end{equation}
+
+\noindent we can also write this system in matrix form as
+
+\begin{equation}
+    G \vect{\mu} = \vect{b}
+\end{equation}
+
+\where \(G\) is an NxN matrix containing the unit induced normal velocity expressions such that \(G_{ji} = \vect{g}(\vect{p}_i, \vect{p}_j) \cdot \hat{n}_j \), where \(\vect{g}\) contains both the \(x\) and \(r\) unit induced velocities.
+The vector, \(\vect{\mu}\), contains the panel doublet strengths, and the vector,
+\(\vect{b}\) contains the right hand side expressions such that
+\(b_j = -\vect{u}_\infty \cdot \hat{n}_j \).
+
+At this point, we can solve the linear system for the panel strengths,
+but due to our assumption of an inviscid flow field, the solution will not represent reality very well for geometries that are not bodies of revolution.
+We require the addition of some extra condition that will force the flow over bodies such as annular airfoils to approximate reality better.
+One condition that we could add is that the pressure on the outer side of the body trailing edge and the pressure on the inner side of the body trailing edge are equal,
+or in other words, we demand that there be a stagnation point at the body trailing edge.
+This condition is known as the Kutta condition.
+
+\begin{assumption}
+
+    \textit{We can reasonably approximate the Kutta condition through equating panel strengths}
+
+\smallskip
+
+    \limit This is a less accurate version of the Kutta condition
+
+\smallskip
+
+    \why By linearizing the Kutta condition, we can include it in our linear system without issues.
+    In addition, historically this has been shown to be a reasonable approximation.
+
+\end{assumption}
+
+Because pressure is dependant on velocity squared, however, the Kutta condition is a non-linear equation that we cannot apply directly to our linear system.
+As such, we can approximate the Kutta condition by assuming that the normal velocity components at the trailing edge are close enough to equal, and we can simply equate the tangential velocities at the trailing edge.
+We can approximate futher by assuming that for a sufficiently thin trailing edge, such as those seen on many airfoil cross-sections, the unit tangents at the trailing edge are nearly equal enough that we can equate the panel strengths alone as an approximation to the Kutta condition.
+Noting the equivalence of doublet panels to a pair of ring vortices, we can express this second approxmiation of the Kutta condition as \(\gamma_{TE} = 0\), or the vortex strength at the trailing edge is zero.
+Historically, this has proven to be a good approximation.
+
+Adding the kutta condition to our system adds an equation, which requires an additional unknown to maintain the square dimensions of the system.
+Fortunately, if we assume steady conditions, the Kutta condition introduces a starting vortex which adds a semi-infinite wake doublet panel of constant, but unknown, strength.
+At the trailing edge for a given body, we then have the superposition of three vortex rings such that the total vortex strength at the trailing edge is
+%TODO: add an image of the trailing edge panel junctions
+
+\begin{equation}
+    \gamma_{TE} = \mu_\text{inner} - \mu_\text{outer} + \mu_\text{wake}
+\end{equation}
+
+\noindent Because we are already approximating the Kutta condition by setting \(\gamma_{TE}=0\), we see that the unknown wake strength is
+
+\begin{equation}
+    \mu_\text{wake}= \mu_\text{outer} - \mu_\text{inner}
+\end{equation}
+
+\noindent which is easly introduced into our linear system.
+Given M number of hollow bodies (annular airfoils) being modeled (and therefore M trailing edges), we can create one large system as
+
+\begin{equation}
+    \sum_{i=1}^N \mu_i \vect{g}(\vect{p}_i,\vect{p}_j) \cdot \hat{n}_j
+    + \sum_{k=1}^M \mu^\text{wake}_k \vect{g}_{w}(p_k, p_j) \cdot \hat{n}_j
+        = - \vect{u}_\infty \cdot \hat{n}_j.
+\end{equation}
+
+\where \(\vect{g}_{w}\) indicates that we only include the wake panel node at the
+trailing edge in our induced velocity calculation (\(\vect{p}_1\) in \cref{eqn:unitdoubletinducedvelocity}).
+Since the influence of a vortex ring infinitely far away (\(\vect{p}_2\) in \cref{eqn:unitdoubletinducedvelocity}) is zero,
+we do not need to include the other wake panel node (though we could with the same result).
+We then apply the Kutta condition, \(\mu_\text{wake}= \mu_\text{outer} - \mu_\text{inner}\):
+
+\begin{equation}
+    \sum_{i=1}^N \mu_i \vect{g}(\vect{p}_i,\vect{p}_j) \cdot \hat{n}_j
+        + \sum_{k=1}^M (\mu^\text{outer}_k - \mu^\text{inner}_k) \vect{g}_w(p_k, p_j) \cdot \hat{n}_j
+        = - \vect{u}_\infty \cdot \hat{n}_j.
+\end{equation}
+
+\noindent In matrix form, we now have
+
+\begin{equation}
+    G \vect{\mu} + G_\text{wake} \vect{\mu} = \vect{b};
+\end{equation}
+
+\noindent or, combining terms such that \(G^* = G + G_\text{wake}\):
+
+\begin{equation}
+    G^* \vect{\mu} = \vect{b};
+\end{equation}
+
+\noindent by which we see that our approximation of the Kutta condition requires only a modification of the original \(G\) matrix, allowing us to continue using a linear solution method.
+
+\subsection{Least Squares Solver}
+
+\begin{assumption}
+
+    \textit{We can solve the linear system indirectly through a least-squares approach.}
+
+\smallskip
+
+    \limit This is not ideal, as a direct solve of the linear system would guarentee accuracy.
+
+\smallskip
+
+    \why Due to our assumption of constant doublet panels, we have a system that is not full rank, so we must address this issue somehow
+    Applying a least-squares approach yields sufficient accuracy for our purposes.
+
+\end{assumption}
+
+Both before and after the addition of the kutta condition, if we have a water-tight geometry, that is to say if the trailing edge points coincide, then the system is not actually full rank, causing the system to be ill-conditioned.
+In order to remedy this problem, we will reduce the number of degrees of freedom of the system by one.
+We do so by manually prescribing one of the doublet strengths.
+Since we are not actually concerned with the overall magnitude of the doublet strengths (since we only need the inducded velocities), we can actually prescribe an arbitrary panel strength to an arbitrary value.
+That being said, it seems an prudent choice to prescribe the panel nearest the leading edge stagnation point to be zero, since in reality it should be anyway.
+
+Removing a degree of freedom, however, disqualifies us from solving the linear system directly, as removing a degree of freedom leads to an over-determined system.
+Therefore we will take a least-squares approach to solve.
+We set things up as follows.
+First, to remove a degree of freedom, we take the left-hand side matrix, \(G\), and remove the column associated with the panel strength we are prescribing.
+Similarly, we remove that unknown from the vector, \(\vect{\mu}\).
+We keep the right-hand side vector, \(\vect{b}\), the same length, but subtract the velocity induced by the prescribed panel (since it is now known).
+We then set up a typical least-squares solve: Let \(\underline{G}\), \(\underline{\vect{\mu}}\), and \(\underline{\vect{b}}\) be the modified matrix and vectors of our linear system.
+We solve the least-squares problem in the typical way as
+
+\begin{equation}
+    \eqbox{
+    \underline{\vect{\mu}} = \left( \underline{G}^\top  \underline{G} \right)^{-1} \underline{G}^\top  \underline{\vect{b}}.
+}
+\end{equation}
+
+\where to be clear, we have obtained \(\underline{G}\) by simply removing the row and column from \(\vect{G*}\) associated with the index of the panel whose strength we are prescribing.
+Additionally, we obtain  \(\underline{\vect{\mu}}\) in the same manner, by simply removing the prescribed value from the vector.
+To obtain \(\underline{\vect{b}}\), we subtracted \(\sum G_{1:N,i} \mu_i\) from \(\vect{b}_i\), where \(i\) is the index of the prescribed panel.
+
+\subsection{Multi-body Systems}
+\label{ssec:ducthubsystem}
+
+The equations in the previous subsections are sufficiently general to allow for both the duct and hub to be modeled simultaneously by the same linear system.
+For each body in question, we simply need to prescribe a panel as part of the least squares solver, thus removing one degree of freedom for each body in the system.
+Note that for the application of the Kutta condition, we only need to augment the system with respect to annular airfoils; bodies of revolution do not require any changes to the system.

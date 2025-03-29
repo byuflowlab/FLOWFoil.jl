@@ -1,0 +1,179 @@
+\begin{tikzpicture}[/tikz/background rectangle/.style={fill={rgb,1:red,1.0;green,1.0;blue,1.0}, draw opacity={1.0}}, show background rectangle]
+\begin{axis}[point meta max={nan}, point meta min={nan}, title={}, title style={at={{(0.5,1)}}, anchor={south}, font={{\fontsize{14 pt}{18.2 pt}\selectfont}}, color={rgb,1:red,0.0;green,0.0;blue,0.0}, draw opacity={1.0}, rotate={0.0}}, legend style={color={rgb,1:red,0.0;green,0.0;blue,0.0}, draw opacity={0.0}, line width={1}, solid, fill={rgb,1:red,0.0;green,0.0;blue,0.0}, fill opacity={0.0}, text opacity={1.0}, font={{\fontsize{8 pt}{10.4 pt}\selectfont}}, text={rgb,1:red,0.0;green,0.0;blue,0.0}, cells={anchor={center}}, at={(1.02, 1)}, anchor={north west}}, axis background/.style={fill={rgb,1:red,0.0;green,0.0;blue,0.0}, opacity={0.0}}, anchor={north west}, xshift={1.0mm}, yshift={-1.0mm}, width={48.8mm}, height={48.8mm}, scaled x ticks={false}, xlabel={}, x tick style={color={rgb,1:red,0.0;green,0.0;blue,0.0}, opacity={1.0}}, x tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}, opacity={1.0}, rotate={0}}, xlabel style={at={(ticklabel cs:0.5)}, anchor=near ticklabel, font={{\fontsize{11 pt}{14.3 pt}\selectfont}}, color={rgb,1:red,0.0;green,0.0;blue,0.0}, draw opacity={1.0}, rotate={0.0}}, xmajorticks={false}, xmajorgrids={false}, xmin={0}, xmax={3}, axis x line*={left}, separate axis lines, x axis line style={{draw opacity = 0}}, scaled y ticks={false}, ylabel={}, y tick style={color={rgb,1:red,0.0;green,0.0;blue,0.0}, opacity={1.0}}, y tick label style={color={rgb,1:red,0.0;green,0.0;blue,0.0}, opacity={1.0}, rotate={0}}, ylabel style={at={(ticklabel cs:0.5)}, anchor=near ticklabel, font={{\fontsize{11 pt}{14.3 pt}\selectfont}}, color={rgb,1:red,0.0;green,0.0;blue,0.0}, draw opacity={1.0}, rotate={0.0}}, ymajorticks={false}, ymajorgrids={false}, ymin={0}, ymax={3}, axis y line*={left}, y axis line style={{draw opacity = 0}}, colorbar={false}]
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={3a41e08d-3a87-4507-ac74-68adcccf1878}, draw opacity={1.0}, line width={2.0}, solid, mark={*}, mark size={3.0 pt}, mark repeat={1}, mark options={color={rgb,1:red,0.0;green,0.0;blue,0.0}, draw opacity={0.0}, fill={rgb,1:red,0.0;green,0.1804;blue,0.3647}, fill opacity={1.0}, line width={0.75}, rotate={0}, solid}]
+        table[row sep={\\}]
+        {
+            \\
+            1.5  1.5  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={38a61fcb-6078-4a64-af08-06edda8092dc}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            1.5  3.0  0.0  -1.15  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={38a61fcb-6078-4a64-af08-06edda8092dc}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            1.5  3.0  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={dd839118-715d-45dc-bb63-bdcb93bc175a}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            0.6890387738166035  2.761880299246772  0.6217369400739374  -0.9674415627558586  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={dd839118-715d-45dc-bb63-bdcb93bc175a}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            0.6890387738166035  2.761880299246772  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={a52b0485-c468-479d-a84a-68a4f434a580}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            0.13555200696822256  2.12312251950283  1.046076794657696  -0.4777272649521698  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={a52b0485-c468-479d-a84a-68a4f434a580}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            0.13555200696822256  2.12312251950283  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={27c4545e-7067-4cb9-988c-15a2fc2c06a0}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            0.015267837178600807  1.2865277425900725  1.1382946581630726  0.16366206401427785  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={27c4545e-7067-4cb9-988c-15a2fc2c06a0}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            0.015267837178600807  1.2865277425900725  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={f3b4b8d9-7eeb-4ef1-88c9-f3184d0a19de}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            0.3663756384686123  0.5177088990820725  0.8691120105073973  0.7530898440370778  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={f3b4b8d9-7eeb-4ef1-88c9-f3184d0a19de}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            0.3663756384686123  0.5177088990820725  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={0df22b81-e882-4e3e-a7d6-cf198782159f}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            1.0774011647378554  0.060760539578254  0.3239924403676442  1.1034169196566719  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={0df22b81-e882-4e3e-a7d6-cf198782159f}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            1.0774011647378554  0.060760539578254  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={a79f4aeb-028a-4061-b0d3-7d459614280c}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            1.9225988352621441  0.06076053957825378  -0.32399244036764396  1.103416919656672  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={a79f4aeb-028a-4061-b0d3-7d459614280c}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            1.9225988352621441  0.06076053957825378  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={84e63717-435c-4cc8-94e7-f92aec096d27}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            2.6336243615313877  0.5177088990820726  -0.8691120105073973  0.7530898440370777  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={84e63717-435c-4cc8-94e7-f92aec096d27}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            2.6336243615313877  0.5177088990820726  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={6f7a49a3-fc7c-4425-9b84-b5916cbf8f71}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            2.984732162821399  1.286527742590072  -1.1382946581630728  0.16366206401427807  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={6f7a49a3-fc7c-4425-9b84-b5916cbf8f71}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            2.984732162821399  1.286527742590072  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={869eb2a6-a725-45bf-84b0-a096065de24a}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            2.864447993031778  2.1231225195028287  -1.0460767946576963  -0.47772726495216866  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={869eb2a6-a725-45bf-84b0-a096065de24a}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            2.864447993031778  2.1231225195028287  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={44509def-3198-4f66-ac6c-38914514cf98}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            2.3109612261833963  2.761880299246772  -0.6217369400739372  -0.9674415627558586  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={44509def-3198-4f66-ac6c-38914514cf98}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            2.3109612261833963  2.761880299246772  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={5e5776ab-0b24-483a-9cb6-a11b85ad133c}, draw opacity={1.0}, line width={2.0}, solid, quiver={u={\thisrow{u}}, v={\thisrow{v}}, every arrow/.append style={-{stealth[length = 0.3pt, width = 0.3pt]}}}]
+        table[row sep={\\}]
+        {
+            x  y  u  v  \\
+            1.5000000000000004  3.0  -4.440892098500626e-16  -1.15  \\
+        }
+        ;
+    \addplot[color={rgb,1:red,0.0;green,0.1804;blue,0.3647}, name path={5e5776ab-0b24-483a-9cb6-a11b85ad133c}, draw opacity={1.0}, line width={2.0}, solid]
+        table[row sep={\\}]
+        {
+            \\
+            1.5000000000000004  3.0  \\
+        }
+        ;
+\end{axis}
+\end{tikzpicture}

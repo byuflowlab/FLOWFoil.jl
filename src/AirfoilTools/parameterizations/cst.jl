@@ -257,24 +257,68 @@ function determine_cst(
     N2=1.0,
 )
 
-    # models to fit
-    cstU(x, p) = half_cst(p[1:(end - 1)], xu, p[end], N1, N2)
-    cstL(x, p) = half_cst(p[1:(end - 1)], xl, p[end], N1, N2)
+    # # models to fit
+    # cstU(x, p) = half_cst(p[1:(end - 1)], xu, p[end], N1, N2)
+    # cstL(x, p) = half_cst(p[1:(end - 1)], xl, p[end], N1, N2)
 
-    # initial guesses
-    upper_coefficients = ones(n_upper_coefficients)
-    lower_coefficients = -ones(n_lower_coefficients)
+    # # initial guesses
+    # upper_coefficients = ones(n_upper_coefficients)
+    # lower_coefficients = -ones(n_lower_coefficients)
 
-    # solve for coefficients
-    ufit = LsqFit.curve_fit(cstU, xu, zu, [upper_coefficients; 0.0])
-    lfit = LsqFit.curve_fit(cstL, xl, zl, [lower_coefficients; 0.0])
+    # # solve for coefficients
+    # ufit = LsqFit.curve_fit(cstU, xu, zu, [upper_coefficients; 0.0])
+    # lfit = LsqFit.curve_fit(cstL, xl, zl, [lower_coefficients; 0.0])
 
-    return CST(;
-        upper_coefficients=ufit.param[1:(end - 1)],
-        lower_coefficients=lfit.param[1:(end - 1)],
+    # return CST(;
+    #     upper_coefficients=ufit.param[1:(end - 1)],
+    #     lower_coefficients=lfit.param[1:(end - 1)],
+    #     N1=N1,
+    #     N2=N2,
+    #     trailing_edge_zu=ufit.param[end],
+    #     trailing_edge_zl=lfit.param[end],
+    # )
+
+    upper_coeffs = determine_half_cst(
+        xu,
+        zu;
+        n_coefficients=n_upper_coefficients,
+        trailing_edge_z=trailing_edge_zu,
         N1=N1,
         N2=N2,
-        trailing_edge_zu=ufit.param[end],
-        trailing_edge_zl=lfit.param[end],
     )
+
+    lower_coeffs = determine_half_cst(
+        xl,
+        zl;
+        n_coefficients=n_lower_coefficients,
+        trailing_edge_z=trailing_edge_zl,
+        N1=N1,
+        N2=N2,
+    )
+
+    return CST(;
+        upper_coefficients=upper_coeffs[1:(end - 1)],
+        lower_coefficients=lower_coeffs[1:(end - 1)],
+        N1=N1,
+        N2=N2,
+        trailing_edge_zu=upper_coeffs[end],
+        trailing_edge_zl=lower_coeffs[end],
+    )
+end
+
+function determine_half_cst(
+    x, z; n_coefficients::Integer=8, trailing_edge_z=0.0, N1=0.5, N2=1.0
+)
+
+    # models to fit
+    cst_model(x, p) = half_cst(p[1:(end - 1)], x, p[end], N1, N2)
+
+    # initial guesses
+    coefficients = ones(n_coefficients)
+    coefficients .*= z[2] > z[1] ? 1.0 : -1.0
+
+    # solve for coefficients
+    fit = LsqFit.curve_fit(cst_model, x, z, [coefficients; 0.0])
+
+    return fit.param
 end

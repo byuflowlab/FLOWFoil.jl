@@ -1,21 +1,23 @@
 name = "FLOWFoil"
 uuid = "fb58ae67-a5c0-4a90-8078-890ae2c2e65e"
-authors = ["Judd Mehr"]
+authors = ["Judd Mehr", "Ayden Bennett", "Nathan Lehnhoff", "Tyler Critchfield"]
 version = "0.1.0"
 
 [deps]
 FLOWMath = "6cb5d3fb-0fe8-4cc2-bd89-9fe0b19a99d3"
 ImplicitAD = "e7cbb90b-9b31-4eb2-a8c8-45099c074ee1"
+LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LsqFit = "2fda8390-95c7-5789-9bda-21331edee243"
+Measures = "442fdcdd-2543-5da2-b0f3-8c86c306513e"
 NURBS = "dde13934-061e-461b-aa91-2c0fad390a0d"
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 FLOWMath = "0.4"
 LsqFit = "0.15"
-NURBS = "0.7"
 ImplicitAD = "0.3"
 NURBS = "0.8"
 SpecialFunctions = "2"

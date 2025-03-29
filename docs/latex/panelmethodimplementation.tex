@@ -1,0 +1,385 @@
+\clearpage
+\newpage
+
+
+\section{Panel Method}
+\label{sec:panelmethod}
+
+\subsection{Panels}
+\label{ssec:panels}
+
+For any geometric input, we assume that the airfoil geometry begins at the trailing edge and proceeds clockwise around the leading edge and back to the trailing edge.
+It is likely convenient to input geometry data that positions the airfoil leading edge at the origin and has a chord length of one.
+
+Linear panels are defined using the input coordinates as the panel end points.
+\Cref{fig:linearpanels} shows the geometry convention used in FLOWFoil as well as the linear paneling of an airfoil.
+
+\begin{figure}[h]
+	\centering
+o	\includegraphics[width=0.5\textwidth]{./panelmethodcontents/panelmethodfigures/draft}
+	\caption{Linear Paneling (see fig1 in mfoil paper)}
+	\label{fig:linearpanels}
+\end{figure}
+
+
+\section{Inviscid Solution Details}
+\label{sec:inviscidsolution}
+
+
+\subsection{Vortex Influence Coefficients}
+\label{ssec:vortexinfluencecoefficients}
+
+Following the formulation in \cite{fidkowski_coupled_2022}, the inviscid system is assembled as follows.
+
+\begin{equation}
+	\begin{aligned}
+		\sum_{j=1}^N(a_{ij}[\gamma^0, \gamma^{90}]_j) - \Psi_0 &= [-z_i, x_i] \\
+		[\gamma^0, \gamma^{90}]_1 + [\gamma^0, \gamma^{90}]_N &= [0, 0] ~~~~~\mathrm{(Kutta~Condition)}
+	\end{aligned}
+\end{equation}
+
+\noindent or
+
+\begin{equation}
+	\mathbf{A} \gamma = \mathbf{\Psi}^\infty
+\end{equation}
+
+\noindent where \(\gamma^0\) and \(\gamma^{90}\) are the perpendicular componenets of vorticity (such that \(\vect{V}/\vect{V}_\infty = \vect{\gamma}^0 \cos\alpha + \vect{\gamma}^{90} \sin\alpha\)), \(\Psi_0\) is an unknown constant streamfunction at each node, and  \(\mathbf{A}\) is comprized of the coefficients of influence between the panels and evaluation points (\(a_{ij}\)), the Kutta condition, and the influence of \(\Psi_0\).
+
+For a given evaluation point, \(i \in \mathbb{N}^N\), and panel, \(k \in \mathbb{N}^{N-1}\), (comprised of nodes \(j \in \mathbb{N}^{N-1}\) and \(j+1\)) the streamfunction at the evaluation point due to a linear vortex distribution across the panel (with vortex strengths at the nodes of \(\gamma_j\) and \(\gamma_{j+1}\), respectively) is
+
+\begin{equation}
+	\Psi_{ik}^\gamma = \mathbf{\Psi}^\gamma_{ik} [\gamma_j, \gamma_{j+1}]^\top,
+\end{equation}
+
+\noindent where
+
+\begin{equation}
+	\mathbf{\Psi}^\gamma_{ik} = \left[\overline{\psi}^\gamma_{ik} - \widetilde{\psi}^\gamma_{ik}, \widetilde{\psi}^\gamma_{ik} \right]
+\end{equation}
+
+\noindent Therefore, the influence coefficient of the \(j\)th node on the \(i\)th node (the \(ij\)th element of \(\mathbf{A}\)) is comprized of portions of the influence seen from each panel of which it is part:
+
+\begin{equation}
+	a_{ij} = \begin{cases}
+		\overline{\psi}^\gamma_{ij} -  \widetilde{\psi}^\gamma_{ij} & j = 1 \\
+		\widetilde{\psi}^\gamma_{i,j-1} & j = N \\
+		\widetilde{\psi}^\gamma_{i,j-1} + \left(\overline{\psi}^\gamma_{ij} -  \widetilde{\psi}^\gamma_{ij}\right) & \mathrm{otherwise}.
+	\end{cases}
+\end{equation}
+
+\noindent Note that panel 1 and panel N-1 do not share nodes 1 and N. That is, node 1 is associated only with panel 1, and node N only with panel N-1. 
+
+
+\subsubsection{Influence Geometry}
+\label{sssec:influencegeometry}
+
+The components of \(\mathbf{\Psi}^\gamma_{ik}\) are defined as
+
+\begin{align}
+	\overline{\psi}^\gamma_{ik} &= \frac{1}{2\pi} \left( h_{ik} (\theta_{i,j+1} - \theta_{ij}) - d_k + a_{ik} \ln(r_{ij}) - (a_{ik}-d_k)\ln(r_{i,j+1}) \right) \\
+	\widetilde{\psi}^\gamma_{ik} &=  \frac{a_{ik}}{d_k}\overline{\psi}^\gamma_{ik} + \frac{1}{4\pi d_k} \left(r^2_{i,j+1} \ln(r_{i,j+1}) - r^2_{ij} \ln(r_{ij}) - \frac{1}{2}r^2_{i,j+1} + \frac{1}{2}r^2_{ij} \right).
+\end{align}
+\noindent In order to evaluate the the componenets of \(\mathbf{\Psi}^\gamma_{ik}\) we will need to understand the geometry of the problem.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\textwidth]{./panelmethodcontents/panelmethodfigures/draft}
+	\caption{Influence Geometry (see fig10 in mfoil paper)}
+	\label{fig:influencegeometry}
+\end{figure}
+
+\Cref{fig:influencegeometry} shows the relative geometry for the problem, and we calculate each of the geometric values as follows.
+
+\begin{itemize}
+	\item The \(k\)th panel vector, length, unit tangent, and unit normal, respectively, from the \(j\)th to \(j+1\)th node:
+	\begin{align}
+		\vect{d}_k &= \vect{q}_{j+1} - \vect{q}_j \\
+		d_k &= || \vect{q}_{j+1} - \vect{q}_j || \\
+		\vect{\hat{t}}_k &= \frac{\vect{d}_k}{d_k} \\
+		\vect{\hat{n}}_k &= [-\hat{t}_{k_2}, \hat{t}_{k_1}],
+	\end{align}
+	\noindent where \(\vect{q}\) is the node position.
+	%
+	%
+	\item The vector and distance from the \(j\)th node to the evaluation point:
+	\begin{align}
+		\vect{r}_{ij} &= \vect{p}_i - \vect{q}_j \\
+		r_{ij} &= ||\vect{p}_i - \vect{q}_j||,
+	\end{align}
+	\noindent where \(\vect{p}\) is the evaluation point position.
+	%
+	%
+	\item The natural log of the distance between node and evaluation point:
+	\begin{equation}
+		\ln(r_{ij}) = \begin{cases}
+			0 & \mathrm{if}~~ r_{ij} = 0 \\
+			\ln(r_{ij}) & \mathrm{otherwise.}
+		\end{cases}
+	\end{equation}
+	%
+	%
+	\item The distance, normal to the panel, from the panel to the evaluation point:
+	\begin{equation}
+		h_{ik} = \vect{r}_{ij}\cdot \vect{\hat{n}}_{k},
+	\end{equation}
+	%
+	%
+	\item The distance, tangent to the panel, from the \(j\)th node to the evaluation point:
+	\begin{equation}
+		a_{ik} = \vect{r}_{ij}\cdot \vect{\hat{t}}_{k},
+	\end{equation}
+	%
+	%
+	\item The angles between the \(k\)th panel and the evaluation point centered at the \(j\)th and \(j+1\)th nodes, respectively:
+	\begin{align}
+		\theta_{ij} &= \tan^{-1} \left( \frac{h_{ik}}{a_{ik}} \right) \\
+		\theta_{i,j+1} &= \tan^{-1} \left( \frac{h_{ik}}{a_{ik} - d_k} \right) 
+	\end{align}
+\end{itemize}
+
+
+\subsubsection{Completing the Coefficient Matrix}
+
+To complete the coefficient matrix, \(\mathbf{A}\) after putting together the vortex influence coefficients, we need to first add in the contribution of the unknown constant, \(\Psi_0\).  We do this by adding a column of -1's to the current \(N \times N\) matrix of coefficients
+
+\begin{equation}
+	\begin{pmatrix}
+		& & & & & -1 \\
+		& & \multirow{3}{*}{\Huge $a_{ij}$}  & & & -1 \\
+		& & & & & -1 \\
+		& & & & & -1 \\
+		& & & & & -1
+	\end{pmatrix}.
+\end{equation}
+
+\noindent We then add in the kutta condition, \(\gamma_1 + \gamma_N = 0\), as an additional row to our matrix
+
+
+
+
+\begin{equation}
+	\begin{pmatrix}
+		& & & & & -1 \\
+		& & \multirow{3}{*}{\Huge $a_{ij}$}  & & & -1 \\
+		& & & & & -1 \\
+		& & & & & -1 \\
+		& & & & & -1 \\
+		1 & 0 & \cdots & 0 & 1 & 0
+	\end{pmatrix}.
+\end{equation}
+
+We now have an \(N+1 \times N+1 \) system of equations for \(\gamma\) and \(\Psi_0\)
+
+
+\begin{equation}
+	\begin{pmatrix}
+		& & & & & -1 \\
+		& & \multirow{3}{*}{\Huge $a_{ij}$}  & & & -1 \\
+		& & & & & -1 \\
+		& & & & & -1 \\
+		& & & & & -1 \\
+		1 & 0 & \cdots & 0 & 1 & 0
+	\end{pmatrix}
+	%
+	\begin{pmatrix}
+		\gamma^0_1 & \gamma^{90}_1 \\
+		\gamma^0_2 & \gamma^{90}_2 \\
+		\vdots \\
+		\gamma^0_N & \gamma^{90}_N \\
+		\Psi^0_0 & \Psi^{90}_0\\
+	\end{pmatrix}
+	=
+	\begin{pmatrix}
+		-z_1 & x_1 \\
+		-z_2 & x_2 \\
+		\vdots \\
+		-z_N & x_N \\
+		0 & 0
+	\end{pmatrix}
+\end{equation}
+
+
+\subsubsection{Trailing Edge Treatment}
+\label{sssec:trailingedge}
+
+We have a few modifications to make to our system depending on whether the airfoil has a blunt or sharp trailing edge.
+
+\paragraph{Sharp Trailing Edge}
+
+In the case of the sharp trailing edge, the first and last nodes are coincident, which leads them to have identical equations, causing the matrix to be singular.  In this case, we discard the \(N\)th row and substitute it for an extrapolation of the mean (between upper and lower sides) to the trailing edge as
+
+\begin{equation}
+	\gamma_1 - 2\gamma_2 + \gamma_3 - \gamma_{N-2} + 2\gamma_{N-1} - \gamma_N = 0.
+\end{equation}
+
+\noindent This gives us the \(N\)th row of the coefficient matrix to be
+
+\begin{equation}
+	\begin{bmatrix}
+		1 & -2 & 1 & 0 & \cdots & 0 & -1 & 2 & -1 & 0 
+	\end{bmatrix}.
+\end{equation}
+
+
+\noindent This yields the following system of equations for the inviscid solution of an airfoil with a sharp trailing edge:
+
+\begin{equation}
+	\begin{split}
+		&	\begin{pmatrix}
+			a_{11} & a_{12} & & & \cdots & & & a_{1,N-1} & a_{1N} & -1 \\
+			a_{21} & a_{22} & & & \cdots & & & a_{2,N-1} & a_{2N} & -1 \\
+			\vdots & \vdots & & & \ddots & & & \vdots & \vdots & -1 \\
+			a_{N-1,1} & a_{N-1,2} & & & \cdots & & & a_{N-1,N-1} & a_{N-1,N} & -1 \\
+			1 & -2 & 1 & 0 & \cdots & 0 & -1 & 2 & -1 & 0 \\
+			1 & 0 & 0 & 0 & \cdots & 0 & 0 & 0 & 1 & 0
+		\end{pmatrix}
+		%
+		\begin{pmatrix}
+			\gamma^0_1 & \gamma^{90}_1 \\
+			\gamma^0_2 & \gamma^{90}_2 \\
+			\vdots \\
+			\gamma^0_{N-1} & \gamma^{90}_{N-1} \\
+			\gamma^0_N & \gamma^{90}_N \\
+			\Psi^0_0 & \Psi^{90}_0\\
+		\end{pmatrix} \\
+		& \hspace{1.5cm} =
+		\begin{pmatrix}
+			-z_1 & x_1 \\
+			-z_2 & x_2 \\
+			\vdots \\
+			-z_{N-1} & x_{N-1} \\
+			0 & 0 \\
+			0 & 0 
+		\end{pmatrix}
+	\end{split}
+\end{equation}
+
+\paragraph{Blunt Trailing Edge}
+
+In the case of the blunt trailing edge, the first and \(N\)th nodes are not coincident, which leads to an open body.  To remedy this issue, we place an \(N+1\)th panel from node \(N\) to node 1, closing the gap.  For this trailing edge panel, we impose a constant vortex and source distribution across the panel.
+
+This augments the system of equations to be
+
+\begin{equation}
+	\begin{aligned}
+		\sum_{j=1}^N(a_{ij}\gamma_j) - \Psi_0 + \sum_{j=1,N} a_{i,TE}(\gamma_N -\gamma_{1}) &= V_\infty(z_i\cos\alpha - x_i\sin\alpha) \\
+		\gamma_1 + \gamma_N &= 0 ~~~~~\mathrm{(Kutta~Condition)}
+	\end{aligned}
+\end{equation}
+
+\noindent where 
+
+\begin{equation}
+	a_{i,TE} = \frac{1}{2} \left( \overline{\Psi}^\sigma_{i,TE} | \vect{\hat{s}}_{TE} \times \vect{\hat{d}}_{TE}| -  \overline{\Psi}^\gamma_{i,TE} | \vect{\hat{s}}_{TE} \cdot  \vect{\hat{d}}_{TE} |\right),
+\end{equation}
+
+\noindent with \(\vect{\hat{d}}_{TE}\) being the unit vector along the trailing edge panel from node \(N\) to node 1, 
+and \(\vect{\hat{s}}_{TE}\) being the unit trailing-edge bisector vector defined as
+
+\begin{equation}
+	\vect{\hat{s}}_{TE} = -\vect{d}_{1} ||\vect{d}_N|| + \vect{d}_N ||-\vect{d}_{1}||
+\end{equation}
+
+
+This gives us the following system for the inviscid solution of an airfoil with a blunt trailing edge:
+
+\begin{equation}
+	\vect{A}\vect{\gamma} = \vect{\Psi}^\infty
+\end{equation}
+
+\noindent where
+
+\begin{align}
+	\vect{A} &= \begin{pmatrix}
+		a_{11}+a_{1,TE_1} & a_{12} &  \cdots  & a_{1,N-1} & a_{1N}+a_{1,TE_N} & -1 \\
+		a_{21}+a_{2,TE_1} & a_{22} & \cdots & a_{2,N-1} & a_{2N}+a_{12,TE_N} & -1 \\
+		\vdots & \vdots &  \ddots &  \vdots & \vdots & -1 \\
+		a_{N-1,1}+a_{N-1,TE_1} & a_{N-1,2} &  \cdots & a_{N-1,N-1} & a_{N-1,N}+a_{N-1,TE_N} & -1 \\
+		a_{N,1}+a_{N,TE_1} & a_{N,2} & \cdots & a_{N,N-1} & a_{N,N}+a_{N,TE_N} & -1 \\
+		1 & 0 & \cdots  & 0 & 1 & 0
+	\end{pmatrix} \\
+	%
+	\vect{\gamma} &= 	\begin{pmatrix}
+		\gamma^0_1 & \gamma^{90}_1 \\
+		\gamma^0_2 & \gamma^{90}_2 \\
+		\vdots \\
+		\gamma^0_N & \gamma^{90}_N \\
+		\Psi^0_0 & \Psi^{90}_0\\
+	\end{pmatrix} \\
+	%
+	\vect{\Psi}^\infty &= 
+	\begin{pmatrix}
+		-z_1 & x_1 \\
+		-z_2 & x_2 \\
+		\vdots \\
+		-z_N & x_N \\
+		0 & 0
+	\end{pmatrix}
+\end{align}
+
+
+\subsection{Multi-body System}
+
+The multi-body system is treated much the same as a single body system, just with the size of the system increasing.
+The portions of the system related to the individual airfoils are identical to those above, thus each individual airfoil will have its respective system along the diagonal of the total system.
+The airfoils' influences on eachother are included in the influence coefficients in the off-diagonal positions of the full system.
+See \cref{eqn:multisystem} for a general outline of what a full system might look like.
+
+
+\setcounter{MaxMatrixCols}{20}
+\begin{align}
+	\label{eqn:multisystem}
+	\vect{A} &= \begin{pmatrix}
+		& & & & & -1& & & && & 0 \\
+		%
+		& & \multirow{2}{*}{\Large $a_{ij}^{11}$} & & & -1 & & &\multirow{2}{*}{\Large $a_{ij}^{1N}$} & && 0 \\
+		%
+		& & & & & -1 & & & & && 0\\
+		%
+		& & & & & -1 & & & & && 0\\
+		%
+		1 & 0 & \cdots & 0 & 1 & 0 & 0 & 0 & \cdots & 0 & 0 &0 \\
+		%
+		& & & & & 0& & & & && -1 \\
+		%
+		& & \multirow{2}{*}{\Large $a_{ij}^{N1}$} & & & 0& & & \multirow{2}{*}{\Large $a_{ij}^{NN}$} & && -1 \\
+		%
+		& & & & & 0& & & & &&  -1 \\
+		%
+		& & & & & 0& & & & & & -1 \\
+		%
+		& 0 & 0 & \cdots & 0 & 0 & 1 & 0 & \cdots & 0 & 1& 0  
+	\end{pmatrix} \\
+	%
+	\vect{\gamma} &= \begin{pmatrix}
+		\gamma^0_{11} & \gamma^{90}_{11} \\
+		\gamma^0_{21} & \gamma^{90}_{21} \\
+		\vdots \\
+		\gamma^0_{N1} & \gamma^{90}_{N1} \\
+		\Psi^0_{01} & \Psi^{90}_{01}\\
+		%
+		\gamma^0_{1N} & \gamma^{90}_{1N} \\
+		\gamma^0_{2N} & \gamma^{90}_{2N} \\
+		\vdots \\
+		\gamma^0_{NN} & \gamma^{90}_{NN} \\
+		\Psi^0_{0N} & \Psi^{90}_{0N}\\
+	\end{pmatrix} \\
+	%
+	\vect{\Psi}^\infty &= \begin{pmatrix}
+		-z_{11} & x_{11} \\
+		-z_{21} & x_{21} \\
+		\vdots \\
+		-z_{N1} & x_{N1} \\
+		0 & 0 \\
+		-z_{1N} & x_{1N} \\
+		-z_{2N} & x_{2N} \\
+		\vdots \\
+		-z_{NN} & x_{NN} \\
+		0 & 0 \\
+	\end{pmatrix}
+\end{align}
+
+\noindent where \(a_{ij}^{XY}\) indicates the influence coefficient of the \(j\)th panel of the \(Y\)th airfoil on the \(i\)th node of the \(X\)th airfoil, \(\gamma_{jY}\) indicates the stregth of the vortex at the \(j\)th node on the \(Y\)th airfoil, and \(z_{jY}\) indicates the boundary condition at the \(j\)th node on the \(Y\)th airfoil.
+
+Treatment of the trailing edges is very similar to the single airfoil case as well.  For sharp trailing edges the Nth row (the row associated with the last node of the airfoil) of the block diagonals are replaced as before in \cref{sssec:trailingedge}. The remainder of the row (in the off diagonals) and the relevant row of the right hand side array are set to zeros.  For blunt trailing edges, the block diagonals and off diagonals are treated the same. For any node influenced by the trailing edge gap panel the associated row of the matrix recieves the additions explained in \cref{sssec:trailingedge}.
