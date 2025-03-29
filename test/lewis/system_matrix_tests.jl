@@ -8,16 +8,16 @@
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
     y = [-0.01; -0.5; 0.0; 0.5; 0.01] .+ 1.0
     coordinates = [x y]
-    pt = AxisymmetricProblem(Vortex(Constant()), Dirichlet(), [false])
+    pt = Lewis(; body_of_revolution=[false])
 
     # Generate Panel Geometry
-    panels = generate_panels(pt, coordinates)
+    panels = FLOWFoil.generate_panel_geometry(pt, coordinates)
 
     # Generate Influence Mesh
-    mesh = generate_mesh(pt, panels)
+    mesh = FLOWFoil.generate_system_geometry(pt, panels)
 
     # Assemble Linear System
-    system = generate_inviscid_system(pt, panels, mesh)
+    system = FLOWFoil.generate_system_matrices(pt, panels, mesh)
 
     # check that it's not invertable
     @test !isapprox(LinearAlgebra.det(system.A), 0.0)
@@ -40,10 +40,10 @@
     r2 = [1.5; 1.0; 1.5; 2.0; 1.5]
 
     coordinates = ([x1 r1], [x2 r2])
-    pt = AxisymmetricProblem(Vortex(Constant()), Dirichlet(), [true, false])
-    panel_array = generate_panels(pt, coordinates)
-    mesh = generate_mesh(pt, panel_array)
-    system = generate_inviscid_system(pt, panel_array, mesh)
+    pt = Lewis(; body_of_revolution=[true, false])
+    panel_array = FLOWFoil.generate_panel_geometry(pt, coordinates)
+    mesh = FLOWFoil.generate_system_geometry(pt, panel_array)
+    system = FLOWFoil.generate_system_matrices(pt, panel_array, mesh)
 
     # @test system.A[:, end] == [0; 0; 1; 1; 1; 1; 0.0]
     # @test system.A[end, :] == [0, 0, 1, 0, 0, 1, 0.0]
@@ -62,5 +62,4 @@
     #TODO add back diagonal correction test.
 
 end
-
 

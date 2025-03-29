@@ -7,7 +7,7 @@
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
     z = [0.0; -1.0; 0.0; 1.0; 0.0]
     coordinates = [x z]
-    panel_geometry_method = FLOWFoil.Martensen(false, 0.0, 0.0, 30.0, 100.0, false)
+    panel_geometry_method = FLOWFoil.Martensen(false, 0.0, 0.0, 30.0, false)
     panels = FLOWFoil.generate_panel_geometry(
         panel_geometry_method,
         coordinates

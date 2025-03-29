@@ -1,16 +1,16 @@
-function post_process(method::Lewis, panel_geometry, system_geometry, strengths; npanels=80)
+# NOTE: flow_angles is unused, just here to make convenience functions work everywhere
+function post_process(method::Lewis, panel_geometry, system_geometry, strengths, flow_angles; npanels=80)
     return post_process(
-        method, [panel_geometry], system_geometry, strengths; npanels=npanels
+        method, [panel_geometry], system_geometry, strengths, flow_angles; npanels=npanels
     )
 end
 
 function post_process(
-    method::Lewis, panel_geometry::AbstractVector, system_geometry, strengths; npanels=80
+    method::Lewis, panel_geometry::AbstractVector, system_geometry, strengths, flow_angles; npanels=80
 )
 
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
-    println(idx)
     nbodies = system_geometry.nbodies
 
     # - Initialize Outputs - #

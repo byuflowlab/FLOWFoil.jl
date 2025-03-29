@@ -1,6 +1,6 @@
 function generate_panel_geometry(method::Lewis, coordinates)
     #broadcast for multiple airfoils
-    return generate_panel_geometry.(Ref(method), coordinates)
+    return [generate_panel_geometry(method, c) for c in coordinates]
 end
 
 function generate_panel_geometry(method::Lewis, coordinates::Matrix{TF}) where {TF}

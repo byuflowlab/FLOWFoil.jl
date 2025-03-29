@@ -5,16 +5,14 @@
     x = [0.0; 1.0; 2.0]
     z = [0.0; 1.0; 2.0]
     coordinates = [x z]
-    panels = generate_panels(
-        AxisymmetricProblem(Vortex(Constant()), Neumann(), [true]), coordinates
-    )
-    mesh = generate_mesh(AxisymmetricProblem(Vortex(Constant()), Neumann(), [true]), panels)
+    panels = FLOWFoil.generate_panel_geometry(Lewis(; body_of_revolution=[true]), coordinates)
+    mesh = FLOWFoil.generate_system_geometry(Lewis(; body_of_revolution=[true]), panels)
 
     @test mesh.nbodies == 1
     @test mesh.panel_indices == [1:2]
-    @test mesh.x == [0.0 (0.5 - 1.5)/1.5; 1.0/0.5 0.0]
+    @test mesh.z == [0.0 (0.5 - 1.5)/1.5; 1.0/0.5 0.0]
     @test mesh.r == [1.0 0.5/1.5; 1.5/0.5 1.0]
-    @test mesh.m == [1.0 0.6; 0.6 1.0]
+    @test mesh.k2 == [1.0 0.6; 0.6 1.0]
 
     # - Multi Body Test - #
 
@@ -25,17 +23,13 @@
     r2 = [1.5; 1.0; 1.5; 2.0; 1.5]
 
     coordinates = ([x1 r1], [x2 r2])
-    panel_array = generate_panels(
-        AxisymmetricProblem(Vortex(Constant()), Neumann(), [true, false]), coordinates
-    )
-    mesh = generate_mesh(
-        AxisymmetricProblem(Vortex(Constant()), Neumann(), [true, false]), panel_array
-    )
+    panel_array = FLOWFoil.generate_panel_geometry(Lewis(; body_of_revolution=[true, false]), coordinates)
+    mesh = FLOWFoil.generate_system_geometry(Lewis(; body_of_revolution=[true, false]), panel_array)
 
     @test mesh.nbodies == 2
     @test mesh.panel_indices == [[1:2]; [3:6]]
     @test mesh.mesh2panel == [1; 2; 1; 2; 3; 4]
-    @test mesh.x == [
+    @test mesh.z == [
         (0.0 / 2.0)/(1.0 / 4.0) (-1.0 / 2.0)/(1.0 / 4.0) (-1.0 / 2.0)/(5.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0) (-1.0 / 2.0)/(7.0 / 4.0)
         (1.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(7.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0)
         (1.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(7.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0)
@@ -45,7 +39,7 @@
     ]
     ri = [0.25; 0.25; 1.25; 1.25; 1.75; 1.75]
     @test isapprox(mesh.r, ri * (1.0 ./ ri'))
-    x = [
+    z = [
         (0.0 / 2.0)/(1.0 / 4.0) (-1.0 / 2.0)/(1.0 / 4.0) (-1.0 / 2.0)/(5.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0) (-1.0 / 2.0)/(7.0 / 4.0)
         (1.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(7.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0)
         (1.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(7.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0)
@@ -54,7 +48,5 @@
         (1.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(1.0 / 4.0) (0.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(5.0 / 4.0) (1.0 / 2.0)/(7.0 / 4.0) (0.0 / 2.0)/(7.0 / 4.0)
     ]
     r = ri * (1.0 ./ ri')
-    @test isapprox(mesh.m, 4.0 * r ./ (x .^ 2 .+ (r .+ 1.0) .^ 2))
+    @test isapprox(mesh.k2, 4.0 * r ./ (z .^ 2 .+ (r .+ 1.0) .^ 2))
 end
-
-

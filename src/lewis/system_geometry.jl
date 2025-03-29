@@ -7,7 +7,7 @@ function generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
 
     ### --- Convenience Variables --- ###
     nbodies = length(panel_geometry)
-    npanels = [panel_geometry[i].npanels for i in 1:nbodies]
+    npanels = [pg.npanels for pg in panel_geometry]
     total_panels = sum(npanels)
 
     # - Define Body Indexing - #

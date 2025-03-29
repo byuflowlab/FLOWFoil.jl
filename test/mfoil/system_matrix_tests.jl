@@ -8,16 +8,16 @@
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
     y = [-0.01; -0.5; 0.0; 0.5; 0.01]
     coordinates = [x y]
-    pt = PlanarProblem(Vortex(Linear()), Dirichlet())
+    pt = Mfoil()
 
     # Generate Panel Geometry
-    panels = generate_panels(pt, coordinates)
+    panels = FLOWFoil.generate_panel_geometry(pt, coordinates)
 
     # Generate Influence Mesh
-    mesh, TEmesh = generate_mesh(pt, panels)
+    mesh = FLOWFoil.generate_system_geometry(pt, panels)
 
     # Assemble Linear System
-    system = generate_inviscid_system(pt, panels, mesh, TEmesh)
+    system = FLOWFoil.generate_system_matrices(pt, panels, mesh)
 
     # check that it's not invertable
     @test !isapprox(LinearAlgebra.det(system.A), 0.0)
@@ -42,14 +42,13 @@
     z2 = zeros(3)
 
     coordinates = ([x1 z1], [x2 z2])
-    panels = generate_panels(PlanarProblem(Vortex(Linear()), Dirichlet()), coordinates)
-    mesh, TEmesh = generate_mesh(PlanarProblem(Vortex(Linear()), Dirichlet()), panels)
-    system = generate_inviscid_system(pt, panels, mesh, TEmesh)
+    panels = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
+    mesh = FLOWFoil.generate_system_geometry(Mfoil(), panels)
+    system = FLOWFoil.generate_system_matrices(pt, panels, mesh)
 
     @test all(
         system.b .==
         [0.5 0.0; 0.0 0.0; -0.5 0.0; 0.0 1.0; 0.0 1.5; 0.0 2.0; 0.0 0.0; 0.0 0.0],
     )
 end
-
 

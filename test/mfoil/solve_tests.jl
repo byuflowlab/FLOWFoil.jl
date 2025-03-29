@@ -9,7 +9,7 @@
     b = [1.0; 2.0; 3.0]
 
     # Solve Linear System
-    solution = solve(InviscidSystem(A, b, [3]))
+    solution = FLOWFoil.solve_inviscid(Mfoil(), (;A, b))
 
-    @test all(solution.x .== [1.0; 2.0; 3.0])
+    @test all(solution .== [1.0; 2.0; 3.0])
 end
