@@ -487,6 +487,6 @@ function thickness_coordinates(
         leading_edge_radius = 0.666
     end
 
-    y_t = FLOWMath.akima_smooth(x, y, xpt, sqrt(eps))
+    y_t = FLOWMath.akima(x, y, xpt, sqrt(eps))
     return y_t, leading_edge_radius
 end
