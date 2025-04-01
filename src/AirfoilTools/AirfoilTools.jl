@@ -27,6 +27,7 @@ using StaticArrays
 
 # - Parameterizations - #
 export NACA4, naca4, determine_naca4
+export naca65
 export BasicBSpline, basic_bspline#, determine_basic_bspline
 export KarmanTrefftz, karman_trefftz#, determine_karman_trefftz
 export Joukowsky, joukowsky#, determine_joukowsky
@@ -46,7 +47,10 @@ export flip!, zero_z_te!, rotate_coordinates!, normalize_coordinates!, position_
 ##### ----- PARAMETERIZATIONS ----- #####
 
 # NACA 4-series
-include("parameterizations/naca.jl")
+include("parameterizations/naca4.jl")
+
+# NACA 65-series
+include("parameterizations/naca65.jl")
 
 # Class Shape Transformation
 include("parameterizations/cst.jl")
@@ -73,5 +77,8 @@ include("geometry_manipulations/inspection.jl")
 
 # Interpolation, Smoothing, Reversing, Refinement, etc.
 include("geometry_manipulations/redefinition.jl")
+
+# Utilities
+include("geometry_manipulations/utils.jl")
 
 end
