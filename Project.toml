@@ -18,6 +18,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 FLOWMath = "0.4"
 ImplicitAD = "0.3"
+LaTeXStrings = "1"
 LsqFit = "0.15"
 Measures = "0.3"
 NURBS = "0.8"
