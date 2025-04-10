@@ -20,7 +20,7 @@ function calculate_periodic_vortex_influence(
     r_y = system_geometry.r_y[i, j]
 
     # cascade stuff
-    stagger = cascade_parameters.stagger
+    stagger = cascade_parameters.stagger*pi/180
     pitch = system_geometry.pitch
 
     # adjusted angles
@@ -54,7 +54,7 @@ function calculate_planar_vortex_influence(
     y_j = panelj.panel_center[j]
 
     # cascade stuff
-    stagger = cascade_parameters.stagger
+    stagger = cascade_parameters.stagger*pi/180
 
     # adjusted angles
     sine_panel_angle_i = sin(stagger + paneli.panel_angle[i])

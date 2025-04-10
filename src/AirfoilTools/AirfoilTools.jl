@@ -36,7 +36,7 @@ export PARSEC, parsec, determine_parsec
 export ModifiedPARSEC, modified_parsec, determine_modified_parsec
 
 # - Manipulations - #
-export whole_cosine_spacing, split_cosine_spacing, repanel_airfoil, refine_trailing_edge
+export whole_cosine_spacing, split_cosine_spacing, repanel_airfoil, refine_trailing_edge, linear_transform
 export split_upper_lower
 export flip!, zero_z_te!, rotate_coordinates!, normalize_coordinates!, position_coordinates!
 
