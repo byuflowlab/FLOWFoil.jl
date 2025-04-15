@@ -6,7 +6,7 @@
 """
 From NACA Research Memorandum L51G31: "Systematic Two-dimensional Cascade Tests of NACA 65-Series Compressor Blades at Low Speeds" Table 1
 """
-function thickness65c(x; method="scaled")
+function scaled_thickness(x; method="scaled")
     if method == "derived"
         tr =
             [
@@ -108,7 +108,7 @@ end
 """
 From NACA Research Memorandum L51G31: "Systematic Two-dimensional Cascade Tests of NACA 65-Series Compressor Blades at Low Speeds" Table 2
 """
-function camber65c(clo, x)
+function scaled_camber(clo, x)
     a1x =
         [
             0.0
@@ -176,7 +176,7 @@ end
 """
 From NACA Research Memorandum L51G31: "Systematic Two-dimensional Cascade Tests of NACA 65-Series Compressor Blades at Low Speeds" Table 2
 """
-function slopes65c(clo, x)
+function scaled_slope(clo, x)
     a1x =
         [
             0.0
@@ -239,7 +239,7 @@ function slopes65c(clo, x)
 end
 
 """
-    camber_line(
+    computed_camber_line(
     a,
     cli,
     x
@@ -255,7 +255,7 @@ This computes the corresponding camber for a given x value for the NACA 65 serie
 # Returns:
 - `yc::Float` : Amount of camber y_c for a given x value on the airfoil
 """
-function camber_line(
+function computed_camber_line(
     a,
     cli,
     x
@@ -289,15 +289,30 @@ function slopes65(
     sin_theta = 0.0
     cos_theta = 0.0
     if x < 0.005 #see Summary of Airfoil Data (1945) page 4
-        tan_theta = (camber_line(a, cli, 0.00501) - camber_line(a,cli, 0.005)) / (0.00501 - 0.005)
-        sin_theta = (camber_line(a, cli, 0.00501) - camber_line(a,cli, 0.005)) / sqrt((camber_line(a, cli, 0.00501) - camber_line(a,cli, 0.005))^2 + (0.00501 - 0.005)^2)
-        cos_theta = (0.00501 - 0.005) / sqrt((camber_line(a, cli, 0.00501) - camber_line(a,cli, 0.005))^2 + (0.00501 - 0.005)^2)
+        tan_theta = (computed_camber_line(a, cli, 0.00501) - computed_camber_line(a,cli, 0.005)) / (0.00501 - 0.005)
+        sin_theta = (computed_camber_line(a, cli, 0.00501) - computed_camber_line(a,cli, 0.005)) / sqrt((computed_camber_line(a, cli, 0.00501) - computed_camber_line(a,cli, 0.005))^2 + (0.00501 - 0.005)^2)
+        cos_theta = (0.00501 - 0.005) / sqrt((computed_camber_line(a, cli, 0.00501) - computed_camber_line(a,cli, 0.005))^2 + (0.00501 - 0.005)^2)
     else
-        tan_theta = (camber_line(a, cli, dx_plus) - camber_line(a,cli, dx_minus)) / (dx_plus - dx_minus)
-        sin_theta = (camber_line(a, cli, dx_plus) - camber_line(a,cli, dx_minus)) / sqrt((camber_line(a, cli, dx_plus) - camber_line(a,cli, dx_minus))^2 + (dx_plus - dx_minus)^2)
-        cos_theta = (dx_plus - dx_minus) / sqrt((camber_line(a, cli, dx_plus) - camber_line(a,cli, dx_minus))^2 + (dx_plus - dx_minus)^2)
+        tan_theta = (computed_camber_line(a, cli, dx_plus) - computed_camber_line(a,cli, dx_minus)) / (dx_plus - dx_minus)
+        sin_theta = (computed_camber_line(a, cli, dx_plus) - computed_camber_line(a,cli, dx_minus)) / sqrt((computed_camber_line(a, cli, dx_plus) - computed_camber_line(a,cli, dx_minus))^2 + (dx_plus - dx_minus)^2)
+        cos_theta = (dx_plus - dx_minus) / sqrt((computed_camber_line(a, cli, dx_plus) - computed_camber_line(a,cli, dx_minus))^2 + (dx_plus - dx_minus)^2)
     end
     return tan_theta, sin_theta, cos_theta
+end
+
+function thickness65(
+    series_number,
+    xpt #value of x that the desired y_t is
+)
+    y_t = 0.0
+    leading_edge_radius = 0.0
+    if series_number == "3-018"
+        x = [0.0, 0.5, 0.75, 1.25, 2.5, 5.0, 7.5, 10, 15, 20, 25,30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].*10^(-2)
+        y = [0.0, 1.324, 1.599, 2.004, 2.728, 3.831, 4.701, 5.424, 6.568, 7.434, 8.093, 8.568, 8.868, 8.990, 8.916, 8.593, 8.045, 7.317, 6.450, 5.486, 4.456, 3.390, 2.325, 1.324, 0.492, 0.0].*10^(-2) 
+        leading_edge_radius = 1.92*(10^(-2))
+        y_t = FLOWMath.akima(x,y, xpt)
+    end
+    return y_t, leading_edge_radius
 end
 
 """
@@ -320,15 +335,15 @@ Cambered blade sections are obtained by applying the thickness perpendicular to 
 In the designation the camber is given by the first number after the dash in tenths of cl_o.
 For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for cl_o = 0.8 and cl_o = 1.2, respectively.
 """
-function naca65c(clo, leading_edge_radius, a, series_number; method="scaled", N=161, x=nothing, split=false, smoothed_leading_edge=true)
+function naca65(clo, a, series_number; N=161, x=nothing, split=false, extra_blending=false)
 
     # get x coordinates
     N = Int(ceil(N / 2))
     if isnothing(x)
         x = cosine_spacing(N)
     end
-
-    tan_theta_initial, sin_theta_initial, cos_theta_initial = slopes65(0.005, clo, a)
+    nil, leading_edge_radius = thickness65(series_number, 0.5)
+    tan_theta_initial, sin_theta_initial, cos_theta_initial = slopes65(0.001, clo, a)
     leading_edge_circle_center_x = leading_edge_radius * cos_theta_initial
     x = linear_transform(
         (0, 1),
@@ -339,66 +354,79 @@ function naca65c(clo, leading_edge_radius, a, series_number; method="scaled", N=
     y_lower = similar(x) .= 0.0
     x_upper = similar(x) .= 0.0
     x_lower = similar(x) .= 0.0
+    cos_theta = similar(x) .= 0.0
+    sin_theta = similar(x) .= 0.0
+    tan_theta = similar(x) .= 0.0
+    c = similar(x) .= 0.0
+    t = similar(x) .= 0.0
+    transition_index = 1 #this is used for extra blending - it is the index when the leading edge circle transitions to the rest of the airfoil
 
-    if !smoothed_leading_edge
-        #TODO add un-smoothed leading edge calculations
-
-    else
-        cos_theta = similar(x) .= 0.0
-        sin_theta = similar(x) .= 0.0
-        tan_theta = similar(x) .= 0.0
-        c = similar(x) .= 0.0
-        t = similar(x) .= 0.0
-
-        for i in 1:N
-            if x[i] < 0.005
-                tan_theta[i] = tan_theta_initial
-                sin_theta[i] = sin_theta_initial
-                cos_theta[i] = cos_theta_initial
-                c[i] = camber_line(a, clo, 0.005)
-                t[i], nil = thickness_coordinates(series_number, 0.005)
-                rad_a =
-                    leading_edge_radius^2 -
-                    ((leading_edge_circle_center_x - x[i]) / cos_theta_initial)^2
-                a = sqrt(rad_a)
-                x_upper[i] = x[i] - a * sin_theta[i]
-                x_lower[i] = x[i] + a * sin_theta[i]
-                y_upper_1 = x[i] * tan_theta[i] + a * cos_theta[i]
-                y_upper_2 = c[i] + t[i] * cos_theta[i]
-                y_lower_1 = x[i] * tan_theta[i] - a * cos_theta[i]
-                y_lower_2 = c[i] - t[i] * cos_theta[i]
-                if y_upper_1 >= y_upper_2
-                    y_upper[i] = y_upper_1
-                else
-                    y_upper[i] = y_upper_2
-                end
-                if y_lower_1 <= y_lower_2
-                    y_lower[i] = y_lower_1
-                else
-                    y_lower[i] = y_lower_2
-                end
-                transition_index = i
+    for i in 1:N
+        if x[i] < 0.005
+            tan_theta[i] = tan_theta_initial
+            sin_theta[i] = sin_theta_initial
+            cos_theta[i] = cos_theta_initial
+            c[i] = computed_camber_line(a, clo, x[i])
+            t[i], nil = thickness65(series_number, x[i])
+            rad_a =
+                leading_edge_radius^2 -
+                ((leading_edge_circle_center_x - x[i]) / cos_theta_initial)^2
+            alpha = sqrt(rad_a)
+            x_upper[i] = x[i] - alpha * sin_theta[i]
+            x_lower[i] = x[i] + alpha * sin_theta[i]
+            y_upper_1 = x[i] * tan_theta[i] + alpha * cos_theta[i]
+            y_upper_2 = c[i] + t[i] * cos_theta[i]
+            y_lower_1 = x[i] * tan_theta[i] - alpha * cos_theta[i]
+            y_lower_2 = c[i] - t[i] * cos_theta[i]
+            if y_upper_1 >= y_upper_2
+                y_upper[i] = y_upper_1
+            elseif x[i] < 0.005 / 4
+                y_upper[i] = y_upper_1
             else
-                if x[i] != 1.0
-                    tan_theta[i], sin_theta[i], cos_theta[i] = slopes65(x[i], clo, a)
-                    c[i] = camber_line(a, clo, x[i])
-                    t[i], nil = thickness_coordinates(series_number, x[i])
-                else
-                    c[i] = 0.0
-                    t[i] = 0.0
-                end
-                x_upper[i] = x[i] - t[i] * sin_theta[i]
-                y_upper[i] = c[i] + t[i] * cos_theta[i]
-                x_lower[i] = x[i] + t[i] * sin_theta[i]
-                y_lower[i] = c[i] - t[i] * cos_theta[i]
+                y_upper[i] = y_upper_2
             end
-        end
-
-        if split
-            return reverse(x_lower), x_upper, reverse(y_lower), y_upper
+            if y_lower_1 <= y_lower_2
+                y_lower[i] = y_lower_1
+            else
+                y_lower[i] = y_lower_2
+            end
+            transition_index = i
         else
-            return [reverse(x_lower); x_upper[2:end]], [reverse(y_lower); y_upper[2:end]]
+            if x[i] != 1.0
+                tan_theta[i], sin_theta[i], cos_theta[i] = slopes65(x[i], clo, a)
+                c[i] = computed_camber_line(a, clo, x[i])
+                t[i], nil = thickness65(series_number, x[i])
+            else
+                c[i] = 0.0
+                t[i] = 0.0
+            end
+            x_upper[i] = x[i] - t[i] * sin_theta[i]
+            y_upper[i] = c[i] + t[i] * cos_theta[i]
+            x_lower[i] = x[i] + t[i] * sin_theta[i]
+            y_lower[i] = c[i] - t[i] * cos_theta[i]
         end
+    end
+    #perform extra blending at the leading edge - good for many points aka >300ish points
+    if extra_blending == true
+        smoothing_interval_top = 3 #number of points that will be linearly interpolated as the leading edge circle transitions to the rest of the airfoil - this should ideally be as small as possible
+        i1 = transition_index - round(Int, smoothing_interval_top / 2)
+        i2 = transition_index + (smoothing_interval_top - round(Int, smoothing_interval_top / 2))
+        slope_upper = (y_upper[i2] - y_upper[i1]) / (x_upper[i2] - x_upper[i1])
+        for i = i1:i2 
+            y_upper[i] = slope_upper*(x_upper[i] - x_upper[i2]) + y_upper[i2]
+        end
+        smoothing_interval_bottom = 10 #feel free to adjust this value to get a better blend - each airfoil you kinda have to play around with when you add lots of points
+        i1 = transition_index - round(Int, smoothing_interval_bottom / 2)
+        i2 = transition_index + (smoothing_interval_top - round(Int, smoothing_interval_top / 2))
+        slope_lower = (y_lower[i2] - y_lower[i1]) / (x_lower[i2] - x_lower[i1])
+        for i = i1:i2
+            y_lower[i] = slope_lower*(x_lower[i] - x_lower[i2]) + y_lower[i2]
+        end
+    end
+    if split
+        return reverse(x_lower), x_upper, reverse(y_lower), y_upper
+    else
+        return [reverse(x_lower[2:end]); x_upper[2:end]], [reverse(y_lower[2:end]); y_upper[2:end]]
     end
 end
 
@@ -422,7 +450,7 @@ Cambered blade sections are obtained by applying the thickness perpendicular to 
 In the designation the camber is given by the first number after the dash in tenths of cl_o.
 For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for cl_o = 0.8 and cl_o = 1.2, respectively.
 """
-function naca65_scaled(clo; method="scaled", N=161, x=nothing, split=false, smoothed_leading_edge=true, extra_blending = false)
+function naca65_scaled(clo; N=161, x=nothing, split=false, extra_blending = false)
 
     # get x coordinates
     N = Int(ceil(N / 2))
@@ -431,7 +459,7 @@ function naca65_scaled(clo; method="scaled", N=161, x=nothing, split=false, smoo
     end
 
     leading_edge_radius = 0.666*10^(-2)
-    theta_initial = slopes65c(clo, 0.005)
+    theta_initial = scaled_slope(clo, 0.005)
     cos_theta_initial = cos(theta_initial)
     leading_edge_circle_center_x = leading_edge_radius * cos_theta_initial
     x = linear_transform(
@@ -440,108 +468,83 @@ function naca65_scaled(clo; method="scaled", N=161, x=nothing, split=false, smoo
         x,
     )
 
-    t = thickness65c(x; method=method)
-    c = camber65c(clo, x)
-    s = slopes65c(clo, x)
+    #define output vectors
+    y_upper = similar(x) .= 0.0
+    y_lower = similar(x) .= 0.0
+    x_upper = similar(x) .= 0.0
+    x_lower = similar(x) .= 0.0
 
-    if !smoothed_leading_edge
+    cos_theta = similar(x) .= 0.0
+    sin_theta = similar(x) .= 0.0
+    tan_theta = similar(x) .= 0.0
+    c = similar(x) .= 0.0
+    t = similar(x) .= 0.0
+    transition_index = 1
 
-        #y-positions at chordwise stations
-        yl = c .- t
-        yu = c .+ t
-
-        if split
-            return reverse(x), x, reverse(yl), yu
-        else
-            return [reverse(x); x[2:end]], [reverse(yl); yu[2:end]]
-        end
-
-    else
-
-        #define output vectors
-        y_upper = similar(x) .= 0.0
-        y_lower = similar(x) .= 0.0
-        x_upper = similar(x) .= 0.0
-        x_lower = similar(x) .= 0.0
-
-        cos_theta = cos.(s)
-        sin_theta = sin.(s)
-        tan_theta = tan.(s)
-        transition_index = 1
-
-        for i in 1:N
-            if x[i] < 0.005
-                c[i] = camber65c(clo, 0.005)
-                tan_theta[i] = tan(theta_initial)
-                sin_theta[i] = sin(theta_initial)
-                cos_theta[i] = cos(theta_initial)
-                rad_a =
-                    leading_edge_radius^2 -
-                    ((leading_edge_circle_center_x - x[i]) / cos_theta[i])^2
-                a = sqrt(rad_a)
-                x_upper[i] = x[i] - a * sin_theta[i]
-                x_lower[i] = x[i] + a * sin_theta[i]
-                y_upper_1 = x[i] * tan_theta[i] + a * cos_theta[i]
-                y_upper_2 = c[i] + t[i] * cos_theta[i]
-                y_lower_1 = x[i] * tan_theta[i] - a * cos_theta[i]
-                y_lower_2 = c[i] - t[i] * cos_theta[i]
-                if y_upper_1 >= y_upper_2
-                    y_upper[i] = y_upper_1
-                elseif x[i] < 0.005 / 4
-                    y_upper[i] = y_upper_1
-                else
-                    y_upper[i] = y_upper_2
-                end
-                if y_lower_1 <= y_lower_2
-                    y_lower[i] = y_lower_1
-                else
-                    y_lower[i] = y_lower_2
-                end
-                transition_index = i
+    for i in 1:N
+        if x[i] < 0.005
+            c[i] = scaled_camber(clo, 0.005)
+            t[i] = scaled_thickness(x[i])
+            tan_theta[i] = tan(theta_initial)
+            sin_theta[i] = sin(theta_initial)
+            cos_theta[i] = cos(theta_initial)
+            rad_a =
+                leading_edge_radius^2 -
+                ((leading_edge_circle_center_x - x[i]) / cos_theta[i])^2
+            a = sqrt(rad_a)
+            x_upper[i] = x[i] - a * sin_theta[i]
+            x_lower[i] = x[i] + a * sin_theta[i]
+            y_upper_1 = x[i] * tan_theta[i] + a * cos_theta[i]
+            y_upper_2 = c[i] + t[i] * cos_theta[i]
+            y_lower_1 = x[i] * tan_theta[i] - a * cos_theta[i]
+            y_lower_2 = c[i] - t[i] * cos_theta[i]
+            if y_upper_1 >= y_upper_2
+                y_upper[i] = y_upper_1
+            elseif x[i] < 0.005 / 4
+                y_upper[i] = y_upper_1
             else
-                x_upper[i] = x[i] - t[i] * sin_theta[i]
-                y_upper[i] = c[i] + t[i] * cos_theta[i]
-                x_lower[i] = x[i] + t[i] * sin_theta[i]
-                y_lower[i] = c[i] - t[i] * cos_theta[i]
+                y_upper[i] = y_upper_2
             end
-        end
-            #perform smoothing
-        if extra_blending == true
-            smoothing_interval_top = 3 #number of points that will be linearly interpolated as the leading edge circle transitions to the rest of the airfoil - this should ideally be as small as possible
-            i1 = transition_index - round(Int, smoothing_interval_top / 2)
-            i2 = transition_index + (smoothing_interval_top - round(Int, smoothing_interval_top / 2))
-            slope_upper = (y_upper[i2] - y_upper[i1]) / (x_upper[i2] - x_upper[i1])
-            for i = i1:i2 
-                y_upper[i] = slope_upper*(x_upper[i] - x_upper[i2]) + y_upper[i2]
+            if y_lower_1 <= y_lower_2
+                y_lower[i] = y_lower_1
+            else
+                y_lower[i] = y_lower_2
             end
-            smoothing_interval_bottom = 7
-            i1 = transition_index - round(Int, smoothing_interval_bottom / 2)
-            i2 = transition_index + (smoothing_interval_top - round(Int, smoothing_interval_top / 2))
-            slope_lower = (y_lower[i2] - y_lower[i1]) / (x_lower[i2] - x_lower[i1])
-            for i = i1:i2
-                y_lower[i] = slope_lower*(x_lower[i] - x_lower[i2]) + y_lower[i2]
-            end
-        end
-
-        if split
-            return reverse(x_lower), x_upper, reverse(y_lower), y_upper
+            transition_index = i
         else
-            return [reverse(x_lower); x_upper[2:end]], [reverse(y_lower); y_upper[2:end]]
+            sin_theta[i] = sin(scaled_slope(clo, x[i]))
+            cos_theta[i] = cos(scaled_slope(clo, x[i]))
+            tan_theta[i] = tan(scaled_slope(clo, x[i]))
+            c[i] = scaled_camber(clo, x[i])
+            t[i] = scaled_thickness(x[i])
+            x_upper[i] = x[i] - t[i] * sin_theta[i]
+            y_upper[i] = c[i] + t[i] * cos_theta[i]
+            x_lower[i] = x[i] + t[i] * sin_theta[i]
+            y_lower[i] = c[i] - t[i] * cos_theta[i]
         end
+    end
+        #perform smoothing
+    if extra_blending == true
+        smoothing_interval_top = 3 #number of points that will be linearly interpolated as the leading edge circle transitions to the rest of the airfoil - this should ideally be as small as possible
+        i1 = transition_index - round(Int, smoothing_interval_top / 2)
+        i2 = transition_index + (smoothing_interval_top - round(Int, smoothing_interval_top / 2))
+        slope_upper = (y_upper[i2] - y_upper[i1]) / (x_upper[i2] - x_upper[i1])
+        for i = i1:i2 
+            y_upper[i] = slope_upper*(x_upper[i] - x_upper[i2]) + y_upper[i2]
+        end
+        smoothing_interval_bottom = 7
+        i1 = transition_index - round(Int, smoothing_interval_bottom / 2)
+        i2 = transition_index + (smoothing_interval_top - round(Int, smoothing_interval_top / 2))
+        slope_lower = (y_lower[i2] - y_lower[i1]) / (x_lower[i2] - x_lower[i1])
+        for i = i1:i2
+            y_lower[i] = slope_lower*(x_lower[i] - x_lower[i2]) + y_lower[i2]
+        end
+    end
+
+    if split
+        return reverse(x_lower), x_upper, reverse(y_lower), y_upper
+    else
+        return [reverse(x_lower); x_upper[2:end]], [reverse(y_lower); y_upper[2:end]]
     end
 end
 
-function thickness_coordinates(
-    series_number,
-    xpt #value of x that the desired y_t is
-)
-    y_t = 0.0
-    leading_edge_radius = 0.0
-    if series_number == "3-018"
-        x = [0.0, 0.5, 0.75, 1.25, 2.5, 5.0, 7.5, 10, 15, 20, 25,30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].*10^(-2)
-        y = [0.0, 1.324, 1.599, 2.004, 2.728, 3.831, 4.701, 5.424, 6.568, 7.434, 8.093, 8.568, 8.868, 8.990, 8.916, 8.593, 8.045, 7.317, 6.450, 5.486, 4.456, 3.390, 2.325, 1.324, 0.492, 0.0].*10^(-2) 
-        leading_edge_radius = 1.92
-        y_t = FLOWMath.akima(x,y, xpt)
-    end
-    return y_t, leading_edge_radius
-end

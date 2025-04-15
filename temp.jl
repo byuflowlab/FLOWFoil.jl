@@ -10,8 +10,7 @@ cl_fig_30 = [0.15120659864412866, 0.33164844571495, 0.45534871678353084, 0.58702
 
 alpha_martensen =  alpha_fig_30
 cl_martensen = similar(alpha_martensen) .= 0.0
-x,y = naca65c(1.5, 1.92*10^-2, 1.0, "3-018")
-stagger_martensen = similar(alpha_martensen) .= 0.0
+x,y = naca65(1.2, 1.0, "3-018", N = 181, extra_blending=false)
 inflow_angle = 45.0
 solidity = 1.0
 plot(x,y, aspectratio=1)
