@@ -66,7 +66,6 @@ function post_process(
             W = Vinf * cos(flow_angles[a]) / cos(betainf)
             w_x = W * cos(betainf)
             w_y = W * sin(betainf)
-            gamma = w_x*gamma_u + w_y*gamma_v
 
             # - Calculate surface velocity - #
             tangential_velocities[m][:, a] = [
@@ -83,7 +82,8 @@ function post_process(
                     system_geometry.pitch *
                     (tan(flow_angles[a]) - tan(beta2)) *
                     cos(betainf) #Important: This equation assumes that the chord length is 1.0
-            else                lift_coefficients[m][a] =
+            else                
+                lift_coefficients[m][a] =
                     2.0 * (gamma_u * w_x + gamma_v * w_y) /
                     (W * calculate_chord(panel_geometry))
                 #=
