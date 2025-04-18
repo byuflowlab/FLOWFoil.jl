@@ -502,6 +502,19 @@ Both ordinates and slopes are scaled directly to obtain other cambers.
 Cambered blade sections are obtained by applying the thickness perpendicular to the mean line at stations laid out along the chord line.
 In the designation the camber is given by the first number after the dash in tenths of cl_o.
 For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for cl_o = 0.8 and cl_o = 1.2, respectively.
+
+This specific function plots the NACA 65-010 series which uses special mean line and thickness form coordinates. It scales those coordinates based on the cl_o value.
+# Arguments:
+- `clo::TF` : Design lift coefficient in tenths of chord. Usually first number after the 2nd dash (ie NACA 65-3-818 would input 0.8 for clo)
+
+# Keyword Arguments:
+- `x::Vector{TF} = nothing` : input x values if specificing x values manually
+- `split::Boolean = false` : if true, then the output will be split between top and bottom coordinates
+- `extra_blending::Boolean = false` : If desired number of points is large (> 300ish) then set to true and it will add some extra blending if desired. Note: This is generally not needed!
+
+# ouptuts:
+- `x::Vector{TF}` : x coordinates
+- `y::Vector{TF}` : y coordinates
 """
 function naca65_scaled(clo; N=161, x=nothing, split=false, extra_blending = false)
 
