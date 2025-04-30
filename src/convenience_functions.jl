@@ -5,6 +5,24 @@ Convenience functions wrapping problem, system, solution, and post processing st
 Authors: Judd Mehr,
 
 =#
+"""
+    outputs(cl, cd, cm, cp, vs)
+
+# Returns:
+- `outputs::Struct` : Struct with outputs.  Nominally contains
+  - `cl`: lift coefficient of each body
+  - `cd`: total drag coefficient of each body
+  - `cm`: moment coefficient of each body
+  - `cp`: pressure coefficient for each panel of each body
+  - `vs`: surface velocities on each body
+"""
+struct outputs{TF}
+    cl::Matrix{TF}
+    cd::Matrix{TF}
+    cm::Matrix{TF}
+    cp::Vector{Matrix{TF}}
+    vs::Vector{Matrix{TF}}
+end
 
 """
     analyze(coordinates, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
