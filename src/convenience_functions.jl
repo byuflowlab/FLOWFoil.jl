@@ -92,5 +92,6 @@ function analyze(
     strengths = solve(method, system_matrices)
 
     # Post Process Solution
-    return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+    sol = post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+    return outputs(sol.cl, sol.cd, sol.cm, sol.cp, sol.vs)
 end

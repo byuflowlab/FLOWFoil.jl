@@ -50,9 +50,9 @@ function post_process(
     cm = zeros(TF, nbodies, naoa)
 
     # Surface Velocities
-    tangential_velocities = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+    vs = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
     # Surface Pressures
-    surface_pressures = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+    cp = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
 
     ##### ----- Loop Through Bodies ----- #####
     for m in 1:nbodies
@@ -86,8 +86,8 @@ function post_process(
             cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
 
             # - Organize surface velocities and pressures - #
-            tangential_velocities[m][:, a] = vti
-            surface_pressures[m][:, a] = cpi
+            vs[m][:, a] = vti
+            cp[m][:, a] = cpi
 
             #---------------------------------#
             #      Calculate Coefficients     #
@@ -151,5 +151,5 @@ function post_process(
         end
     end
 
-    return (; cl, cd, cdp, cdi, cm, tangential_velocities, surface_pressures)
+    return (; cl, cd, cdp, cdi, cm, vs, cp)
 end

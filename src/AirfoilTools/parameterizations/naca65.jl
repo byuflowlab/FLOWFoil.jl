@@ -393,7 +393,7 @@ function naca65(clo, a, series_number; N=161, x=nothing, split=false, extra_blen
     # get x coordinates
     N = Int(ceil(N / 2))
     if isnothing(x)
-        x = cosine_spacing(N)
+        x = whole_cosine_spacing(N)
     end
     nil, leading_edge_radius = thickness65(series_number, 0.5)
     tan_theta_initial, sin_theta_initial, cos_theta_initial = slopes65(0.001, clo, a)
@@ -521,7 +521,7 @@ function naca65_scaled(clo; N=161, x=nothing, split=false, extra_blending = fals
     # get x coordinates
     N = Int(ceil(N / 2))
     if isnothing(x)
-        x = cosine_spacing(N)
+        x = whole_cosine_spacing(N)
     end
 
     leading_edge_radius = 0.666*10^(-2)
