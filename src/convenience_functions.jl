@@ -10,20 +10,21 @@ Authors: Judd Mehr,
 
 # Returns:
 - `outputs::Struct` : Struct with outputs.  Nominally contains
-  - `cl`: lift coefficient of each body
-  - `cd`: total drag coefficient of each body
-  - `cm`: moment coefficient of each body
-  - `cp`: pressure coefficient for each panel of each body
-  - `vs`: surface velocities on each body
+  - `vs`: surface velocities on each body, nominally a matrix, but becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
+  - `cp`: pressure coefficient for each panel of each body, becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
+  - `cl`: lift coefficient of each body, nominally a vector but becomes a vector of vectors in the multi-body case with dimensions [body][angle]
+  - `cd`: total drag coefficient of each body, becomes a vector of vectors in the multi-body case with dimensions [body][angle]
+  - `cm`: moment coefficient of each body, becomes a vector of vectors in the multi-body case with dimensions [body][angle]
 """
-struct outputs{TF}
-    cl::Matrix{TF}
-    cd::Matrix{TF}
-    cm::Matrix{TF}
-    cp::Vector{Matrix{TF}}
-    vs::Vector{Matrix{TF}}
+struct outputs{TM, TV}
+    vs::TM #nominally a matrix, but becomes a 3-d array in the multi-body case with dimensions angle x pressure x body
+    cp::TM
+    cl::TV #nominally a vector but becomes a matrix in the multi-body case with dimensions angle x body
+    cd::TV
+    cm::TV
 end
 
+y = Array{Float64, 3}(undef, 2,1,5)
 """
     analyze(coordinates, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
     analyze(x, y, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
@@ -93,5 +94,6 @@ function analyze(
 
     # Post Process Solution
     sol = post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
-    return outputs(sol.cl, sol.cd, sol.cm, sol.cp, sol.vs)
+    
+    return outputs(sol.vs, sol.cp, sol.cl, sol.cd, sol.cm)
 end

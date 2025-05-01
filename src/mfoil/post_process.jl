@@ -150,6 +150,26 @@ function post_process(
                 ]) / chord^2
         end
     end
+    if nbodies == 1
+        #if it is a single body, this reduces the need to use the body index
+        vs_new = zeros(nidx[1][end]-nidx[1][1]+1, naoa)
+        cp_new = zeros(nidx[1][end]-nidx[1][1]+1, naoa)
+        cl_new = zeros(naoa, 1)
+        cd_new = zeros(naoa, 1)
+        cm_new = zeros(naoa, 1)
 
-    return (; cl, cd, cdp, cdi, cm, vs, cp)
+        vs_new = vs[1][:,:]
+        cp_new = cp[1][:,:]
+        cl_new = cl[1,:]
+        cd_new = cd[1,:]
+        cm_new = cm[1,:]
+
+        vs = vs_new
+        cp = cp_new
+        cl = cl_new
+        cd = cd_new
+        cm = cm_new
+    end
+
+    return (; cl, cd, cdp, cdi, cm, vs, cp, nbodies)
 end

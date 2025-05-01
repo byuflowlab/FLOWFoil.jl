@@ -24,6 +24,7 @@ end
 x,y = naca65_scaled(1.2)
 x, y = close_te(x, y)
 =#
+
 naca4_parameters = NACA4(2.0, 4.0, 12.0, false)
 x,y = naca4(naca4_parameters)
 flow_angles = [-1.0, 0.0, 1.0]
