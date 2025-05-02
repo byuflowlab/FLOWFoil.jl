@@ -20,15 +20,18 @@ function close_te(x, y; n_smoothing=5)
     return x_closed, y_closed
 end
 
-#=
+
 x,y = naca65_scaled(1.2)
 x, y = close_te(x, y)
-=#
 
-naca4_parameters = NACA4(2.0, 4.0, 12.0, false)
-x,y = naca4(naca4_parameters)
+
+#naca4_parameters = NACA4(2.0, 4.0, 12.0, false)
+#x,y = naca4(naca4_parameters)
 flow_angles = [-1.0, 0.0, 1.0]
 reynolds = [1e6]
 machs = [0.0]
 method1 = Mfoil()
-sol = FLOWFoil.analyze(x,y, flow_angles, reynolds, machs, method = method1)
+method2 = FLOWFoil.Martensen(true, 1.0, 45.0, 10.0, false)
+#sol = FLOWFoil.analyze(x,y, flow_angles, reynolds, machs, method = method1)
+sol2 = FLOWFoil.analyze(x,y, flow_angles, method = method2)
+println(sol2.cl[3])

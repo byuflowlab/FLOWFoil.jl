@@ -24,7 +24,6 @@ struct outputs{TM, TV}
     cm::TV
 end
 
-y = Array{Float64, 3}(undef, 2,1,5)
 """
     analyze(coordinates, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
     analyze(x, y, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
