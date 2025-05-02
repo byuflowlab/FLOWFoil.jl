@@ -45,6 +45,5 @@ function solve_inviscid(method::Mfoil, system_matrices)
         # Just solve like normal
         x = ImplicitAD.implicit_linear(system_matrices.A, system_matrices.b)
     end
-
     return x
 end

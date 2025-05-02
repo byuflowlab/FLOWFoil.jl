@@ -12,9 +12,9 @@ Authors: Judd Mehr,
 - `outputs::Struct` : Struct with outputs.  Nominally contains
   - `vs`: surface velocities on each body, nominally a matrix, but becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
   - `cp`: pressure coefficient for each panel of each body, becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
-  - `cl`: lift coefficient of each body, nominally a vector but becomes a vector of vectors in the multi-body case with dimensions [body][angle]
-  - `cd`: total drag coefficient of each body, becomes a vector of vectors in the multi-body case with dimensions [body][angle]
-  - `cm`: moment coefficient of each body, becomes a vector of vectors in the multi-body case with dimensions [body][angle]
+  - `cl`: lift coefficient of each body, nominally a vector but becomes a matrix in the multi-body case with dimensions angle x body
+  - `cd`: total drag coefficient of each body, but becomes a matrix in the multi-body case with dimensions angle x body
+  - `cm`: moment coefficient of each body, but becomes a matrix in the multi-body case with dimensions angle x body
 """
 struct outputs{TM, TV}
     vs::TM #nominally a matrix, but becomes a 3-d array in the multi-body case with dimensions angle x pressure x body

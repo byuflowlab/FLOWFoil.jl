@@ -51,6 +51,7 @@ function post_process(
 
     # Surface Velocities
     vs = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+
     # Surface Pressures
     cp = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
 
@@ -170,6 +171,8 @@ function post_process(
         cd = cd_new
         cm = cm_new
     end
-
+    cl = cl'
+    cd = cd'
+    cm = cm'
     return (; cl, cd, cdp, cdi, cm, vs, cp, nbodies)
 end
