@@ -12,44 +12,41 @@ function post_process(
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
     nbodies = system_geometry.nbodies
-    naoa = length(flow_angles)
 
     # - Initialize Outputs - #
     TF = eltype(system_geometry.k2)
 
-    vs = [zeros(idx[m][end]-idx[m][1]+1, naoa) for m in 1:nbodies]
-    cp = [zeros(idx[m][end]-idx[m][1]+1, naoa) for m in 1:nbodies]
-    cl = [zeros(naoa, 1) for m in 1:nbodies]
-    cd = [zeros(naoa, 1) for m in 1:nbodies]
-    cm = [zeros(naoa, 1) for m in 1:nbodies]
+    vs = [zeros(idx[m][end]-idx[m][1]+1, 1) for m in 1:nbodies]
+    cp = [zeros(idx[m][end]-idx[m][1]+1, 1) for m in 1:nbodies]
+    cl = [0.0 for m in 1:nbodies]
+    cd = [0.0 for m in 1:nbodies]
+    cm = [0.0 for m in 1:nbodies]
 
     for m in 1:nbodies
-        for a = 1:naoa
-            # - Extract surface velocity - #
-            #= Note that we here assume that we are using the subtractive method for the kutta conditions, requiring us to recover the strengths value for the last panel (trailing edge upper side).  We also assume here that the indexing starts at the lower side trailing edge and proceeds clockwise back to the upper side trailing edge.  Otherwise, not only will the solver not have worked, there will also be an indexing error here
-            =#
-            vs[m][:, a] = [
-                strengths[idx[m][1:(end - 1)], a]
-                -strengths[idx[m][1], a]
-            ]
+        # - Extract surface velocity - #
+        #= Note that we here assume that we are using the subtractive method for the kutta conditions, requiring us to recover the strengths value for the last panel (trailing edge upper side).  We also assume here that the indexing starts at the lower side trailing edge and proceeds clockwise back to the upper side trailing edge.  Otherwise, not only will the solver not have worked, there will also be an indexing error here
+        =#
+        vs[m][:, 1] = [
+            strengths[idx[m][1:(end - 1)]]
+            -strengths[idx[m][1]]
+        ]
 
-            # - Calculate surface pressure - #
-            cp[m][:, a] = 1.0 .- (vs[m][:, a]) .^ 2
-        end
+        # - Calculate surface pressure - #
+        cp[m][:, 1] = 1.0 .- (vs[m][:, 1]) .^ 2
     end
     if nbodies == 1
         #if it is a single body, this reduces the need to use the body index
-        vs_new = zeros(nidx[1][end]-nidx[1][1]+1, naoa)
-        cp_new = zeros(nidx[1][end]-nidx[1][1]+1, naoa)
-        cl_new = zeros(naoa, 1)
-        cd_new = zeros(naoa, 1)
-        cm_new = zeros(naoa, 1)
+        vs_new = zeros(idx[1][end]-idx[1][1]+1, 1)
+        cp_new = zeros(idx[1][end]-idx[1][1]+1, 1)
+        cl_new = 0.0
+        cd_new = 0.0
+        cm_new = 0.0
 
         vs_new = vs[1][:,:]
         cp_new = cp[1][:,:]
-        cl_new = cl[1,:]
-        cd_new = cd[1,:]
-        cm_new = cm[1,:]
+        cl_new = cl[1]
+        cd_new = cd[1]
+        cm_new = cm[1]
 
         vs = vs_new
         cp = cp_new

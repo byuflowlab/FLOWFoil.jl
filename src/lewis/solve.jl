@@ -1,5 +1,5 @@
 function solve(::Lewis, system_matrices)
-
+    #=
     # # Solve System
     if ndims(system_matrices.b) > 1
         # initialize output
@@ -19,4 +19,6 @@ function solve(::Lewis, system_matrices)
     end
 
     return x
+    =#
+    return ImplicitAD.linear_solve(system_matrices.A, system_matrices.b)
 end
