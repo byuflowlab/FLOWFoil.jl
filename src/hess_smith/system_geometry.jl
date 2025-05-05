@@ -45,6 +45,9 @@ function generate_system_geometry(method::HessSmith, panel_geometry::AbstractVec
     # needed distance
     r_influence = zeros(TF, (total_panels, total_panels+1))
 
+    #chord length
+    chord_length = calculate_chord(panel_geometry)
+
     system_geometry = (;
         nbodies,
         panel_indices,
@@ -55,7 +58,8 @@ function generate_system_geometry(method::HessSmith, panel_geometry::AbstractVec
         r_x,
         r_y,
         r_squared,
-        r_influence
+        r_influence,
+        chord_length
     )
 
     return generate_system_geometry!(method, system_geometry, panel_geometry)
@@ -73,7 +77,6 @@ function generate_system_geometry!(
             ### --- Loop through panel_geometry --- ###
             for i in panel_indices[m]
                 for j in 1:length(panel_indices[m])+1
-
                     # Get x-locations of influencing and influenced panel_geometry
                     xi_control = panel_geometry[m].panel_center[mesh2panel[i], 1]
                     xj_field = panel_geometry[n].x[j]
@@ -90,7 +93,6 @@ function generate_system_geometry!(
                 end
 
                 for j in panel_indices[m]
-
                     # Calculate the difference in sine and cos for each panel
                     sine_angle_panels[i, j] = panel_geometry[m].sine_vector[i] * panel_geometry[n].cosine_vector[j] - panel_geometry[m].cosine_vector[i] * panel_geometry[n].sine_vector[j]
                     cos_angle_panels[i, j] = panel_geometry[m].cosine_vector[i] * panel_geometry[n].cosine_vector[j] + panel_geometry[m].sine_vector[i] * panel_geometry[n].sine_vector[j]

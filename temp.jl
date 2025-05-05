@@ -31,7 +31,7 @@ x2, y2 = naca4(naca4_parameters2, N = num_points)
 x3,y3 = naca4(naca4_parameters3, N = num_points)
 
 #linear transform for body 1 ### only for Lewis case
-y = y .+ 1.0
+#y = y .+ 1.0
 
 #linear transform for body 2
 theta = 20
@@ -41,7 +41,7 @@ x2 = x2.*0.5
 y2 = y2.*0.5
 x2 = x2 .+ 1.0
 y2 = y2 .- 0.05
-y2 = y2 .+ 1.0
+#y2 = y2 .+ 1.0 ##only use this line for lewis
 
 #linear transform for body 3
 theta2 = 20
@@ -64,7 +64,8 @@ flow_angles_lewis = [0.0]
 method1 = Mfoil(false)
 method2 = FLOWFoil.Martensen(false, 0.001, 0.0, 10.0, false)
 method3 = FLOWFoil.Lewis([false])
-sol = FLOWFoil.analyze(coordinates, flow_angles_lewis, method = method3)
+method4 = FLOWFoil.HessSmith(1.0)
+sol = FLOWFoil.analyze(x,y, flow_angles, method = method4)
 println(sol.cl)
 
 

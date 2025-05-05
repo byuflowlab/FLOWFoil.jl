@@ -39,7 +39,6 @@ function post_process(
         # vortex strengths per unit length
         gamma0 = [strengths[idx[m][1:(end - 1)]  .- nbodies*(m-1), 1]; -strengths[idx[m][1] .- nbodies*(m-1) + 1, 1]]
         gamma90 = [strengths[idx[m][1:(end - 1)] .- nbodies*(m-1), 2]; -strengths[idx[m][1] .- nbodies*(m-1) + 1, 2]]
-        println(size(gamma0))
 
         # total circulation
         gamma_u = dot(panel_geometry[m].panel_length, gamma0)
@@ -106,9 +105,9 @@ function post_process(
         #if it is a single body, this reduces the need to use the body index
         vs_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
         cp_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
-        cl_new = zeros(naoa, 1)
-        cd_new = zeros(naoa, 1)
-        cm_new = zeros(naoa, 1)
+        cl_new = Array{TF}(undef, naoa) .= 0.0
+        cd_new = similar(cl_new) .= 0.0
+        cm_new = similar(cl_new) .= 0.0
 
         vs_new[:,:] = vs[1][:,:]
         cp_new[:,:] = cp[1][:,:]

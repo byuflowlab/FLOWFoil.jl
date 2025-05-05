@@ -88,8 +88,13 @@ function assemble_b_matrix(panel_geometry, system_geometry)   ### --- SETUP --- 
     # ### --- Loop through bodies --- ###
     for m in 1:nbodies
         for n in 1:nbodies
+            N = idx[m][end]
             for i in 1:N
-                bmat[i, :] = [panel_geometry[m].sine_vector[i]; -panel_geometry[m].cosine_vector[i]]
+                panel_index_i = i
+                if m > 1 #this is added to call the correct panel for the periodic vortex influence - which doesn't account for the multiple bodies
+                    panel_index_i = i - panel_indices[m - 1][end]
+                end
+                bmat[i, :] = [panel_geometry[m].sine_vector[panel_index_i]; -panel_geometry[m].cosine_vector[panel_index_i]]
             end
             
             bmat[end, :] = [-(panel_geometry[m].cosine_vector[1] + panel_geometry[m].cosine_vector[end]); -(panel_geometry[m].sine_vector[1] + panel_geometry[m].sine_vector[end])]

@@ -24,6 +24,7 @@ function generate_panel_geometry(method::HessSmith, coordinates::AbstractMatrix{
         panel_center=zeros(TF, npanels, 2),
         panel_length=zeros(TF, npanels),
         panel_angle=zeros(TF, npanels),
+        panel_vectors=zeros(TF, npanels, 2),
         sine_vector=zeros(TF, npanels),
         cosine_vector=zeros(TF, npanels),
     )
@@ -64,6 +65,10 @@ function generate_panel_geometry!(
         sine_vector[i] = (y[i + 1] - y[i]) / panel_length[i]
         cosine_vector[i] = (x[i + 1] - x[i]) / panel_length[i]
         panel_angle[i] = asind(sine_vector[i])
+        
+        #Calculate Panel Vectors
+        panel_geometry.panel_vectors[i, :] = [x[i + 1] - x[i]; y[i + 1] - y[i]]
+       
     end
 
     # - Return Panel Object - #
