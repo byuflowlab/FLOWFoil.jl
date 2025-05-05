@@ -24,23 +24,75 @@ end
 #x, y = close_te(x, y)
 naca4_parameters = NACA4(2.0, 5.0, 12.0, false)
 naca4_parameters2 = NACA4(0.0, 0.0, 16.0, false)
-x,y = naca4(naca4_parameters, N = 161)
-x2, y2 = naca4(naca4_parameters2, N = 161)
-theta = 30
+naca4_parameters3 = NACA4(1.0, 4.0, 12.0, false)
+num_points = 161
+x,y = naca4(naca4_parameters, N = num_points)
+x2, y2 = naca4(naca4_parameters2, N = num_points)
+x3,y3 = naca4(naca4_parameters3, N = num_points)
+
+#linear transform for body 1 ### only for Lewis case
+y = y .+ 1.0
+
+#linear transform for body 2
+theta = 20
 x2 = x2.*cosd(theta) .+ y2.*sind(theta)
 y2 = -x2.*sind(theta) .+ y2.*cosd(theta)
 x2 = x2.*0.5
 y2 = y2.*0.5
 x2 = x2 .+ 1.0
 y2 = y2 .- 0.05
+y2 = y2 .+ 1.0
+
+#linear transform for body 3
+theta2 = 20
+x3 = x3.*cosd(theta2) .+ y3.*sind(theta2)
+y3 = -x3.*sind(theta2) .+ y3.*cosd(theta2)
+x3 = x3.*0.25
+y3 = y3.*0.25
+x3 = x3 .+ 1.5
+y3 = y3 .- 0.25
+
+#compile vectors into tuple
 a = [x y]
 b = [x2 y2]
+c = [x3 y3]
 coordinates = (a, b)
+
+
 flow_angles = [-1.0, 0.0, 1.0]
+flow_angles_lewis = [0.0]
 method1 = Mfoil(false)
-method2 = FLOWFoil.Martensen(true, 0.0001, 0.0, 10.0, false)
+method2 = FLOWFoil.Martensen(false, 0.001, 0.0, 10.0, false)
 method3 = FLOWFoil.Lewis([false])
-#plot(x,y, aspectratio = 1)
-#plot!(x2, y2)
-sol = FLOWFoil.analyze(coordinates, flow_angles, method = method2)
+sol = FLOWFoil.analyze(coordinates, flow_angles_lewis, method = method3)
 println(sol.cl)
+
+
+##### Plots ###########################
+
+#plot multi body case
+#=
+plot(x,y, aspectratio = 1, label = "Body 1", grid = false)
+plot!(x2, y2, label = "Body 2")
+plot!(x3, y3, label = "Body 3")
+=#
+
+
+##Martensen Grid Convergence Study - multibody
+#=
+cl_body_1 = [0.5078, 0.3171, 0.2936, 0.2686, 0.2615]
+cl_body_2 = [-0.0424,-0.0264, -0.02396, -00.0213, -0.02057]
+num_points_vector = [161, 362, 500, 1000, 1500]
+plot(num_points_vector, cl_body_1, grid = false, label = "Body 1", xlabel = "Number of Points", ylabel = "Cl")
+plot!(num_points_vector, cl_body_2, label = "Body 2")
+=#
+
+#MFoil Grid Convergence Study - multibody
+#=
+cl_body_1 = [-2.0704, -2.1634, -10.4414, -4.1817, -1.8214]
+cl_body_2 = [3.8753, 0.9787, 116.454, -1.1943, -1.5972]
+num_points_vector = [161, 362, 500, 1000, 1500]
+plot(num_points_vector, cl_body_1, grid = false, label = "Body 1", xlabel = "Number of Points", ylabel = "Cl", ylims=(-5.0,5.0))
+plot!(num_points_vector, cl_body_2, label = "Body 2")
+=#
+###################################################3

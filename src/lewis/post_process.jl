@@ -18,9 +18,9 @@ function post_process(
 
     vs = [zeros(idx[m][end]-idx[m][1]+1, 1) for m in 1:nbodies]
     cp = [zeros(idx[m][end]-idx[m][1]+1, 1) for m in 1:nbodies]
-    cl = [0.0 for m in 1:nbodies]
-    cd = [0.0 for m in 1:nbodies]
-    cm = [0.0 for m in 1:nbodies]
+    cl = zeros(1, nbodies)
+    cd = zeros(1, nbodies)
+    cm = zeros(1, nbodies)
 
     for m in 1:nbodies
         # - Extract surface velocity - #
