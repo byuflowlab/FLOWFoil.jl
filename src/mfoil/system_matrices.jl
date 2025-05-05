@@ -47,7 +47,7 @@ function assemble_influence_matrix(method::Mfoil, system_geometry)
             for i in nidx[m]
                 for j in pidx[n]
                     aij, aijp1 = calculate_linear_vortex_influence(system_geometry, i, j)
-
+                    
                     # add coefficients to matrix at correct nodes
                     if j == 1
                         amat[i, j + n - 1] = aij

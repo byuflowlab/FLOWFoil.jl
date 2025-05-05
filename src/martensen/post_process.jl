@@ -30,15 +30,15 @@ function post_process(
     cp = [
         zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies
     ]
-    cl = [zeros(naoa, 1) for m in 1:nbodies]
-    cd = [zeros(naoa, 1) for m in 1:nbodies]
-    cm = [zeros(naoa, 1) for m in 1:nbodies]
+
+    cl = zeros(naoa, nbodies)
+    cd = zeros(naoa, nbodies)
+    cm = zeros(naoa, nbodies)
 
     for m in 1:nbodies
-
         # vortex strengths per unit length
-        gamma0 = [strengths[idx[m][1:(end - 1)], 1]; -strengths[idx[m][1], 1]]
-        gamma90 = [strengths[idx[m][1:(end - 1)], 2]; -strengths[idx[m][1], 2]]
+        gamma0 = [strengths[idx[m][1:(end - 1)]  .- nbodies*(m-1), 1]; -strengths[idx[m][1] .- nbodies*(m-1) + 1, 1]]
+        gamma90 = [strengths[idx[m][1:(end - 1)] .- nbodies*(m-1), 2]; -strengths[idx[m][1] .- nbodies*(m-1) + 1, 2]]
 
         # total circulation
         gamma_u = dot(panel_geometry[m].panel_length, gamma0)
@@ -70,22 +70,28 @@ function post_process(
             w_y = W * sin(betainf)
 
             # - Calculate surface velocity - #
-            vs[m][:, a] = [
-                (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m]
-            ]
+            if m == 1
+                vs[m][:, a] = [
+                    (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m]
+                ]
+            else
+                vs[m][:, a] = [
+                    (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m] .- idx[m-1][end]
+                ]
+            end
 
             # - Calculate surface pressure - #
             cp[m][:, a] = 1.0 .- vs[m][:, a] .^ 2
 
             #compute cascade lift if cascade model is true, else use planar lift
             if method.cascade
-                cl[m][a] =
+                cl[a,m] =
                     2.0 *
                     system_geometry.pitch *
                     (tan(flow_angles[a]) - tan(beta2)) *
                     cos(betainf) #Important: This equation assumes that the chord length is 1.0
             else                
-                cl[m][a] =
+                cl[a,m] =
                     2.0 * (gamma_u * w_x + gamma_v * w_y) /
                     (W * calculate_chord(panel_geometry))
                 #=
