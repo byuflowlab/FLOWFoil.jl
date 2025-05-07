@@ -38,21 +38,15 @@ function post_process(
         #if it is a single body, this reduces the need to use the body index
         vs_new = zeros(idx[1][end]-idx[1][1]+1, 1)
         cp_new = zeros(idx[1][end]-idx[1][1]+1, 1)
-        cl_new = 0.0
-        cd_new = 0.0
-        cm_new = 0.0
 
         vs_new = vs[1][:,:]
         cp_new = cp[1][:,:]
-        cl_new = cl[1]
-        cd_new = cd[1]
-        cm_new = cm[1]
 
         vs = vs_new
         cp = cp_new
-        cl = cl_new
-        cd = cd_new
-        cm = cm_new
+        cl = cl[1]
+        cd = cd[1]
+        cm = cm[1]
     end
 
     return (; vs, cp, cl, cd, cm)

@@ -106,23 +106,15 @@ function post_process(
         #if it is a single body, this reduces the need to use the body index
         vs_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
         cp_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
-        cl_new = Array{TF}(undef, naoa) .= 0.0
-        cd_new = similar(cl_new) .= 0.0
-        cm_new = similar(cl_new) .= 0.0
 
         vs_new[:,:] = vs[1][:,:]
         cp_new[:,:] = cp[1][:,:]
-        for i = 1:naoa
-            cl_new[i] = cl[i,1]
-            cd_new[i] = cd[i,1]
-            cm_new[i] = cm[i,1]
-        end
 
         vs = vs_new
         cp = cp_new
-        cl = cl_new
-        cd = cd_new
-        cm = cm_new
+        cl = cl[:]
+        cd = cd[:]
+        cm = cm[:]
     end
     return (; vs, cp, cl, cd, cm)
 end
