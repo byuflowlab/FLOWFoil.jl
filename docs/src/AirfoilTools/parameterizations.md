@@ -37,6 +37,29 @@ For a given set of x,z coordinates a best-fit NACA 4-series airfoil can be found
 AirfoilTools.determine_naca4
 ```
 
+## NACA 65-series
+
+For a given set of x,z coordinates a best-fit regular NACA 65-series airfoil can be found with the standard airfoil convention given from ["NACA Report No 824 Summary of Airfoil Data" by  Ira H. Abbott, Albert E. Von Doenhoff, and Louis S. Stivers, Jr. ] (https://ntrs.nasa.gov/citations/19930090976) using
+
+```@docs
+AirfoilTools.naca65
+```
+
+```@example naca65_unscaled
+using FLOWFoil
+
+#define design lift coefficient
+clo = 1.0
+
+#define mean line designation
+a = 1.0
+
+#define series number
+series_number = "3-018"
+
+x,y = AirfoilTools.naca65(clo, a, series_number)
+```
+
 ------------------------------------------------------------------------------------------
 
 ## Conformal Mapping

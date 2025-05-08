@@ -3,7 +3,7 @@
 ## Mfoil: Single inviscid airfoil comparision to analytic solution
 
 TODO: add comparison with Joukowsky airfoil used in XFoil paper:
-```julia
+```@example Joukowsky
 using FLOWFoil
 
 center = [-0.1; 0.1]
