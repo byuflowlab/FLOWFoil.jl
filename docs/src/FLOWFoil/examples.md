@@ -129,4 +129,33 @@ plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.cp[1
 
 Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.
 
+## Airfoil Cascade
 
+For this example, we use data from chapter 2 of ["Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems" by  R. I. Lewis] (https://doi.org/10.1017/CBO9780511529542)
+
+```@example cascade
+using FLOWFoil
+
+#this file contains the coordinates of the C4/70C50 airfoil as defined by lewis as well as the values of the pressure coefficient
+bor_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "test","data", "chapter2_lewis_validation.jl"))
+include(bor_path)
+
+#previously defined coordinates in chapter2_lewis_validation.jl
+coordinates = [x y]
+
+#define Martensen method parameters
+cascade = true
+solidity = 1.0 / 0.900364
+stagger = 0.0
+transition_value = 1e-4
+curvature_correction = false
+
+#setup Martensen method
+method = Martensen(cascade, solidity, stagger, transition_value, curvature_correction)
+
+#define flow angles (angles of attack) - in this case the angles of attack = the inflow angles hence why stagger is 0
+flow_angles = [-35.0, 35.0]
+
+#solve for outputs
+outputs = analyze(coordinates, flow_angles; method = method)
+```
