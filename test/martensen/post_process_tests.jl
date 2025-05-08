@@ -1,9 +1,9 @@
 @testset "Post Processing Tests" begin
 
     # - Very Basic Test - #
-    naca4_parameters = NACA4(2.0, 5.0, 12.0, false)
+    naca4_parameters = AirfoilTools.NACA4(2.0, 5.0, 12.0, false)
     num_points = 161
-    x,y = naca4(naca4_parameters, N = num_points)
+    x,y = AirfoilTools.naca4(naca4_parameters, N = num_points)
     coordinates = [x y]
     method1 = Martensen(false, 0.0, 0.0, 10.0, false) #planar method
     method2 = Martensen(true, 1.0, 0.0, 10.0, false) #cascade method with solidity of 1.0
