@@ -17,12 +17,19 @@ Currently, this method only includes the inviscid parts of Xfoil/Mfoil.
 ```@example Mfoil
 using FLOWFoil
 
+#setup x and y coordinates for the airfoil
 x, y = AirfoilTools.naca4()
 
+#create a range of angles of attack
 angles_of_attack = range(-5.0, 15.0, step=1)
+
+#solve for invsicid case
 viscous = false
+
+#set up Mfoil method
 method = Mfoil(viscous)
 
+#solve for outputs
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
@@ -37,8 +44,7 @@ FLOWFoil.Lewis
 ```@example lewis
 using FLOWFoil
 
-# - DUCT - #
-
+#setup airfoil coordinates
 x, r = AirfoilTools.naca4()
 
 # give the duct some diameter
@@ -66,18 +72,31 @@ FLOWFoil.Martensen
 ```@example martensen
 using FLOWFoil
 
-# - DUCT - #
-
+#setup airfoil coordinates
 x, y = AirfoilTools.naca4(6,4,12)
 
+#specify range of angle of attack
 inflow_angles = range(-5.0, 15.0, step=1)
+
+#solve for airfoil cascade
 cascade = true
+
+#setup solidity - only important in cascade case. If cascade = false, then value of solidity will not effect the outputs
 solidity = 1.0
-stagger = 45.0
-transition_value = 10.0
+
+#setup airfoil stagger (inflow angle minus angle of attack). When in doubt set this to 0.0
+stagger = 0.0
+
+#Value of solidity that the cascade method will transition to solving using the planar method (ie single airfoil instead of a cascade). In this case it is used for blending the cascade solution and planar solution together when the solidity is close to the transition value. When in doubt set this to 1e-4.
+transition_value = 0.0001
+
+#curvature correction is currently not working, always set to false
 curvature_correction = false
+
+#specify Martensen method
 method = Martensen(cascade,solidity,stagger, transition_value, curvature_correction)
 
+#solve for outputs
 outputs = analyze(x, y, inflow_angles; method=method)
 ```
 
@@ -92,13 +111,18 @@ FLOWFoil.HessSmith
 ```@example HessSmith
 using FLOWFoil
 
-# - DUCT - #
-
+#specify airfoil coordinates
 x, y = AirfoilTools.naca4(6,4,12)
 
+#specify range of angle of attack
 angles_of_attack = range(-5.0, 15.0, step=1)
-Vinf = 1.0
-method = HessSmith(Vinf)
 
+#specify magnitude of the free stream velocity
+vinf = 1.0
+
+#specify HessSmith method
+method = HessSmith(vinf)
+
+#solve for outputs
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
