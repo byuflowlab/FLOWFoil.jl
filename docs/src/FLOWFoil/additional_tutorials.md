@@ -14,16 +14,16 @@ FLOWFoil.Mfoil
 Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results.
 Currently, this method only includes the inviscid parts of Xfoil/Mfoil.
 
-```@julia
+```@example Mfoil
 using FLOWFoil
 
 x, y = AirfoilTools.naca4()
 
 angles_of_attack = range(-5.0, 15.0, step=1)
+viscous = false
+method = Mfoil(viscous)
 
-method = Mfoil()
-
-outputs = AirfoilTools.analyze(x, y, angles_of_attack; method=method)
+outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
 ## Lewis' Method for Axisymmetric Bodies
@@ -63,7 +63,7 @@ A periodic method for cascade analysis based on that developed by [Martensen](ht
 FLOWFoil.Martensen
 ```
 
-```@julia
+```@example martensen
 using FLOWFoil
 
 # - DUCT - #
@@ -71,8 +71,12 @@ using FLOWFoil
 x, y = AirfoilTools.naca4(6,4,12)
 
 inflow_angles = range(-5.0, 15.0, step=1)
-
-method = Martensen(solidity=0.5, stagger=30.0*pi/180.0)
+cascade = true
+solidity = 1.0
+stagger = 45.0
+transition_value = 10.0
+curvature_correction = false
+method = Martensen(cascade,solidity,stagger, transition_value, curvature_correction)
 
 outputs = analyze(x, y, inflow_angles; method=method)
 ```
@@ -85,7 +89,7 @@ We also have a version of the Hess-Smith method primarily for educational use th
 FLOWFoil.HessSmith
 ```
 
-```@julia
+```@example HessSmith
 using FLOWFoil
 
 # - DUCT - #
@@ -93,8 +97,8 @@ using FLOWFoil
 x, y = AirfoilTools.naca4(6,4,12)
 
 angles_of_attack = range(-5.0, 15.0, step=1)
-
-method = HessSmith()
+Vinf = 1.0
+method = HessSmith(Vinf)
 
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```

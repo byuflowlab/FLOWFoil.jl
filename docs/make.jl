@@ -25,7 +25,7 @@ makedocs(;
         ],
     ],
     sitename="FLOWFoil.jl",
-    authors="Judd Mehr <juddmehr@byu.edu>",
+    authors="Judd Mehr <juddmehr@byu.edu>, Ayden Bennett <jbenne26@byu.edu>",
     # checkdocs=:exports,
     checkdocs=:none,
 )
