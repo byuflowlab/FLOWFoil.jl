@@ -60,6 +60,21 @@ series_number = "3-018"
 x,y = AirfoilTools.naca65(clo, a, series_number)
 ```
 
+There exists a special scaled case for the NACA 65-010 family of airfoils. This special case only requires the user to input a design lift coefficient. using
+
+```@docs
+AirfoilTools.naca65_scaled
+```
+
+```@example naca65_scaled
+using FLOWFoil
+
+#define design lift coefficient
+clo = 1.0
+
+x,y = AirfoilTools.naca65_scaled(clo)
+```
+
 ------------------------------------------------------------------------------------------
 
 ## Conformal Mapping
