@@ -2,9 +2,27 @@
 
 Convenience functions wrapping problem, system, solution, and post processing steps into single functions for user convenience
 
-Authors: Judd Mehr,
+Authors: Judd Mehr, Ayden Bennett
 
 =#
+"""
+    outputs(cl, cd, cm, cp, vs)
+
+# Returns:
+- `outputs::Struct` : Struct with outputs.  Nominally contains
+  - `vs`: surface velocities on each body, nominally a matrix, but becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
+  - `cp`: pressure coefficient for each panel of each body, becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
+  - `cl`: lift coefficient of each body, nominally a vector but becomes a matrix in the multi-body case with dimensions angle x body
+  - `cd`: total drag coefficient of each body, but becomes a matrix in the multi-body case with dimensions angle x body
+  - `cm`: moment coefficient of each body, but becomes a matrix in the multi-body case with dimensions angle x body
+"""
+struct outputs{TM, TV}
+    vs::TM #nominally a matrix, but becomes a 3-d array in the multi-body case with dimensions angle x pressure x body
+    cp::TM
+    cl::TV #nominally a vector but becomes a matrix in the multi-body case with dimensions angle x body
+    cd::TV
+    cm::TV
+end
 
 """
     analyze(coordinates, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
@@ -74,5 +92,7 @@ function analyze(
     strengths = solve(method, system_matrices)
 
     # Post Process Solution
-    return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+    sol = post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+    
+    return outputs(sol.vs, sol.cp, sol.cl, sol.cd, sol.cm)
 end

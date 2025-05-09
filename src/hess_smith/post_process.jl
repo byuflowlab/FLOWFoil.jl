@@ -17,6 +17,10 @@ function post_process(
     idx = system_geometry.panel_indices
     nbodies = system_geometry.nbodies
     naoa = length(flow_angles)
+    panelidx = system_geometry.mesh2panel
+
+    # chord length
+    chord = system_geometry.chord_length
 
     # - Initialize Outputs - #
     TF = eltype(system_geometry.r_influence)
@@ -57,38 +61,62 @@ function post_process(
     #     end
     # end
 
-    tangential_velocities = [
-        zeros(length(flow_angles), idx[m][end] - idx[m][1] + 1) for m in 1:nbodies
+    vs = [
+        zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies
     ]
-    surface_pressures = [
-        zeros(length(flow_angles), idx[m][end] - idx[m][1] + 1) for m in 1:nbodies
+    cp = [
+        zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies
     ]
+    cl = zeros(naoa, nbodies)
+    cd = zeros(naoa, nbodies)
+    cm = zeros(naoa, nbodies)
     
-    summed_strengths = zeros(naoa, (maximum(idx[m][end] for m in 1:nbodies) + 1))
+    summed_strengths = zeros((maximum(idx[m][end] for m in 1:nbodies) + 1), naoa)
 
     for m in 1:nbodies  # Loop through number of bodies
+        panel_vector = panel_geometry[m].panel_vectors
         for a in 1:naoa  # Loop through the different angles of attack         
             strengths_copy = copy(strengths)
             strengths_copy[:, 1] *= cosd(flow_angles[a])
             strengths_copy[:, 2] *= sind(flow_angles[a])
-            summed_strengths[a, :] = sum(strengths_copy; dims=2) * 2 * pi * method.V_inf
+            summed_strengths[:, a] = sum(strengths_copy; dims=2) * 2 * pi * method.V_inf
             for i in idx[m][1]:idx[m][end]  # Loop through the panels
                 set1 = 0.0
                 set2 = 0.0
                 for j in idx[m][1]:idx[m][end]   
-                    set1 += summed_strengths[a, j] * (system_geometry.beta[i, j] * system_geometry.sine_angle_panels[i, j] - log(system_geometry.r_influence[i, j+1] / system_geometry.r_influence[i, j]) * system_geometry.cos_angle_panels[i, j])
+                    set1 += summed_strengths[j, a] * (system_geometry.beta[i, j] * system_geometry.sine_angle_panels[i, j] - log(system_geometry.r_influence[i, j+1] / system_geometry.r_influence[i, j]) * system_geometry.cos_angle_panels[i, j])
                     set2 += system_geometry.beta[i, j] * system_geometry.cos_angle_panels[i, j] + log(system_geometry.r_influence[i, j+1] / system_geometry.r_influence[i, j]) * system_geometry.sine_angle_panels[i, j]
                 end
                 # Swap indices to make AoA (a) the row and panel index (i) the column
-                tangential_velocities[m][a, i - idx[m][1] + 1] = method.V_inf * (panel_geometry[m].cosine_vector[i] * cosd(flow_angles[a]) + panel_geometry[m].sine_vector[i] * sind(flow_angles[a])) + (set1 / (2 * π)) + (summed_strengths[a, end] / (2 * π)) * set2
-                surface_pressures[m][a, i - idx[m][1] + 1] = 1.0 - (tangential_velocities[m][a, i - idx[m][1] + 1])^2
+                vs[m][i - idx[m][1] + 1, a] = method.V_inf * (panel_geometry[m].cosine_vector[i] * cosd(flow_angles[a]) + panel_geometry[m].sine_vector[i] * sind(flow_angles[a])) + (set1 / (2 * π)) + (summed_strengths[end, a] / (2 * π)) * set2
+                cp[m][i - idx[m][1] + 1, a] = 1.0 - (vs[m][i - idx[m][1] + 1, a])^2
             end
+
+            ### --- Calculate Lift Coefficient --- ###
+            cl[a, m] =
+                sum([
+                    cp[m][i, a] * (
+                        -sind(flow_angles[a]) * panel_vector[i, 2] -
+                        cosd(flow_angles[a]) * panel_vector[i, 1]
+                    ) for i in panelidx[idx[m]]
+                ]) / chord
         end
     end
+    if nbodies == 1
+        #if it is a single body, this reduces the need to use the body index
+        vs_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
+        cp_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
 
-    # @show tangential_velocities
+        vs_new[:,:] = vs[1][:,:]
+        cp_new[:,:] = cp[1][:,:]
 
-    return (; tangential_velocities, surface_pressures)
+        vs = vs_new
+        cp = cp_new
+        cl = cl[:]
+        cd = cd[:]
+        cm = cm[:]
+    end
+    return (; vs, cp, cl, cd, cm)
 end
 
 # Loop bodies, angles of attack, and panels

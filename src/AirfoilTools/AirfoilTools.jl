@@ -27,7 +27,7 @@ using StaticArrays
 
 # - Parameterizations - #
 export NACA4, naca4, determine_naca4
-export naca65
+export naca65, naca65_scaled
 export BasicBSpline, basic_bspline#, determine_basic_bspline
 export KarmanTrefftz, karman_trefftz#, determine_karman_trefftz
 export Joukowsky, joukowsky#, determine_joukowsky

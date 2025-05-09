@@ -199,7 +199,7 @@ function generate_system_geometry(method::Mfoil, panel_geometry::AbstractVector;
         # trailing edge gap panel geomtry
         TE_geometry = (;
             blunt_te,
-            panel_length=trailing_edge_gap[1],
+            panel_length=trailing_edge_gap,
             tdp,
             txp,
             r1=r1_TE,

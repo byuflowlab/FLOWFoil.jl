@@ -3,7 +3,7 @@
 ## Mfoil: Single inviscid airfoil comparision to analytic solution
 
 TODO: add comparison with Joukowsky airfoil used in XFoil paper:
-```julia
+```@example Joukowsky
 using FLOWFoil
 
 center = [-0.1; 0.1]
@@ -26,14 +26,14 @@ TODO: add comparision figure for single joukowsky airfoil here
 For a multi-element airfoil system, the procedure is identical to a single body system, except we input a vector of matrices for the coordinates of the various bodies.
 For this case, we'll use data that comes from ["An Exact Test Case for the Plane Potential Flow About Two Adjacent Lifting Aerofoils" by B. R. Williams.](https://reports.aerade.cranfield.ac.uk/handle/1826.2/2993)
 
-```@julia
+```@Mfoil
 using FLOWFoil
 
 # SET UP GEOMETRY
 af_geom_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "docs", "src", "assets", "two_inviscid_airfoils.jl"))
 include(af_geom_path)
 
-outputs = analyze([[ximain etamain], [xiflap etaflap]]; method=Mfoil(inviscid=true)
+outputs = analyze([[ximain etamain], [xiflap etaflap]]; method=Mfoil(inviscid=true))
 
 plot and save comparisons, hiding code
 
@@ -62,10 +62,12 @@ include(bor_path)
 outputs = analyze(center_body_coordinates; method = Lewis(body_of_revolution=[true]))
 
 # plot # hide
+#=
 include("../assets/plots_default.jl")
 plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}")
 plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4) #hide
-plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.tangential_velocities[1], label="FLOWFoil") #hide
+plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs[1], label="FLOWFoil") #hide
+=#
 ```
 
 
@@ -82,10 +84,12 @@ include(duct_path)
 outputs = analyze(duct_coordinates; method = Lewis(body_of_revolution=[false]))
 
 # plot # hide
+#=
 plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p") #hide
 plot!(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(pressurexlower, pressurelower, seriestype=:scatter, markershape=:dtriangle, label="Experimental Casing", color=1, markerstrokecolor=1, markercolor=1, markersize=4) #hide
-plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.surface_pressures[1], label="FLOWFoil",color=2) #hide
+plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.cp[:], label="FLOWFoil",color=2) #hide
+=#
 ```
 
 As above, we plot experimental results along with our calculated values.
@@ -105,19 +109,53 @@ outputs = analyze(
 )
 
 # plot v # hide
+#=
 plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hide
 plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Center Body",markerstrokecolor=1, markercolor=1, markersize=4) #hide
-plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.tangential_velocities[2], label="FLOWFoil Center Body with Duct Effects") #hide
+plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs[2], label="FLOWFoil Center Body with Duct Effects") #hide
+=#
 ```
 
 ```@example axisym
+println(outputs)
 # plot cp # hide
+#=
 plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p") #hide
 plot!(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(pressurexlower, pressurelower, seriestype=:scatter, markershape=:dtriangle, label="Experimental Casing", color=1, markerstrokecolor=1, markercolor=1, markersize=4) #hide
-plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.surface_pressures[1], label="FLOWFoil Duct with Center Body Effects",color=2) #hide
+plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.cp[1], label="FLOWFoil Duct with Center Body Effects",color=2) #hide
+=#
 ```
 
 Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.
 
+## Airfoil Cascade
 
+For this example, we use data from chapter 2 of ["Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems" by  R. I. Lewis] (https://doi.org/10.1017/CBO9780511529542)
+
+```@example cascade
+using FLOWFoil
+
+#this file contains the coordinates of the C4/70C50 airfoil as defined by lewis as well as the values of the pressure coefficient
+bor_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "test","data", "chapter2_lewis_validation.jl"))
+include(bor_path)
+
+#previously defined coordinates in chapter2_lewis_validation.jl
+coordinates = [x y]
+
+#define Martensen method parameters
+cascade = true
+solidity = 1.0 / 0.900364
+stagger = 0.0
+transition_value = 1e-4
+curvature_correction = false
+
+#setup Martensen method
+method = Martensen(cascade, solidity, stagger, transition_value, curvature_correction)
+
+#define flow angles (angles of attack) - in this case the angles of attack = the inflow angles hence why stagger is 0
+flow_angles = [-35.0, 35.0]
+
+#solve for outputs
+outputs = analyze(coordinates, flow_angles; method = method)
+```

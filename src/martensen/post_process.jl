@@ -24,19 +24,21 @@ function post_process(
     # - Initialize Outputs - #
     TF = eltype(system_geometry.r_x)
 
-    tangential_velocities = [
-        zeros(idx[m][end] - idx[m][1] + 1, length(flow_angles)) for m in 1:nbodies
+    vs = [
+        zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies
     ]
-    surface_pressures = [
-        zeros(idx[m][end] - idx[m][1] + 1, length(flow_angles)) for m in 1:nbodies
+    cp = [
+        zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies
     ]
-    lift_coefficients = [zeros(1, length(flow_angles)) for m in 1:nbodies]
+
+    cl = zeros(naoa, nbodies)
+    cd = zeros(naoa, nbodies)
+    cm = zeros(naoa, nbodies)
 
     for m in 1:nbodies
-
         # vortex strengths per unit length
-        gamma0 = [strengths[idx[m][1:(end - 1)], 1]; -strengths[idx[m][1], 1]]
-        gamma90 = [strengths[idx[m][1:(end - 1)], 2]; -strengths[idx[m][1], 2]]
+        gamma0 = [strengths[idx[m][1:(end - 1)]  .- nbodies*(m-1), 1]; -strengths[idx[m][1] .- nbodies*(m-1) + 1, 1]]
+        gamma90 = [strengths[idx[m][1:(end - 1)] .- nbodies*(m-1), 2]; -strengths[idx[m][1] .- nbodies*(m-1) + 1, 2]]
 
         # total circulation
         gamma_u = dot(panel_geometry[m].panel_length, gamma0)
@@ -68,22 +70,28 @@ function post_process(
             w_y = W * sin(betainf)
 
             # - Calculate surface velocity - #
-            tangential_velocities[m][:, a] = [
-                (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m]
-            ]
+            if m == 1
+                vs[m][:, a] = [
+                    (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m]
+                ]
+            else
+                vs[m][:, a] = [
+                    (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m] .- idx[m-1][end]
+                ]
+            end
 
             # - Calculate surface pressure - #
-            surface_pressures[m][:, a] = 1.0 .- tangential_velocities[m][:, a] .^ 2
+            cp[m][:, a] = 1.0 .- vs[m][:, a] .^ 2
 
             #compute cascade lift if cascade model is true, else use planar lift
             if method.cascade
-                lift_coefficients[m][a] =
+                cl[a,m] =
                     2.0 *
                     system_geometry.pitch *
                     (tan(flow_angles[a]) - tan(beta2)) *
                     cos(betainf) #Important: This equation assumes that the chord length is 1.0
             else                
-                lift_coefficients[m][a] =
+                cl[a,m] =
                     2.0 * (gamma_u * w_x + gamma_v * w_y) /
                     (W * calculate_chord(panel_geometry))
                 #=
@@ -93,6 +101,19 @@ function post_process(
             end
         end
     end
+    if nbodies == 1
+        #if it is a single body, this reduces the need to use the body index
+        vs_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
+        cp_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
 
-    return (; tangential_velocities, surface_pressures, lift_coefficients)
+        vs_new[:,:] = vs[1][:,:]
+        cp_new[:,:] = cp[1][:,:]
+        vs = vs_new
+        cp = cp_new
+        cl = cl[:]
+        cd = cd[:]
+        cm = cm[:]
+    end
+
+    return (; vs, cp, cl, cd, cm)
 end

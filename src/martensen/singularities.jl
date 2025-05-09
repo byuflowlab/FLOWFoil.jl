@@ -37,7 +37,6 @@ function calculate_periodic_vortex_influence(
         k = 0.5 / pitch / (cosha - cos(b))
     end
     sinha = 0.5 * (exp(a) - 1.0 / exp(a))
-
     return (sinha * sine_panel_angle_i - sin(b) * cosine_panel_angle_i) *
            k *
            panelj.panel_length[j]

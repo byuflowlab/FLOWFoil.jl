@@ -16,23 +16,40 @@ function post_process(
     # - Initialize Outputs - #
     TF = eltype(system_geometry.k2)
 
-    tangential_velocities = [zeros(idx[m][end]-idx[m][1]+1) for m in 1:nbodies]
-    surface_pressures = [zeros(idx[m][end]-idx[m][1]+1) for m in 1:nbodies]
+    vs = [zeros(idx[m][end]-idx[m][1]+1, 1) for m in 1:nbodies]
+    cp = [zeros(idx[m][end]-idx[m][1]+1, 1) for m in 1:nbodies]
+    cl = zeros(1, nbodies)
+    cd = zeros(1, nbodies)
+    cm = zeros(1, nbodies)
 
     for m in 1:nbodies
         # - Extract surface velocity - #
         #= Note that we here assume that we are using the subtractive method for the kutta conditions, requiring us to recover the strengths value for the last panel (trailing edge upper side).  We also assume here that the indexing starts at the lower side trailing edge and proceeds clockwise back to the upper side trailing edge.  Otherwise, not only will the solver not have worked, there will also be an indexing error here
         =#
-        tangential_velocities[m][:] = [
+        vs[m][:, 1] = [
             strengths[idx[m][1:(end - 1)]]
             -strengths[idx[m][1]]
         ]
 
         # - Calculate surface pressure - #
-        surface_pressures[m][:] = 1.0 .- (tangential_velocities[m][:]) .^ 2
+        cp[m][:, 1] = 1.0 .- (vs[m][:, 1]) .^ 2
+    end
+    if nbodies == 1
+        #if it is a single body, this reduces the need to use the body index
+        vs_new = zeros(idx[1][end]-idx[1][1]+1, 1)
+        cp_new = zeros(idx[1][end]-idx[1][1]+1, 1)
+
+        vs_new = vs[1][:,:]
+        cp_new = cp[1][:,:]
+
+        vs = vs_new
+        cp = cp_new
+        cl = cl[1]
+        cd = cd[1]
+        cm = cm[1]
     end
 
-    return (; tangential_velocities, surface_pressures)
+    return (; vs, cp, cl, cd, cm)
 end
 
 """

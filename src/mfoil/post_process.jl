@@ -37,22 +37,23 @@ function post_process(
     # - Coefficients - #
 
     # Lift coefficient
-    cl = zeros(TF, nbodies, naoa)
+    cl = zeros(TF, naoa, nbodies)
 
     # Total drag coefficient
-    cd = zeros(TF, nbodies, naoa)
+    cd = zeros(TF, naoa, nbodies)
     # Profile drag coefficient
-    cdp = zeros(TF, nbodies, naoa)
+    cdp = zeros(TF, naoa, nbodies)
     # Inviscid drag coefficient
-    cdi = zeros(TF, nbodies, naoa)
+    cdi = zeros(TF, naoa, nbodies)
 
     # Moment coefficient
-    cm = zeros(TF, nbodies, naoa)
+    cm = zeros(TF, naoa, nbodies)
 
     # Surface Velocities
-    tangential_velocities = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+    vs = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+
     # Surface Pressures
-    surface_pressures = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+    cp = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
 
     ##### ----- Loop Through Bodies ----- #####
     for m in 1:nbodies
@@ -86,8 +87,8 @@ function post_process(
             cpibar = (cpi[1:(end - 1)] .+ cpi[2:end]) ./ 2.0
 
             # - Organize surface velocities and pressures - #
-            tangential_velocities[m][:, a] = vti
-            surface_pressures[m][:, a] = cpi
+            vs[m][:, a] = vti
+            cp[m][:, a] = cpi
 
             #---------------------------------#
             #      Calculate Coefficients     #
@@ -100,7 +101,7 @@ function post_process(
             panelidx = system_geometry.mesh2panel
 
             ### --- Calculate Lift Coefficient --- ###
-            cl[m, a] =
+            cl[a, m] =
                 sum([
                     cpibar[i] * (
                         -sind(flow_angles[a]) * panel_vector[i, 2] -
@@ -112,16 +113,16 @@ function post_process(
             #= NOTE:
                 For the inviscid case, cdp is zero and cdi=cd for now.
             =#
-            cdp[m, a] = 0.0
+            cdp[a, m] = 0.0
             #TODO: check of drag calculation needs to be negative or not
-            cdi[m, a] =
+            cdi[a, m] =
                 -sum([
                     cpibar[i] * (
                         cosd(flow_angles[a]) * panel_vector[i, 2] -
                         sind(flow_angles[a]) * panel_vector[i, 1]
                     ) for i in panelidx[pidx[m]]
                 ]) / chord
-            cd[m, a] = cdi[m, a]
+            cd[a, m] = cdi[a, m]
 
             ### --- Calculate Moment Coefficient --- ###
             # initialize pieces of moment calculation
@@ -141,7 +142,7 @@ function post_process(
                 (panel_edges[panelidx[pidx[m]], 2, 2] .- z0)
 
             # Moment Coefficient Calculation
-            cm[m, a] =
+            cm[a, m] =
                 sum([
                     ([cpi[i] cpi[i + 1]] * cmmat * [
                         dxddmi[i]
@@ -150,6 +151,19 @@ function post_process(
                 ]) / chord^2
         end
     end
+    if nbodies == 1
+        #if it is a single body, this reduces the need to use the body index
+        vs_new = zeros(nidx[1][end]-nidx[1][1]+1, naoa)
+        cp_new = zeros(nidx[1][end]-nidx[1][1]+1, naoa)
 
-    return (; cl, cd, cdp, cdi, cm, tangential_velocities, surface_pressures)
+        vs_new = vs[1][:,:]
+        cp_new = cp[1][:,:]
+
+        vs = vs_new
+        cp = cp_new
+        cl = cl[:]
+        cd = cd[:]
+        cm = cm[:]
+    end
+    return (; cl, cd, cdp, cdi, cm, vs, cp, nbodies)
 end

@@ -106,14 +106,22 @@ function assemble_periodic_vortex_matrix_raw(
             ### --- Loop through panel_geometry --- ###
             for i in idx[m]
                 for j in idx[n]
+                    panel_index_i = i
+                    panel_index_j = j
+                    if m > 1 #this is added to call the correct panel for the periodic vortex influence - which doesn't account for the multiple bodies
+                        panel_index_i = i - idx[m - 1][end]
+                    end
+                    if n > 1
+                        panel_index_j = j - idx[n - 1][end]
+                    end
 
                     ### --- Calculate influence coefficient --- ###
 
                     # - Self-induced coefficient - #
-                    if i == j
+                    if panel_index_i == panel_index_j
                         # same for both cascade and non-cascade, just needed a unique function name
                         amat[i, j] = calculate_periodic_self_vortex_influence(
-                            panel_geometry[m], i, cascade_parameters.curvature_correction
+                            panel_geometry[m], panel_index_i, cascade_parameters.curvature_correction
                         )
 
                     else
@@ -124,8 +132,8 @@ function assemble_periodic_vortex_matrix_raw(
                                 panel_geometry[m],
                                 panel_geometry[n],
                                 system_geometry,
-                                i,
-                                j,
+                                panel_index_i,
+                                panel_index_j,
                                 cascade_parameters,
                             )
 
@@ -135,8 +143,8 @@ function assemble_periodic_vortex_matrix_raw(
                                 panel_geometry[m],
                                 panel_geometry[n],
                                 system_geometry,
-                                i,
-                                j,
+                                panel_index_i,
+                                panel_index_j,
                                 cascade_parameters,
                             )
                         end
