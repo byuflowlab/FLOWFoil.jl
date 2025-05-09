@@ -95,3 +95,30 @@ method = HessSmith(V_inf=1.0)
 
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
+
+## NeuralFoil Basic Wrapper
+
+[NeuralFoil](https://github.com/peterdsharpe/NeuralFoil) is a multi-layer perceptron model of Xfoil.
+We provide a very basic wrapper (that currently does not support derivatives) for NeuralFoil via the `NeuralFoil` method type:
+
+```@docs
+FLOWFoil.NeuralFoil
+```
+
+```@example neuralfoil
+using FLOWFoil
+
+x, y = AirfoilTools.naca4()
+
+angles_of_attack = range(-5.0, 15.0; step=1)
+
+method = NeuralFoil(model_size="xlarge")
+
+outputs = analyze(x, y, angles_of_attack; method=method)
+```
+
+Note that the NeuralFoil method does not allow multi-body analysis like the other methods do as it is based specifically on Xfoil.  We also return a separate output type for the NeuralFoil method:
+
+```@docs
+FLOWFoil.NeuralOutputs
+```
