@@ -46,8 +46,8 @@ r .+= 1.0
 # indicate that the body is not a body of revolution (i.e. a duct)
 method = Lewis(; body_of_revolution=[false])
 
-# note: angle of attack input defaults to zero, and this axisymmetric method doesn't use the angle of attack input anyway
-outputs = analyze(x, r; method=method)
+# note: we need to input an an angle of attack, even though it is unused
+outputs = analyze(x, r, [0.0]; method=method)
 ```
 
 !!! note

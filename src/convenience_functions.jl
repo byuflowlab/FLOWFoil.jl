@@ -53,19 +53,17 @@ Note that Reynolds and Mach numbers are only used for viscous methods, and Flow 
 # Returns:
 - `outputs::InviscidOutputs` : outputs object (note that only inviscid methods are currently implemented)
 """
-function analyze(
-    x::AbstractVector,
-    y::AbstractVector,
-    flow_angles=[0.0],
-    reynolds=[1e6],
-    machs=[0.0];
-    method::Method=Mfoil()
-)
-    return analyze([x y], flow_angles, reynolds, machs; method=method)
+function analyze(x, y, flow_angles; reynolds=[1e6], machs=[0.0], method::Method=Mfoil())
+    println("x: ", x)
+    println("y: ", y)
+    println("flow_angles: ", flow_angles)
+    println("reynolds: ", reynolds)
+    println("machs: ", machs)
+    return analyze([x y], flow_angles; reynolds=reynolds, machs=machs, method=method)
 end
 
 function analyze(
-    coordinates, flow_angles=[0.0], reynolds=[1e6], machs=[0.0]; method::Method=Mfoil()
+    coordinates, flow_angles; reynolds=[1e6], machs=[0.0], method::Method=Mfoil()
 )
 
     # Reformat inputs as needed

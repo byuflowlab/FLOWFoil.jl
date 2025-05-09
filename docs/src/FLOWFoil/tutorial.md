@@ -12,7 +12,7 @@ As an introductory example, we will do a quick analysis of a NACA 2412 airfoil, 
     For any airfoil coordinate generation method (from FLOWFoil or otherwise), the coordinates must start at the trailing edge, and proceed clockwise around the airfoil.
     For axisymmetric bodies of revolution, coordiantes should also proceed clockwise, starting at the leading edge.
 
-```@julia
+```@example tutorial
 using FLOWFoil
 
 # note: 2412 is default for the NACA 4-series implemenation
