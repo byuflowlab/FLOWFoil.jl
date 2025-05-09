@@ -152,18 +152,8 @@ function post_process(
         end
     end
     if nbodies == 1
-        #if it is a single body, this reduces the need to use the body index
-        vs_new = zeros(nidx[1][end]-nidx[1][1]+1, naoa)
-        cp_new = zeros(nidx[1][end]-nidx[1][1]+1, naoa)
-
-        vs_new = vs[1][:,:]
-        cp_new = cp[1][:,:]
-
-        vs = vs_new
-        cp = cp_new
-        cl = cl[:]
-        cd = cd[:]
-        cm = cm[:]
+        return InviscidOutputs(vs[1], cp[1], cl, cd, cm)
+    else
+        return InviscidOutputs(vs, cp, cl, cd, cm)
     end
-    return (; cl, cd, cdp, cdi, cm, vs, cp, nbodies)
 end

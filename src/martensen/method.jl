@@ -1,5 +1,5 @@
 """
-    Martensen{} <: Method
+    Martensen <: Method
 
 # Fields:
 - `cascade::Bool=true` : flag to apply cascade treatment or not

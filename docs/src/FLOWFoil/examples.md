@@ -26,26 +26,21 @@ TODO: add comparision figure for single joukowsky airfoil here
 For a multi-element airfoil system, the procedure is identical to a single body system, except we input a vector of matrices for the coordinates of the various bodies.
 For this case, we'll use data that comes from ["An Exact Test Case for the Plane Potential Flow About Two Adjacent Lifting Aerofoils" by B. R. Williams.](https://reports.aerade.cranfield.ac.uk/handle/1826.2/2993)
 
-```@Mfoil
+```@example Mfoil
 using FLOWFoil
 
-# SET UP GEOMETRY
 af_geom_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "docs", "src", "assets", "two_inviscid_airfoils.jl"))
 include(af_geom_path)
 
-outputs = analyze([[ximain etamain], [xiflap etaflap]]; method=Mfoil(inviscid=true))
+outputs = analyze([[ximain etamain], [xiflap etaflap]]; method=Mfoil())
 
-plot and save comparisons, hiding code
+# TODO plot and save comparisons, hiding code
 
 nothing #hide
 ```
 
 We see excellent agreement with the analytical solution.
 
-
-## Advanced Viscous Airfoil Options
-
-TODO: explain the various advanced options (ncrit, forced transition, etc)
 
 ---
 
@@ -56,18 +51,20 @@ For this example, we use data from chapter 4 of ["Vortex Element Methods for flu
 ```@example axisym
 using FLOWFoil
 
-bor_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "test", "data", "bodyofrevolutioncoords.jl"))
-include(bor_path)
+data_path = normpath(
+    joinpath(
+        splitdir(pathof(FLOWFoil))[1], "..", "test", "data", "bodyofrevolutioncoords.jl"
+    ),
+)
+include(data_path)
 
-outputs = analyze(center_body_coordinates; method = Lewis(body_of_revolution=[true]))
+outputs = analyze(center_body_coordinates; method=Lewis(; body_of_revolution=[true]))
 
 # plot # hide
-#=
-include("../assets/plots_default.jl")
-plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}")
+include("../assets/plots_default.jl") #hide
+plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hid
 plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs[1], label="FLOWFoil") #hide
-=#
 ```
 
 
@@ -78,10 +75,12 @@ If we define an airfoil shape in an axisymmetric scheme, we model an annular air
 ```@example axisym
 using FLOWFoil
 
-duct_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "test", "data", "naca_662-015.jl"))
+duct_path = normpath(
+    joinpath(splitdir(pathof(FLOWFoil))[1], "..", "test", "data", "naca_662-015.jl")
+)
 include(duct_path)
 
-outputs = analyze(duct_coordinates; method = Lewis(body_of_revolution=[false]))
+outputs = analyze(duct_coordinates; method=Lewis(; body_of_revolution=[false]))
 
 # plot # hide
 #=
@@ -137,25 +136,22 @@ For this example, we use data from chapter 2 of ["Vortex Element Methods for flu
 using FLOWFoil
 
 #this file contains the coordinates of the C4/70C50 airfoil as defined by lewis as well as the values of the pressure coefficient
-bor_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "test","data", "chapter2_lewis_validation.jl"))
-include(bor_path)
+data_path = normpath(
+    joinpath(
+        splitdir(pathof(FLOWFoil))[1], "..", "test", "data", "chapter2_lewis_validation.jl"
+    ),
+)
+include(data_path)
 
 #previously defined coordinates in chapter2_lewis_validation.jl
 coordinates = [x y]
 
-#define Martensen method parameters
-cascade = true
-solidity = 1.0 / 0.900364
-stagger = 0.0
-transition_value = 1e-4
-curvature_correction = false
-
 #setup Martensen method
-method = Martensen(cascade, solidity, stagger, transition_value, curvature_correction)
+method = Martensen(; solidity=1.0 / 0.900364, stagger=0.0)
 
 #define flow angles (angles of attack) - in this case the angles of attack = the inflow angles hence why stagger is 0
 flow_angles = [-35.0, 35.0]
 
 #solve for outputs
-outputs = analyze(coordinates, flow_angles; method = method)
+outputs = analyze(coordinates, flow_angles; method=method)
 ```

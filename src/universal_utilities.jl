@@ -162,4 +162,3 @@ end
 A faster dot product.
 """
 dot(A, B) = sum(a * b for (a, b) in zip(A, B))
-

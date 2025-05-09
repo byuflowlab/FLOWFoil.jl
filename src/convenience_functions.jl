@@ -5,21 +5,23 @@ Convenience functions wrapping problem, system, solution, and post processing st
 Authors: Judd Mehr, Ayden Bennett
 
 =#
-"""
-    outputs(cl, cd, cm, cp, vs)
 
-# Returns:
-- `outputs::Struct` : Struct with outputs.  Nominally contains
-  - `vs`: surface velocities on each body, nominally a matrix, but becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
-  - `cp`: pressure coefficient for each panel of each body, becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
-  - `cl`: lift coefficient of each body, nominally a vector but becomes a matrix in the multi-body case with dimensions angle x body
-  - `cd`: total drag coefficient of each body, but becomes a matrix in the multi-body case with dimensions angle x body
-  - `cm`: moment coefficient of each body, but becomes a matrix in the multi-body case with dimensions angle x body
 """
-struct outputs{TM, TV}
-    vs::TM #nominally a matrix, but becomes a 3-d array in the multi-body case with dimensions angle x pressure x body
+    InviscidOutputs
+
+Note: not all methods return values for all outputs.  Methods will return zeros in such cases.
+
+# Fields:
+- `vs`: surface velocities on each body, nominally a matrix, but becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
+- `cp`: pressure coefficient for each panel of each body, becomes a vector of matrices in the multi-body case with dimensions [body][panel,angle]
+- `cl`: lift coefficient of each body, nominally a vector but becomes a matrix in the multi-body case with dimensions angle x body
+- `cd`: total drag coefficient of each body, but becomes a matrix in the multi-body case with dimensions angle x body
+- `cm`: moment coefficient of each body, but becomes a matrix in the multi-body case with dimensions angle x body
+"""
+struct InviscidOutputs{TM,TV}
+    vs::TM
     cp::TM
-    cl::TV #nominally a vector but becomes a matrix in the multi-body case with dimensions angle x body
+    cl::TV
     cd::TV
     cm::TV
 end
@@ -49,15 +51,7 @@ Note that Reynolds and Mach numbers are only used for viscous methods, and Flow 
 - `method::Method=Mfoil()` : desired method for solving
 
 # Returns:
-- `outputs::NTuple` : named tuple with outputs.  Nominally contains
-  - `cl`: lift coefficient of each body
-  - `cd`: total drag coefficient of each body
-  - `cdp`: profile drag coefficient of each body
-  - `cm`: moment coefficient of each body
-  - `tangential_velocities`: surface velocities on each body
-  - `surface_pressures`: surface pressures on each body
-  - `convergenced`: convergence flag
-  - `auxiliary outputs`: a named tuple that contains additional outputs applicable to the method used.
+- `outputs::InviscidOutputs` : outputs object (note that only inviscid methods are currently implemented)
 """
 function analyze(
     x::AbstractVector,
@@ -92,7 +86,5 @@ function analyze(
     strengths = solve(method, system_matrices)
 
     # Post Process Solution
-    sol = post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
-    
-    return outputs(sol.vs, sol.cp, sol.cl, sol.cd, sol.cm)
+    return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
 end

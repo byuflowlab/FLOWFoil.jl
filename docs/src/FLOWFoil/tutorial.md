@@ -15,11 +15,16 @@ As an introductory example, we will do a quick analysis of a NACA 2412 airfoil, 
 ```@julia
 using FLOWFoil
 
-# 2412 is default
+# note: 2412 is default for the NACA 4-series implemenation
 x, y = AirfoilTools.naca4()
 
 # choose one or more angles of attack
 angles_of_attack = range(-5.0, 15.0, step=1)
 
+# analyze
 outputs = analyze(x, y, angles_of_attack)
+```
+
+```@docs
+FLOWFoil.InviscidOutputs
 ```

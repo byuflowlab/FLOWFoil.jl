@@ -90,7 +90,7 @@ function post_process(
                     system_geometry.pitch *
                     (tan(flow_angles[a]) - tan(beta2)) *
                     cos(betainf) #Important: This equation assumes that the chord length is 1.0
-            else                
+            else
                 cl[a,m] =
                     2.0 * (gamma_u * w_x + gamma_v * w_y) /
                     (W * calculate_chord(panel_geometry))
@@ -101,19 +101,10 @@ function post_process(
             end
         end
     end
+
     if nbodies == 1
-        #if it is a single body, this reduces the need to use the body index
-        vs_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
-        cp_new = zeros(idx[1][end]-idx[1][1]+1, naoa)
-
-        vs_new[:,:] = vs[1][:,:]
-        cp_new[:,:] = cp[1][:,:]
-        vs = vs_new
-        cp = cp_new
-        cl = cl[:]
-        cd = cd[:]
-        cm = cm[:]
+        return InviscidOutputs(vs[1], cp[1], cl, cd, cm)
+    else
+        return InviscidOutputs(vs, cp, cl, cd, cm)
     end
-
-    return (; vs, cp, cl, cd, cm)
 end

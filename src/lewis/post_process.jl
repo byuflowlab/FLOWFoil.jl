@@ -34,22 +34,12 @@ function post_process(
         # - Calculate surface pressure - #
         cp[m][:, 1] = 1.0 .- (vs[m][:, 1]) .^ 2
     end
+
     if nbodies == 1
-        #if it is a single body, this reduces the need to use the body index
-        vs_new = zeros(idx[1][end]-idx[1][1]+1, 1)
-        cp_new = zeros(idx[1][end]-idx[1][1]+1, 1)
-
-        vs_new = vs[1][:,:]
-        cp_new = cp[1][:,:]
-
-        vs = vs_new
-        cp = cp_new
-        cl = cl[1]
-        cd = cd[1]
-        cm = cm[1]
+        return InviscidOutputs(vs[1], cp[1], cl, cd, cm)
+    else
+        return InviscidOutputs(vs, cp, cl, cd, cm)
     end
-
-    return (; vs, cp, cl, cd, cm)
 end
 
 """

@@ -12,30 +12,24 @@ FLOWFoil.Mfoil
 ```
 
 Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results.
-Currently, this method only includes the inviscid parts of Xfoil/Mfoil.
+Currently, this method only includes the inviscid parts of Xfoil/Mfoil, so Reynolds and Mach number inputs do nothing if used.
 
 ```@example Mfoil
 using FLOWFoil
 
-#setup x and y coordinates for the airfoil
 x, y = AirfoilTools.naca4()
 
-#create a range of angles of attack
-angles_of_attack = range(-5.0, 15.0, step=1)
+angles_of_attack = range(-5.0, 15.0; step=1)
 
-#solve for invsicid case
-viscous = false
+# viscous solver not yet implemented
+method = Mfoil(viscous=false)
 
-#set up Mfoil method
-method = Mfoil(viscous)
-
-#solve for outputs
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
 ## Lewis' Method for Axisymmetric Bodies
 
-A axisymmetric method based on that described by [Lewis](https://doi.org/10.1017/CBO9780511529542) can be accessed using the `Lewis` method type:
+An axisymmetric method based on that described by [Lewis](https://doi.org/10.1017/CBO9780511529542) can be accessed using the `Lewis` method type:
 
 ```@docs
 FLOWFoil.Lewis
@@ -44,22 +38,20 @@ FLOWFoil.Lewis
 ```@example lewis
 using FLOWFoil
 
-#setup airfoil coordinates
 x, r = AirfoilTools.naca4()
 
-# give the duct some diameter
+# give the duct some diameter (see note below)
 r .+= 1.0
 
-# indicate that the body is not a body of revolution (lying on the axis)
-method = Lewis(body_of_revolution = [false])
+# indicate that the body is not a body of revolution (i.e. a duct)
+method = Lewis(; body_of_revolution=[false])
 
-# angle of attack defaults to zero, which is what we want for the axisymmetric case
+# note: angle of attack input defaults to zero, and this axisymmetric method doesn't use the angle of attack input anyway
 outputs = analyze(x, r; method=method)
 ```
 
 !!! note
     No part of the geometry for an axisymmetric body can reside below z=0, otherwise an error will be thrown.
-
 
 ## Martensen's Method for Periodic Bodies (Cascades)
 
@@ -68,36 +60,20 @@ A periodic method for cascade analysis based on that developed by [Martensen](ht
 ```@docs
 FLOWFoil.Martensen
 ```
+!!! note
+    If the `cascade` option is set to false, this method becomes a standard planar airfoil method, but uses constant rather than linear vortices, so the Mfoil/Xfoil method is superior in that case.
 
 ```@example martensen
 using FLOWFoil
 
-#setup airfoil coordinates
-x, y = AirfoilTools.naca4(6,4,12)
+x, y = AirfoilTools.naca4()
 
-#specify range of angle of attack
-inflow_angles = range(-5.0, 15.0, step=1)
+angles_of_attack = range(-5.0, 15.0; step=1)
 
-#solve for airfoil cascade
-cascade = true
+# The cascade method requires solidity (closeness) of sections and stagger (inflow angle - angle of attack)
+method = Martensen(solidity=1.2, stagger=15.0)
 
-#setup solidity - only important in cascade case. If cascade = false, then value of solidity will not effect the outputs
-solidity = 1.0
-
-#setup airfoil stagger (inflow angle minus angle of attack). When in doubt set this to 0.0
-stagger = 0.0
-
-#Value of solidity that the cascade method will transition to solving using the planar method (ie single airfoil instead of a cascade). In this case it is used for blending the cascade solution and planar solution together when the solidity is close to the transition value. When in doubt set this to 1e-4.
-transition_value = 0.0001
-
-#curvature correction is currently not working, always set to false
-curvature_correction = false
-
-#specify Martensen method
-method = Martensen(cascade,solidity,stagger, transition_value, curvature_correction)
-
-#solve for outputs
-outputs = analyze(x, y, inflow_angles; method=method)
+outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
 ## Hess-Smith 2D Method for Educational Purposes
@@ -111,18 +87,11 @@ FLOWFoil.HessSmith
 ```@example HessSmith
 using FLOWFoil
 
-#specify airfoil coordinates
-x, y = AirfoilTools.naca4(6,4,12)
+x, y = AirfoilTools.naca4()
 
-#specify range of angle of attack
-angles_of_attack = range(-5.0, 15.0, step=1)
+angles_of_attack = range(-5.0, 15.0; step=1)
 
-#specify magnitude of the free stream velocity
-vinf = 1.0
+method = HessSmith(V_inf=1.0)
 
-#specify HessSmith method
-method = HessSmith(vinf)
-
-#solve for outputs
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
