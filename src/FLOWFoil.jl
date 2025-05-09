@@ -78,10 +78,32 @@ include("universal_geometry_utilities.jl")
 ##### ----- TYPES ----- #####
 
 export Mfoil, Xfoil, Lewis, Martensen, HessSmith
+export InviscidOutputs
 
 ##### ----- FUNCTIONS ----- #####
 
 # Convenience Functions
 export analyze
 
+# NeuralFoil Wrapper
+using PythonCall
+
+__precompile__(false)
+
+macro wrap_pyfuns(modsym, fname, cname)
+    quote
+        const pymod = pyimport($modsym)
+        # Define functions with the same names as the input symbols
+        $(:(function $(esc(cname))(args...; kwargs...)
+            pyf = @pyconst pymod.$(fname)
+            return pyf(args...; kwargs...)
+        end))
+    end
+end
+
+@wrap_pyfuns "neuralfoil" get_aero_from_coordinates get_aero_from_coordinates
+@wrap_pyfuns "numpy" array np_array
+
+include("neural_foil/method.jl")
+export NeuralFoil, NeuralOutputs
 end

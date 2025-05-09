@@ -65,24 +65,29 @@ end
 function analyze(
     coordinates, flow_angles; reynolds=[1e6], machs=[0.0], method::Method=Mfoil()
 )
+    if typeof(method) <: NeuralFoil
+        return analyze_nf(
+            coordinates, flow_angles; reynolds=reynolds, machs=machs, method=method
+        )
+    else
+        # Reformat inputs as needed
+        coordinates, nbodies, flow_angles, reynolds, machs = reformat_inputs(
+            coordinates, flow_angles, reynolds, machs
+        )
 
-    # Reformat inputs as needed
-    coordinates, nbodies, flow_angles, reynolds, machs = reformat_inputs(
-        coordinates, flow_angles, reynolds, machs
-    )
+        # Generate Panel Geometry
+        panel_geometry = generate_panel_geometry(method, coordinates)
 
-    # Generate Panel Geometry
-    panel_geometry = generate_panel_geometry(method, coordinates)
+        # Generate Influence Mesh
+        system_geometry = generate_system_geometry(method, panel_geometry)
 
-    # Generate Influence Mesh
-    system_geometry = generate_system_geometry(method, panel_geometry)
+        # Assemble Linear System
+        system_matrices = generate_system_matrices(method, panel_geometry, system_geometry)
 
-    # Assemble Linear System
-    system_matrices = generate_system_matrices(method, panel_geometry, system_geometry)
+        # Solve System
+        strengths = solve(method, system_matrices)
 
-    # Solve System
-    strengths = solve(method, system_matrices)
-
-    # Post Process Solution
-    return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+        # Post Process Solution
+        return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+    end
 end
