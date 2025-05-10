@@ -101,8 +101,13 @@ macro wrap_pyfuns(modsym, fname, cname)
     end
 end
 
+# using CondaPkg
+# CondaPkg.add_pip("neuralfoil")
+# CondaPkg.add_pip("jax")
+
 @wrap_pyfuns "neuralfoil" get_aero_from_coordinates get_aero_from_coordinates
-@wrap_pyfuns "numpy" array np_array
+@wrap_pyfuns "jax.numpy" array jnp_array
+@wrap_pyfuns "jax" jit jit
 
 include("neural_foil/method.jl")
 export NeuralFoil, NeuralOutputs
