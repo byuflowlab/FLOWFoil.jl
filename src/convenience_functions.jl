@@ -27,8 +27,8 @@ struct InviscidOutputs{TM,TV}
 end
 
 """
-    analyze(coordinates, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
-    analyze(x, y, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
+    analyze(coordinates, flow_angles=0.0, reynolds=1e6, mach=0.0; method::Method=Mfoil())
+    analyze(x, y, flow_angles=0.0, reynolds=1e6, mach=0.0; method::Method=Mfoil())
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
@@ -43,7 +43,7 @@ Note that inputting separate vectors for airfoil coordinates is only available f
 # Optional Arguments:
 - `flow_angles::Vector{Float}=0.0` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}=1e-6` : Vector of reynolds numbers (may be a single float as well)
-- `machs::Vector{Float}=0.0` : Vector of machs numbers (may be a single float as well)
+- `mach::Vector{Float}=0.0` : Vector of mach numbers (may be a single float as well)
 
 Note that Reynolds and Mach numbers are only used for viscous methods, and Flow Angles are unused in the axisymmetric methods.
 
@@ -53,26 +53,26 @@ Note that Reynolds and Mach numbers are only used for viscous methods, and Flow 
 # Returns:
 - `outputs::InviscidOutputs` : outputs object (note that only inviscid methods are currently implemented)
 """
-function analyze(x, y, flow_angles; reynolds=[1e6], machs=[0.0], method::Method=Mfoil())
+function analyze(x, y, flow_angles; reynolds=1e6, mach=0.0, method::Method=Mfoil())
     println("x: ", x)
     println("y: ", y)
     println("flow_angles: ", flow_angles)
     println("reynolds: ", reynolds)
-    println("machs: ", machs)
-    return analyze([x y], flow_angles; reynolds=reynolds, machs=machs, method=method)
+    println("mach: ", mach)
+    return analyze([x y], flow_angles; reynolds=reynolds, mach=mach, method=method)
 end
 
 function analyze(
-    coordinates, flow_angles; reynolds=[1e6], machs=[0.0], method::Method=Mfoil()
+    coordinates, flow_angles; reynolds=1e6, mach=0.0, method::Method=Mfoil()
 )
     if typeof(method) <: NeuralFoil
         return analyze_nf(
-            coordinates, flow_angles; reynolds=reynolds, machs=machs, method=method
+            coordinates, flow_angles; reynolds=reynolds, mach=mach, method=method
         )
     else
         # Reformat inputs as needed
-        coordinates, nbodies, flow_angles, reynolds, machs = reformat_inputs(
-            coordinates, flow_angles, reynolds, machs
+        coordinates, nbodies, flow_angles, reynolds, mach = reformat_inputs(
+            coordinates, flow_angles, reynolds, mach
         )
 
         # Generate Panel Geometry
