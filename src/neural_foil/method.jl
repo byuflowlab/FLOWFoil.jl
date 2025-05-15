@@ -38,53 +38,64 @@ function laitone_compressibility_correction(coeff, mach; gamma=1.4)
     return coeff / denom
 end
 
+function nf_val(variable_inputs, constant_parameters)
+    pyx = pyconvert(Py, variable_inputs)
+    pyp = pyconvert(Py, constant_parameters)
+
+    return pyconvert(Vector{Float64}, nf_val_py_wrap(pyx, pyp; call=true))
+end
+
+function nf_jvp(variable_inputs, constant_parameters, push_vector)
+    pyx = pyconvert(Py, variable_inputs)
+    pyv = pyconvert(Py, push_vector)
+    pyp = pyconvert(Py, constant_parameters)
+
+    return pyconvert(Vector{Float64}, nf_jvp_py_wrap(pyx, pyv, pyp))
+end
+
+function nf_vjp(variable_inputs, constant_parameters, pull_covector)
+    pyx = pyconvert(Py, variable_inputs)
+    pyc = pyconvert(Py, pull_covector)
+    pyp = pyconvert(Py, constant_parameters)
+
+    return pyconvert(Vector{Float64}, nf_vjp_py_wrap(pyx, pyc, pyp))
+end
+
 function analyze_nf(coordinates, flow_angles; reynolds=0.0, mach=0.0, method=NeuralFoil())
+    # - Pack Inputs - #
 
-    #TODO: write a wrapper function for jax.jit usage that takes in an array of inputs and returns an array of outputs.
-    #TODO: figure out how to have those inputs contain derivative information
-    #TODO: figure out how to have those outputs contain derivative information as well
-    #    for outputs, see: https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#evaluate-a-function-and-its-gradient-using-value-and-grad
-    #    or rather: https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#jacobians-and-hessians-using-jacfwd-and-jacrev
-    #    or probably (if using implicitAD) https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#jvps-in-jax-code
-    #    general page: https://docs.jax.dev/en/latest/notebooks/autodiff_cookbook.html#jvps-in-jax-code
-    #TODO: does the whole function need to be in python?  if so, probably need to add a python module with all the functions needed and then figure out how to load that manually with the CondaPkg stuff in order to PythonCall macro the function call into julia
+    # vectorize inputs
+    variable_inputs = [reduce(vcat, reverse(coordinates; dims=1)); flow_angles; reynolds]
 
-    aero = get_aero_from_coordinates(
-        jnp_array(reverse(coordinates; dims=1));
-        alpha=jnp_array(flow_angles),
-        Re=reynolds,
+    # pass in sizing for unpacking in JAX
+    lfa = length(flow_angles)
+    constant_parameters = (;
+        coord_length=length(coordinates),
+        coord_shape=size(coordinates),
+        angle_length=lfa,
         model_size=method.model_size,
     )
 
+    # - Run through ImplicitAD - #
+    output_vector_with_duals = ImplicitAD.provide_rule(
+        nf_val, variable_inputs, constant_parameters; mode="vp", jvp=nf_jvp, vjp=nf_vjp
+    )
+
+    # - Unpack Outputs - #
+    cl = output_vector_with_duals[1:lfa]
+    cd = output_vector_with_duals[(lfa + 1):(lfa * 2)]
+    cm = output_vector_with_duals[(lfa * 2 + 1):(lfa * 3)]
+    confidence = output_vector_with_duals[(lfa * 3 + 1):(lfa * 4)]
+
+    # - Apply Mach Corrections - #
     if iszero(mach)
-        return NeuralOutputs(;
-            cl=pyconvert(Array{Float64}, aero["CL"]),
-            cd=pyconvert(Array{Float64}, aero["CD"]),
-            cm=pyconvert(Array{Float64}, aero["CM"]),
-            confidence=pyconvert(Array{Float64}, aero["analysis_confidence"]),
-            # cl=aero["CL"],
-            # cd=aero["CD"],
-            # cm=aero["CM"],
-            # confidence=aero["analysis_confidence"],
-        )
+        return NeuralOutputs(; cl=cl, cd=cd, cm=cm, confidence=confidence)
     else
 
         # Apply Mach Corrections if Mach != 0.0
         # Laitone Compressibility correction
-        cl =
-            laitone_compressibility_correction.(pyconvert(Array{Float64}, aero["CL"]), mach)
-        cm =
-            laitone_compressibility_correction.(pyconvert(Array{Float64}, aero["CM"]), mach)
-
-        return NeuralOutputs(;
-            cl=cl,
-            cd=pyconvert(Array{Float64}, aero["CD"]),
-            cm=cm,
-            confidence=pyconvert(Array{Float64}, aero["analysis_confidence"]),
-            # cl=aero["CL"],
-            # cd=aero["CD"],
-            # cm=aero["CM"],
-            # confidence=aero["analysis_confidence"],
-        )
+        cl = laitone_compressibility_correction.(cl, mach)
+        cm = laitone_compressibility_correction.(cm, mach)
+        return NeuralOutputs(; cl=cl, cd=cd, cm=cm, confidence=confidence)
     end
 end

@@ -1,5 +1,7 @@
 [deps]
+FLOWFoil = "fb58ae67-a5c0-4a90-8078-890ae2c2e65e"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+ImplicitAD = "e7cbb90b-9b31-4eb2-a8c8-45099c074ee1"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

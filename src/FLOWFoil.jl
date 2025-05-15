@@ -85,30 +85,39 @@ export InviscidOutputs
 # Convenience Functions
 export analyze
 
-# NeuralFoil Wrapper
+#---------------------------------#
+#       NeuralFoil Wrapper        #
+#---------------------------------#
+
 using PythonCall
 
-__precompile__(false)
+using CondaPkg
+CondaPkg.add_pip("neuralfoil")
+CondaPkg.add_pip("jax")
 
-macro wrap_pyfuns(modsym, fname, cname)
-    quote
-        const pymod = pyimport($modsym)
-        # Define functions with the same names as the input symbols
-        $(:(function $(esc(cname))(args...; kwargs...)
-            pyf = @pyconst pymod.$(fname)
-            return pyf(args...; kwargs...)
-        end))
-    end
+const nf_val_py = Ref{Py}()
+const nf_jvp_py = Ref{Py}()
+const nf_vjp_py = Ref{Py}()
+
+function __init__()
+    pyimport("sys").path.append(joinpath(dirname(@__FILE__), "neural_foil/"))
+    local_module = pyimport("nf")
+    nf_val_py[] = local_module.nf_val_py
+    nf_jvp_py[] = local_module.nf_jvp_py
+    nf_vjp_py[] = local_module.nf_vjp_py
 end
 
-# using CondaPkg
-# CondaPkg.add_pip("neuralfoil")
-# CondaPkg.add_pip("jax")
-
-@wrap_pyfuns "neuralfoil" get_aero_from_coordinates get_aero_from_coordinates
-@wrap_pyfuns "jax.numpy" array jnp_array
-@wrap_pyfuns "jax" jit jit
+function nf_val_py_wrap(args...; kwargs...)
+    return nf_val_py[](args...; kwargs...)
+end
+function nf_jvp_py_wrap(args...; kwargs...)
+    return nf_jvp_py[](args...; kwargs...)
+end
+function nf_vjp_py_wrap(args...; kwargs...)
+    return nf_vjp_py[](args...; kwargs...)
+end
 
 include("neural_foil/method.jl")
 export NeuralFoil, NeuralOutputs
+
 end
