@@ -20,7 +20,6 @@ jobs:
         version:
           - '1.10'
           - '1.11'
-          - 'nightly'
         os:
           - ubuntu-latest
         arch:
@@ -32,6 +31,10 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
+      - name: Install pixi
+        run: |
+          curl -fsSL https://pixi.sh/install.sh | bash
+          echo "$HOME/.pixi/bin" >> $GITHUB_PATH
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
