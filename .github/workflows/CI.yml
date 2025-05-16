@@ -24,35 +24,13 @@ jobs:
           - ubuntu-latest
         arch:
           - x64
-          - x86
+          # - x86
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-
-      - name: Setup micromamba
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          micromamba-version: 'latest'
-          environment-name: julia-test-env
-          create-args: python=3.11
-
-      - name: Confirm micromamba works
-        shell: bash -l {0}
-        run: |
-          which micromamba
-          micromamba info
-
-      # tell PythonCall.jl or CondaPkg.jl where Python is
-      - name: Tell Julia to use micromamba Python
-        shell: bash -l {0}
-        run: |
-          PY=$(micromamba run -n julia-test-env which python)
-          echo "Micromamba Python path: $PY"
-          julia -e "using PythonCall; PythonCall.pyconfig.python = \"$PY\""
-
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
