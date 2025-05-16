@@ -1,8 +1,9 @@
 [deps]
-FLOWFoil = "fb58ae67-a5c0-4a90-8078-890ae2c2e65e"
+CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
+FiniteDiff = "6a86dc24-6348-571c-b903-95158fe2bd41"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 ImplicitAD = "e7cbb90b-9b31-4eb2-a8c8-45099c074ee1"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Xfoil = "19641d66-a62d-11e8-2441-8f57a969a9c4"

@@ -7,6 +7,7 @@ using LinearAlgebra
 using FLOWMath
 using ImplicitAD
 using SpecialFunctions
+using NPZ
 
 #---------------------------------#
 #             INCLUDES            #
@@ -59,6 +60,9 @@ include("hess_smith/system_matrices.jl")
 include("hess_smith/solve.jl")
 include("hess_smith/post_process.jl")
 
+# NeuralFoil Translation
+include("neural_foil/method.jl")
+
 ##### ----- CORE FUNCTIONALITY ----- #####
 
 # Convenience Functions
@@ -77,47 +81,12 @@ include("universal_geometry_utilities.jl")
 
 ##### ----- TYPES ----- #####
 
-export Mfoil, Xfoil, Lewis, Martensen, HessSmith
-export InviscidOutputs
+export Mfoil, Xfoil, Lewis, Martensen, HessSmith, NeuralFoil
+export InviscidOutputs, NeuralOutputs
 
 ##### ----- FUNCTIONS ----- #####
 
 # Convenience Functions
 export analyze
-
-#---------------------------------#
-#       NeuralFoil Wrapper        #
-#---------------------------------#
-
-using PythonCall
-
-using CondaPkg
-CondaPkg.add_pip("neuralfoil")
-CondaPkg.add_pip("jax")
-
-const nf_val_py = Ref{Py}()
-const nf_jvp_py = Ref{Py}()
-const nf_vjp_py = Ref{Py}()
-
-function __init__()
-    pyimport("sys").path.append(joinpath(dirname(@__FILE__), "neural_foil/"))
-    local_module = pyimport("nf")
-    nf_val_py[] = local_module.nf_val_py
-    nf_jvp_py[] = local_module.nf_jvp_py
-    nf_vjp_py[] = local_module.nf_vjp_py
-end
-
-function nf_val_py_wrap(args...; kwargs...)
-    return nf_val_py[](args...; kwargs...)
-end
-function nf_jvp_py_wrap(args...; kwargs...)
-    return nf_jvp_py[](args...; kwargs...)
-end
-function nf_vjp_py_wrap(args...; kwargs...)
-    return nf_vjp_py[](args...; kwargs...)
-end
-
-include("neural_foil/method.jl")
-export NeuralFoil, NeuralOutputs
 
 end

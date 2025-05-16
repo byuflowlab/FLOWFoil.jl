@@ -53,27 +53,18 @@ Note that Reynolds and Mach numbers are only used for viscous methods, and Flow 
 # Returns:
 - `outputs::InviscidOutputs` : outputs object (note that only inviscid methods are currently implemented)
 """
-function analyze(x, y, flow_angles; reynolds=1e6, mach=0.0, method::Method=Mfoil())
-    println("x: ", x)
-    println("y: ", y)
-    println("flow_angles: ", flow_angles)
-    println("reynolds: ", reynolds)
-    println("mach: ", mach)
-    return analyze([x y], flow_angles; reynolds=reynolds, mach=mach, method=method)
+function analyze(x, y, flow_angles; method::Method=Mfoil())
+    return analyze([x y], flow_angles; method=method)
 end
 
-function analyze(
-    coordinates, flow_angles; reynolds=1e6, mach=0.0, method::Method=Mfoil()
-)
+function analyze(coordinates, flow_angles; method::Method=Mfoil())
+
+    # Reformat inputs as needed
+    coordinates, nbodies, flow_angles = reformat_inputs(coordinates, flow_angles)
+
     if typeof(method) <: NeuralFoil
-        return analyze_nf(
-            coordinates, flow_angles; reynolds=reynolds, mach=mach, method=method
-        )
+        return analyze_nf(coordinates[1], flow_angles; method=method)
     else
-        # Reformat inputs as needed
-        coordinates, nbodies, flow_angles, reynolds, mach = reformat_inputs(
-            coordinates, flow_angles, reynolds, mach
-        )
 
         # Generate Panel Geometry
         panel_geometry = generate_panel_geometry(method, coordinates)

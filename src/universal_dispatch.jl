@@ -3,35 +3,31 @@
 #---------------------------------#
 
 """
-    reformat_inputs(x, y, flow_angle, reynolds, mach)
-    reformat_inputs(coordinates, flow_angle, reynolds, mach)
+    reformat_inputs(x, y, flow_angle)
+    reformat_inputs(coordinates, flow_angle)
 
 Reformats inputs to be the expected format.
 
 # Arguments:
 - `coordinates::Tuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a vecotr of matrices as well)
 - `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
-- `reynolds::Vector{Float}` : Vector of reynolds numbers (may be a single float as well)
-- `mach::Vector{Float}` : Vector of mach numbers (may be a single float as well)
 
 # Returns:
 - `coordinates::Vector{Float}` : reformatted coordinates
 - `nbody::Int` : number of bodies
 - `aoa::Vector{Float}` : reformatted angles of attack
-- `reynolds_numbers::Vector{Float}` : reformatted Reynolds numbers
-- `mach_numbers::Vector{Float}` : reformatted Mach numbers
 """
-function reformat_inputs(x, y, flow_angle, reynolds, mach)
+function reformat_inputs(x, y, flow_angle)
     # combine coordinates
-    return reformat_inputs([x y], flow_angle, reynolds, mach)
+    return reformat_inputs([x y], flow_angle)
 end
 
-function reformat_inputs(coordinates, flow_angle, reynolds, mach)
+function reformat_inputs(coordinates, flow_angle)
     # if coordinates is a tuple of coordinates, then splat it into a vector
-    return reformat_inputs([coordinates...], flow_angle, reynolds, mach)
+    return reformat_inputs([coordinates...], flow_angle)
 end
 
-function reformat_inputs(coordinates::AbstractMatrix, flow_angle, reynolds, mach)
+function reformat_inputs(coordinates::AbstractMatrix, flow_angle)
     sc = size(coordinates)
     @assert length(sc) == 2 "Coordinates must include both x and y coordinates"
     @assert 2 ∈ sc "Coordinates must only include x and y values"
@@ -39,15 +35,15 @@ function reformat_inputs(coordinates::AbstractMatrix, flow_angle, reynolds, mach
     if sc[1] == 2
         # shape into expected dimensions
         return reformat_inputs(
-            [coordinates[1, :] coordiantes[2, :]], flow_angle, reynolds, mach
+            [coordinates[1, :] coordiantes[2, :]], flow_angle
         )
     else
         # pass through if already in expected dimensions
-        return reformat_inputs([coordinates], flow_angle, reynolds, mach)
+        return reformat_inputs([coordinates], flow_angle)
     end
 end
 
-function reformat_inputs(coordinates::AbstractArray, flow_angle, reynolds, mach)
+function reformat_inputs(coordinates::AbstractArray, flow_angle)
 
     # - Get Number of Bodies - #
     if length(size(coordinates)) == 1
@@ -67,25 +63,25 @@ function reformat_inputs(coordinates::AbstractArray, flow_angle, reynolds, mach)
         aoa = flow_angle
     end
 
-    # - Make Reynolds Number a Vector (if not one already) - #
-    if reynolds == nothing
-        reynolds_numbers = [reynolds[1]]
-    elseif length(reynolds) == 1
-        reynolds_numbers = [reynolds[1]]
-    else
-        reynolds_numbers = reynolds
-    end
+    # # - Make Reynolds Number a Vector (if not one already) - #
+    # if reynolds == nothing
+    #     reynolds_numbers = [reynolds[1]]
+    # elseif length(reynolds) == 1
+    #     reynolds_numbers = [reynolds[1]]
+    # else
+    #     reynolds_numbers = reynolds
+    # end
 
-    # - Make Mach Number a Vector (if not one already) - #
-    if mach == nothing
-        mach_numbers = [mach[1]]
-    elseif length(mach) == 1
-        mach_numbers = [mach[1]]
-    else
-        mach_numbers = mach
-    end
+    # # - Make Mach Number a Vector (if not one already) - #
+    # if mach == nothing
+    #     mach_numbers = [mach[1]]
+    # elseif length(mach) == 1
+    #     mach_numbers = [mach[1]]
+    # else
+    #     mach_numbers = mach
+    # end
 
-    return coordinates, nbody, aoa, reynolds_numbers, mach_numbers
+    return coordinates, nbody, aoa#, reynolds_numbers, mach_numbers
 end
 
 #---------------------------------#
