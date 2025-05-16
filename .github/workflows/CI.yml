@@ -31,12 +31,29 @@ jobs:
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v1
-      - uses: mamba-org/setup-micromamba@v1
+
+      - name: Setup micromamba
+        uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: 'latest'
-          environment-name: test-env
-          create-args: python=3.11  # or whatever Python version you need
+          environment-name: julia-test-env
+          create-args: python=3.11
+
+      - name: Confirm micromamba works
+        shell: bash -l {0}
+        run: |
+          which micromamba
+          micromamba info
+
+      # tell PythonCall.jl or CondaPkg.jl where Python is
+      - name: Tell Julia to use micromamba Python
+        shell: bash -l {0}
+        run: |
+          PY=$(micromamba run -n julia-test-env which python)
+          echo "Micromamba Python path: $PY"
+          julia -e "using PythonCall; PythonCall.pyconfig.python = \"$PY\""
+
+      - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
