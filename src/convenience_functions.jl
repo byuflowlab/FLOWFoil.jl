@@ -27,8 +27,8 @@ struct InviscidOutputs{TM,TV}
 end
 
 """
-    analyze(coordinates, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
-    analyze(x, y, flow_angles=0.0, reynolds=1e6, machs=0.0; method::Method=Mfoil())
+    analyze(coordinates, flow_angles=0.0, reynolds=1e6, mach=0.0; method::Method=Mfoil())
+    analyze(x, y, flow_angles=0.0, reynolds=1e6, mach=0.0; method::Method=Mfoil())
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
@@ -43,7 +43,7 @@ Note that inputting separate vectors for airfoil coordinates is only available f
 # Optional Arguments:
 - `flow_angles::Vector{Float}=0.0` : Vector of angles of attack (may be a single float as well)
 - `reynolds::Vector{Float}=1e-6` : Vector of reynolds numbers (may be a single float as well)
-- `machs::Vector{Float}=0.0` : Vector of machs numbers (may be a single float as well)
+- `mach::Vector{Float}=0.0` : Vector of mach numbers (may be a single float as well)
 
 Note that Reynolds and Mach numbers are only used for viscous methods, and Flow Angles are unused in the axisymmetric methods.
 
@@ -53,36 +53,32 @@ Note that Reynolds and Mach numbers are only used for viscous methods, and Flow 
 # Returns:
 - `outputs::InviscidOutputs` : outputs object (note that only inviscid methods are currently implemented)
 """
-function analyze(x, y, flow_angles; reynolds=[1e6], machs=[0.0], method::Method=Mfoil())
-    println("x: ", x)
-    println("y: ", y)
-    println("flow_angles: ", flow_angles)
-    println("reynolds: ", reynolds)
-    println("machs: ", machs)
-    return analyze([x y], flow_angles; reynolds=reynolds, machs=machs, method=method)
+function analyze(x, y, flow_angles; method::Method=Mfoil())
+    return analyze([x y], flow_angles; method=method)
 end
 
-function analyze(
-    coordinates, flow_angles; reynolds=[1e6], machs=[0.0], method::Method=Mfoil()
-)
+function analyze(coordinates, flow_angles; method::Method=Mfoil())
 
     # Reformat inputs as needed
-    coordinates, nbodies, flow_angles, reynolds, machs = reformat_inputs(
-        coordinates, flow_angles, reynolds, machs
-    )
+    coordinates, nbodies, flow_angles = reformat_inputs(coordinates, flow_angles)
 
-    # Generate Panel Geometry
-    panel_geometry = generate_panel_geometry(method, coordinates)
+    if typeof(method) <: NeuralFoil
+        return analyze_nf(coordinates[1], flow_angles; method=method)
+    else
 
-    # Generate Influence Mesh
-    system_geometry = generate_system_geometry(method, panel_geometry)
+        # Generate Panel Geometry
+        panel_geometry = generate_panel_geometry(method, coordinates)
 
-    # Assemble Linear System
-    system_matrices = generate_system_matrices(method, panel_geometry, system_geometry)
+        # Generate Influence Mesh
+        system_geometry = generate_system_geometry(method, panel_geometry)
 
-    # Solve System
-    strengths = solve(method, system_matrices)
+        # Assemble Linear System
+        system_matrices = generate_system_matrices(method, panel_geometry, system_geometry)
 
-    # Post Process Solution
-    return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+        # Solve System
+        strengths = solve(method, system_matrices)
+
+        # Post Process Solution
+        return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+    end
 end

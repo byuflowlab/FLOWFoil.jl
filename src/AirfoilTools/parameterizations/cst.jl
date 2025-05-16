@@ -144,8 +144,6 @@ Define upper or lower side of airfoil using CST parameterization.
 - `N2::Float=1.0` : Class shape parameter 2
 """
 function half_cst(coefficients, x=cosine_spacing(N), dz=0.0, N1=0.5, N2=1.0)
-    n = length(coefficients)
-
     C = @. x^N1 * (1.0 - x)^N2
 
     nb = length(coefficients) - 1
@@ -321,4 +319,69 @@ function determine_half_cst(
     fit = LsqFit.curve_fit(cst_model, x, z, [coefficients; 0.0])
 
     return fit.param
+end
+
+function neuralfoil_half_cst(coefficients, x, dz, leading_edge_weight; N1=0.5, N2=1.0)
+    C = @. x^N1 * (1.0 - x)^N2
+
+    nb = length(coefficients) - 1
+
+    S = similar(x) .= 0
+
+    for (i, c) in enumerate(coefficients)
+        S += c * bernstein(i - 1, nb, x)
+    end
+
+    y = @. C * S + x * dz
+
+    # Kulfan leading edge modification
+    y .+= leading_edge_weight .* x .* (1.0 .- x) .^ (length(coefficients) + 0.5)
+
+    return y
+end
+
+function neuralfoil_cst(x, p; N1=0.5, N2=1.0)
+    np = Int((length(p) - 2) / 2)
+    pu = p[1:np]
+    pl = p[(np + 1):(np * 2)]
+    leading_edge_weight = p[end - 1]
+    dz = p[end]
+
+    nx = Int(length(x) / 2)
+    xu = x[1:nx]
+    xl = x[(nx + 1):end]
+
+    yu = neuralfoil_half_cst(pu, xu, dz / 2.0, leading_edge_weight)
+    yl = neuralfoil_half_cst(pl, xl, -dz / 2.0, leading_edge_weight)
+
+    return [yu; yl]
+end
+
+function determine_neuralfoil_cst(coordinates; n_coefficients=8, N1=0.5, N2=1.0)
+
+    # Pre-process coordinates
+    # Normalize
+    normalize_coordinates!(coordinates)
+
+    # Split
+    xl, xu, yl, yu = split_upper_lower(coordinates; idx=Int((size(coordinates, 1) + 1) / 2))
+    reverse!(xl)
+    reverse!(yl)
+    te_z = yu[end] - yl[end]
+
+    fit = LsqFit.curve_fit(
+        neuralfoil_cst,
+        [xu; reverse(xl)],
+        [yu; reverse(yl)],
+        [0.1 * ones(n_coefficients); -0.1 * ones(n_coefficients); 0.1; te_z];
+        autodiff=:forwarddiff,
+    )
+
+    nc = Int((length(fit.param) - 2) / 2)
+    cst_upper = fit.param[1:nc]
+    cst_lower = fit.param[(nc + 1):(end - 2)]
+    cst_LE = fit.param[end - 1]
+    cst_TE = fit.param[end]
+
+    return cst_upper, cst_lower, cst_LE, cst_TE
 end

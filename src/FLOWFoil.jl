@@ -7,6 +7,7 @@ using LinearAlgebra
 using FLOWMath
 using ImplicitAD
 using SpecialFunctions
+using NPZ
 
 #---------------------------------#
 #             INCLUDES            #
@@ -59,6 +60,9 @@ include("hess_smith/system_matrices.jl")
 include("hess_smith/solve.jl")
 include("hess_smith/post_process.jl")
 
+# NeuralFoil Translation
+include("neural_foil/method.jl")
+
 ##### ----- CORE FUNCTIONALITY ----- #####
 
 # Convenience Functions
@@ -77,7 +81,8 @@ include("universal_geometry_utilities.jl")
 
 ##### ----- TYPES ----- #####
 
-export Mfoil, Xfoil, Lewis, Martensen, HessSmith
+export Mfoil, Xfoil, Lewis, Martensen, HessSmith, NeuralFoil
+export InviscidOutputs, NeuralOutputs
 
 ##### ----- FUNCTIONS ----- #####
 

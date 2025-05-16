@@ -76,7 +76,7 @@ method = Martensen(solidity=1.2, stagger=15.0)
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
-## Hess-Smith 2D Method for Educational Purposes
+## Hess-Smith 2D Method
 
 We also have a version of the Hess-Smith method primarily for educational use that can be accessed with the `HessSmith` method type:
 
@@ -94,4 +94,34 @@ angles_of_attack = range(-5.0, 15.0; step=1)
 method = HessSmith(V_inf=1.0)
 
 outputs = analyze(x, y, angles_of_attack; method=method)
+```
+
+## NeuralFoil Translation from Python to Julia
+
+[NeuralFoil](https://github.com/peterdsharpe/NeuralFoil) is a multi-layer perceptron model of Xfoil.
+We provide a very basic translation of the `get_aero_from_coordinates` function from NeuralFoil via the `NeuralFoil` method type:
+
+```@docs
+FLOWFoil.NeuralFoil
+```
+
+```@example neuralfoil
+using FLOWFoil
+
+x, y = AirfoilTools.naca4()
+
+angles_of_attack = range(-5.0, 15.0; step=1)
+
+reynolds = 2e6
+mach = 0.0
+
+method = NeuralFoil(reynolds, mach; model_size="xlarge")
+
+outputs = analyze([x y], angles_of_attack; method=method)
+```
+
+Note that the NeuralFoil method does not allow multi-body analysis like the other methods do as it is based specifically on Xfoil.  We also return a separate output type for the NeuralFoil method:
+
+```@docs
+FLOWFoil.NeuralOutputs
 ```
