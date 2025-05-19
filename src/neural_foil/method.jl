@@ -40,7 +40,7 @@ end
     Constructor for NeuralFoil type.
 
 # Default Arguments:
-- `reynolds::Float=1e6` : Reynolds number
+- `reynolds::Union{Float,Vector}=1e6` : Reynolds number
 - `mach::Float=0.0` : Mach number
 
 # Keyword Arguments
@@ -89,9 +89,9 @@ end
 - `top_xtr::Vector` : laminar to turbulent transition location of top surface
 - `bot_xtr::Vector` : laminar to turbulent transition location of bottom surface
 - `upper_bl_ue_over_vinf::Matrix` : upper boundary layer normalized surface velocity
-- `lower_bl_ue_over_vinf::Matrix` : lower boundary layer normalized surface velocity
 - `upper_theta::Matrix` : upper boundary layer momentum thickness
 - `upper_H::Matrix` : upper boundary layer shape factor
+- `lower_bl_ue_over_vinf::Matrix` : lower boundary layer normalized surface velocity
 - `lower_theta::Matrix` : lower boundary layer momentum thickness
 - `lower_H::Matrix` : lower boundary layer shape factor
 """
@@ -103,9 +103,9 @@ end
     top_xtr::TV
     bot_xtr::TV
     upper_bl_ue_over_vinf::TM
-    lower_bl_ue_over_vinf::TM
     upper_theta::TM
     upper_H::TM
+    lower_bl_ue_over_vinf::TM
     lower_theta::TM
     lower_H::TM
 end
@@ -185,37 +185,48 @@ function analyze_nf(coordinates, flow_angles; method=NeuralFoil())
     # yl = at.neuralfoil_half_cst(cst_lower,reverse(xl),-cst_TE/2,cst_LE)
 
     # Assemble inputs to run everything all at once
-    x = stack([
-        [
-            cst_upper
-            cst_lower
-            cst_LE
-            cst_TE * 50.0
-            sind(2.0 * aoa)
-            cosd(aoa)
-            1.0 - cosd(aoa)^2
-            (log(method.Re) - 12.5) / 3.5
-            (method.n_crit .- 9.0) / 4.5
-            method.xtr_upper
-            method.xtr_lower
-        ] for aoa in flow_angles
-    ])
+    re_vec = stack(reshape([[reynolds] for _ in flow_angles, reynolds in method.Re], :))
+    x = stack(
+        reshape(
+            [
+                [
+                    cst_upper
+                    cst_lower
+                    cst_LE
+                    cst_TE * 50.0
+                    sind(2.0 * aoa)
+                    cosd(aoa)
+                    1.0 - cosd(aoa)^2
+                    (log(reynolds) - 12.5) / 3.5
+                    (method.n_crit .- 9.0) / 4.5
+                    method.xtr_upper
+                    method.xtr_lower
+                ] for aoa in flow_angles, reynolds in method.Re
+            ],
+            :,
+        ),
+    )
 
-    x_flipped = stack([
-        [
-            -cst_lower
-            -cst_upper
-            -cst_LE
-            cst_TE * 50.0
-            -sind(2.0 * aoa)
-            cosd(aoa)
-            1.0 - cosd(aoa)^2
-            (log(method.Re) - 12.5) / 3.5
-            (method.n_crit .- 9.0) / 4.5
-            method.xtr_lower
-            method.xtr_upper
-        ] for aoa in flow_angles
-    ])
+    x_flipped = stack(
+        reshape(
+            [
+                [
+                    -cst_lower
+                    -cst_upper
+                    -cst_LE
+                    cst_TE * 50.0
+                    -sind(2.0 * aoa)
+                    cosd(aoa)
+                    1.0 - cosd(aoa)^2
+                    (log(reynolds) - 12.5) / 3.5
+                    (method.n_crit .- 9.0) / 4.5
+                    method.xtr_lower
+                    method.xtr_upper
+                ] for aoa in flow_angles, reynolds in method.Re
+            ],
+            :,
+        ),
+    )
 
     # rename for convenience
     Wb = (; weights=method.weights, biases=method.biases)
@@ -269,11 +280,11 @@ function analyze_nf(coordinates, flow_angles; method=NeuralFoil())
     lower_bl_ue_over_vinf = y_fused[(7 + N * 5):(7 + N * 6 - 1), :]
     upper_theta =
         ((10.0 .^ y_fused[7:(7 + N - 1), :]) .- 0.1) ./
-        (abs.(upper_bl_ue_over_vinf) .* method.Re)
+        (abs.(upper_bl_ue_over_vinf) .* re_vec)
     upper_H = 2.6 .* exp.(y_fused[(7 + N):(7 + N * 2 - 1), :])
     lower_theta =
         ((10.0 .^ y_fused[(7 + N * 3):(7 + N * 4 - 1), :]) .- 0.1) ./
-        (abs.(lower_bl_ue_over_vinf) .* method.Re)
+        (abs.(lower_bl_ue_over_vinf) .* re_vec)
     lower_H = 2.6 .* exp.(y_fused[(7 + N * 4):(7 + N * 5 - 1), :])
 
     # - Apply Mach Corrections - #
@@ -284,18 +295,21 @@ function analyze_nf(coordinates, flow_angles; method=NeuralFoil())
     end
 
     # - Return Outputs - #
+    vec_out_size = (length(flow_angles), length(method.Re))
+    matu_out_size = (length(flow_angles), size(upper_H, 1), length(method.Re))
+    matl_out_size = (length(flow_angles), size(lower_H, 1), length(method.Re))
     return NeuralOutputs(
-        cl,
-        cd,
-        cm,
-        confidence,
-        top_xtr,
-        bot_xtr,
-        upper_bl_ue_over_vinf,
-        lower_bl_ue_over_vinf,
-        upper_theta,
-        upper_H,
-        lower_theta,
-        lower_H,
+        reshape(cl, vec_out_size),
+        reshape(cd, vec_out_size),
+        reshape(cm, vec_out_size),
+        reshape(confidence, vec_out_size),
+        reshape(top_xtr, vec_out_size),
+        reshape(bot_xtr, vec_out_size),
+        reshape(upper_bl_ue_over_vinf, matu_out_size),
+        reshape(upper_theta, matu_out_size),
+        reshape(upper_H, matu_out_size),
+        reshape(lower_bl_ue_over_vinf, matl_out_size),
+        reshape(lower_theta, matl_out_size),
+        reshape(lower_H, matl_out_size),
     )
 end

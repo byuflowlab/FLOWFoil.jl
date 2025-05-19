@@ -59,9 +59,11 @@ end
     x, y = at.naca4(2.0, 4.0, 12.0)
     coordinates = [x y]
     flow_angles = range(-5, 15; step=1)
-    reynolds = 1e6
     mach = 0.0
     model_size = "xlarge"
+
+    # single reynolds test
+    reynolds = 1e6
 
     outputs_nfpy = wrapped_nf(
         coordinates, flow_angles; reynolds=reynolds, machs=mach, model_size=model_size
@@ -74,4 +76,19 @@ end
     @test isapprox(outputs_nfpy.cl, outputs_ff.cl, atol=1e-8)
     @test isapprox(outputs_nfpy.cd, outputs_ff.cd, atol=1e-8)
     @test isapprox(outputs_nfpy.cm, outputs_ff.cm, atol=1e-8)
+
+    # multiple reynolds test
+    reynolds = [1e6; 2e6]
+
+    # outputs_nfpy = wrapped_nf(
+    #     coordinates, flow_angles; reynolds=reynolds, machs=mach, model_size=model_size
+    # )
+
+    outputs_ff = analyze(
+        coordinates, flow_angles; method=NeuralFoil(reynolds, mach; model_size=model_size)
+    )
+
+    @test size(outputs_ff.cl) == (length(flow_angles), length(reynolds))
+    @test size(outputs_ff.upper_bl_ue_over_vinf, 1) == length(flow_angles)
+    @test size(outputs_ff.upper_bl_ue_over_vinf, 3) == length(reynolds)
 end
