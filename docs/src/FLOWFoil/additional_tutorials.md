@@ -12,7 +12,7 @@ FLOWFoil.Mfoil
 ```
 
 Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results.
-Currently, this method only includes the inviscid parts of Xfoil/Mfoil, so Reynolds and Mach number inputs do nothing if used.
+Currently, this method only includes the inviscid parts of Xfoil/Mfoil.
 
 ```@example Mfoil
 using FLOWFoil
@@ -96,10 +96,13 @@ method = HessSmith(V_inf=1.0)
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
-## NeuralFoil Translation from Python to Julia
+## NeuralFoil Lite
 
-[NeuralFoil](https://github.com/peterdsharpe/NeuralFoil) is a multi-layer perceptron model of Xfoil.
-We provide a very basic translation of the `get_aero_from_coordinates` function from NeuralFoil via the `NeuralFoil` method type:
+[NeuralFoil](https://github.com/peterdsharpe/NeuralFoil) is a multi-layer perceptron model of Xfoil developed by Peter Sharpe in Python.
+For a detailed description, see the linked code and his PhD thesis: ["Accelerating Practical Engineering Design Optimization with Computational Graph Transformations"](https://dspace.mit.edu/handle/1721.1/157809?show=full)).
+We have ported over a small, basic portion of NeuralFoil--specifically portions providing functionality similar to NeuralFoil's [`get_aero_from_coordinates`](https://github.com/peterdsharpe/NeuralFoil/blob/537860c33496af2fd878999029c59d3272244107/neuralfoil/main.py#L384) function.
+(Note that we implement our own least squares solver to determine the Kulfan parameter inputs to the neural net from the input coordinates, thus we have only ported over the neural net portions of neuralfoil and have not included any functionality from [AeroSandbox](https://github.com/peterdsharpe/AeroSandbox) as NeuralFoil does.)
+Accessing this NeuralFoil functionality in FLOWFoil can be done using the `NeuralFoil` method:
 
 ```@docs
 FLOWFoil.NeuralFoil
@@ -120,8 +123,12 @@ method = NeuralFoil(reynolds, mach; model_size="xlarge")
 outputs = analyze([x y], angles_of_attack; method=method)
 ```
 
-Note that the NeuralFoil method does not allow multi-body analysis like the other methods do as it is based specifically on Xfoil.  We also return a separate output type for the NeuralFoil method:
+Note that the NeuralFoil method does not allow multi-body analysis like the other methods do as it is based specifically on Xfoil.  We also return a unique output type for the NeuralFoil method that includes all outputs from the NeuralFoil neural net:
 
 ```@docs
 FLOWFoil.NeuralOutputs
 ```
+
+!!! note
+    The NeuralFoil method here is NOT a replacement for the excellent, and far richer Python implementation.  Rather, this is simply a generally algorithmically differentiable version of the core of NeuralFoil.
+    Thus far, we have only tested using ForwardDiff.jl, but we expect other Julia-based automatic differentiation packages to work with little to no modification of the code.

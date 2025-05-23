@@ -1,3 +1,7 @@
+#---------------------------------#
+#           Nominal CST           #
+#---------------------------------#
+
 """
 # Fields:
 - `upper_coefficients::AbstractArray{Float}` : Vector of coefficients defining the upper side.
@@ -320,6 +324,10 @@ function determine_half_cst(
 
     return fit.param
 end
+
+#----------------------------------------------------------#
+#  NeuralFoil CST (uses Kulfan Leading Edge Modification)  #
+#----------------------------------------------------------#
 
 function neuralfoil_half_cst(coefficients, x, dz, leading_edge_weight; N1=0.5, N2=1.0)
     C = @. x^N1 * (1.0 - x)^N2

@@ -175,9 +175,6 @@ function analyze_nf(coordinates, flow_angles; method=NeuralFoil())
     # Get CST parameters from coordinates
     cst_upper, cst_lower, cst_LE, cst_TE = at.determine_neuralfoil_cst(coordinates)
 
-    # yu = at.neuralfoil_half_cst(cst_upper,xu,cst_TE/2,cst_LE)
-    # yl = at.neuralfoil_half_cst(cst_lower,reverse(xl),-cst_TE/2,cst_LE)
-
     # Assemble inputs to run everything all at once
     re_vec = stack(reshape([[reynolds] for _ in flow_angles, reynolds in method.Re], :))
     x = stack(
