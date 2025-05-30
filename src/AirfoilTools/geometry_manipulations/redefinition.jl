@@ -14,7 +14,7 @@ function whole_cosine_spacing(N::Integer=160)
 end
 
 """
-    whole_cosine_spacing(N::Integer=160)
+    split_cosine_spacing(N::Integer=160)
 
 Returns cosine spaced x coordinates from 0 to 1.
 
