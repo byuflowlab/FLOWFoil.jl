@@ -7,7 +7,7 @@ using LinearAlgebra
 using FLOWMath
 using ImplicitAD
 using SpecialFunctions
-using NPZ
+import NeuralFoil as nf
 
 #---------------------------------#
 #             INCLUDES            #
