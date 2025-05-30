@@ -162,3 +162,18 @@ end
 A faster dot product.
 """
 dot(A, B) = sum(a * b for (a, b) in zip(A, B))
+
+#---------------------------------#
+#         Mach Correction         #
+#---------------------------------#
+
+function smooth_beta(mach; blend_range=0.02)
+    b(M) = 1.0 / sqrt(1.0 - min(M, 0.999)^2)
+    return FLOWMath.quintic_blend(b(mach), b(0.99), mach, 0.975, blend_range)
+end
+
+function laitone_compressibility_correction(coeff, mach; gamma=1.4)
+    beta = smooth_beta(mach)
+    denom = beta + mach^2 * coeff / (2.0 * beta) * (1.0 + (gamma - 1) * mach^2 / 2.0)
+    return coeff / denom
+end
