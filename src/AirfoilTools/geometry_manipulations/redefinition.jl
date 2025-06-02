@@ -29,33 +29,6 @@ function split_cosine_spacing(N::Integer=80)
 end
 
 """
-    normalize_coordinates!(coordinates)
-
-Normalize airfoil to unit chord and shift leading edge to zero. Adjusts coordinates in place.
-
-# Arguments:
-- `coordinates::Array{Float}` : Array of [x y] coordinates
-"""
-function normalize_coordinates!(coordinates)
-    x = @view(coordinates[:, 1])
-    y = @view(coordinates[:, 2])
-
-    # get current chord length
-    chord = maximum(x) - minimum(x)
-
-    # shift to zero
-    x[:] .-= minimum(x)
-
-    # normalize chord
-    x[:] ./= chord
-
-    # scale y coordinates to match
-    y[:] ./= chord
-
-    return coordinates
-end
-
-"""
     repanel_airfoil(x, z; N=160)
 
 Repanels airfoil coordinates using Akima splines with `N` coordinate points.
