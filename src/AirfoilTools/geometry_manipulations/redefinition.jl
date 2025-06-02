@@ -29,6 +29,33 @@ function split_cosine_spacing(N::Integer=80)
 end
 
 """
+    normalize_coordinates!(coordinates)
+
+Normalize airfoil to unit chord and shift leading edge to zero. Adjusts coordinates in place.
+
+# Arguments:
+- `coordinates::Array{Float}` : Array of [x y] coordinates
+"""
+function normalize_coordinates!(coordinates)
+    x = @view(coordinates[:, 1])
+    y = @view(coordinates[:, 2])
+
+    # get current chord length
+    chord = maximum(x) - minimum(x)
+
+    # shift to zero
+    x[:] .-= minimum(x)
+
+    # normalize chord
+    x[:] ./= chord
+
+    # scale y coordinates to match
+    y[:] ./= chord
+
+    return coordinates
+end
+
+"""
     repanel_airfoil(x, z; N=160)
 
 Repanels airfoil coordinates using Akima splines with `N` coordinate points.
@@ -48,11 +75,11 @@ function repanel_airfoil(x, z; N=160)
     @assert length(x) == length(z) "x and z vectors must be the same length"
 
     #First normalize the airfoil to between 0 and 1
-    normalize_airfoil!(x, z)
+    normalize_coordinates!(x, z)
 
     #let's figure out the cosine spacing.
     npoints = ceil(Int, N / 2)
-    akimax = cosine_spacing(npoints)
+    akimax = split_cosine_spacing(npoints)
 
     #now we split the top and bottom of the airfoil
     x1, x2, z1, z2 = split_upper_lower(x, z)
