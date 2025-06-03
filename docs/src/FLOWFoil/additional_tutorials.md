@@ -3,7 +3,7 @@
 FLOWFoil includes various panel method implementations that are available based on the `method` keyword argument.
 Here we go over the available methods and their various options
 
-## Xfoil Method
+## Nfoil (inviscid) Method
 
 An Xfoil-like method, actually based on [mfoil](https://websites.umich.edu/~kfid/codes.html) can be accessed using the `Mfoil` method type:
 
@@ -96,10 +96,10 @@ method = HessSmith(V_inf=1.0)
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
-## NeuralFoil Translation from Python to Julia
+## NeuralFoil Method
 
 [NeuralFoil](https://github.com/peterdsharpe/NeuralFoil) is a multi-layer perceptron model of Xfoil.
-We provide a very basic translation of the `get_aero_from_coordinates` function from NeuralFoil via the `NeuralFoil` method type:
+We provide the Neuralfoil Method through the `NeuralFoil` method type and is accessed through the neuralfoil.jl:
 
 ```@docs
 FLOWFoil.NeuralFoil
@@ -124,4 +124,27 @@ Note that the NeuralFoil method does not allow multi-body analysis like the othe
 
 ```@docs
 FLOWFoil.NeuralOutputs
+```
+
+## LegacyXfoil Method
+
+We also have the LegacyXfoil method that is based on Xfoil and can be accessed with the `LegacyXfoil` method type:
+
+```@docs
+FLOWFoil.LegacyXfoil
+```
+
+```@example legacyxfoil
+using FLOWFoil
+
+x, y = AirfoilTools.naca4()
+
+angles_of_attack = range(-5.0, 15.0; step=1)
+
+reynolds = 2e6
+mach = 0.0
+
+method = LegacyXfoil(reynolds, mach; npan=140, ....)
+
+outputs = analyze([x y], angles_of_attack; method=method)
 ```
