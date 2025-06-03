@@ -1,8 +1,44 @@
+"""
+    generate_panel_geometry(method::Lewis, coordinates::AbstractVector)
+
+Generates panel geometries for multiple airfoil surfaces using the Lewis method.
+
+# Arguments
+- `method::Lewis`: Configuration or marker for the Lewis panel method.
+- `coordinates::AbstractVector{<:Matrix{<:Real}}`: A vector of 2D coordinate matrices, each of size (N+1, 2), defining the panel endpoints for each airfoil surface.
+
+# Returns
+- `Vector{NamedTuple}`: A vector of named tuples, each representing the panel geometry for one airfoil. Each tuple includes:
+  - `npanels::Int`: Number of panels.
+  - `panel_center::Matrix`: Midpoints of each panel.
+  - `panel_length::Vector`: Lengths of each panel.
+  - `panel_normal::Matrix`: Unit normal vectors to each panel.
+  - `panel_curvature::Vector`: Curvature of each panel.
+  - `panel_angle::Vector`: Angle of each panel with respect to the x-axis (in radians).
+"""
 function generate_panel_geometry(method::Lewis, coordinates)
     #broadcast for multiple airfoils
     return [generate_panel_geometry(method, c) for c in coordinates]
 end
 
+"""
+    generate_panel_geometry(method::Lewis, coordinates::Matrix{<:Real})
+
+Generates panel geometry for a single airfoil surface using the Lewis method.
+
+# Arguments
+- `method::Lewis`: Configuration or marker for the Lewis panel method.
+- `coordinates::Matrix{<:Real}`: A matrix of size (N+1, 2), where each row is an (x, r) coordinate of a panel corner. The second column must be non-negative (r ≥ 0), corresponding to the radial direction in axisymmetric flow.
+
+# Returns
+- `NamedTuple`: A named tuple containing panel geometry fields:
+  - `npanels::Int`: Number of panels.
+  - `panel_center::Matrix`: Midpoints of each panel.
+  - `panel_length::Vector`: Lengths of each panel.
+  - `panel_normal::Matrix`: Unit normal vectors for each panel.
+  - `panel_curvature::Vector`: Curvature at each panel.
+  - `panel_angle::Vector`: Panel orientation angles (in radians).
+"""
 function generate_panel_geometry(method::Lewis, coordinates::Matrix{TF}) where {TF}
 
     ### --- SETUP --- ###
@@ -25,6 +61,25 @@ function generate_panel_geometry(method::Lewis, coordinates::Matrix{TF}) where {
     return generate_panel_geometry!(method, panel_geometry, coordinates)
 end
 
+"""
+    generate_panel_geometry!(::Lewis, panel_geometry, coordinates::Matrix{<:Real})
+
+In-place computation of panel geometry fields for a single airfoil surface using the Lewis method. This function fills in the provided `panel_geometry` named tuple based on panel corner coordinates.
+
+# Arguments
+- `method::Lewis`: Configuration or marker for the Lewis panel method.
+- `panel_geometry::NamedTuple`: Preallocated named tuple with fields:
+  - `npanels::Int`
+  - `panel_center::Matrix`
+  - `panel_length::Vector`
+  - `panel_normal::Matrix`
+  - `panel_curvature::Vector`
+  - `panel_angle::Vector`
+- `coordinates::Matrix{<:Real}`: (N+1, 2) matrix of panel endpoint coordinates (x, r), where r must be non-negative.
+
+# Returns
+- `NamedTuple`: The updated `panel_geometry` tuple with computed values.
+"""
 function generate_panel_geometry!(
     ::Lewis, panel_geometry, coordinates::Matrix{TF}
 ) where {TF}

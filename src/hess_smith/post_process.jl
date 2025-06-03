@@ -1,3 +1,25 @@
+"""
+    post_process(method::HessSmith, panel_geometry, system_geometry, strengths, flow_angles)
+
+Wrapper function for computing post-processing aerodynamic results when only a single body
+is used in the panel method formulation. Converts a single-body input into a vector format expected by the full
+multi-body `post_process` method, ensuring uniform handling for downstream calculations.
+
+# Arguments
+- `method::HessSmith`: The solver type used to dispatch Hess-Smith panel method logic.
+- `panel_geometry`: The panel geometry object for a single body (not a vector).
+- `system_geometry`: Geometry-related precomputed fields needed for influence calculations.
+- `strengths::Matrix`: Matrix of vortex strengths per panel.
+- `flow_angles::Vector{<:Real}`: Array of freestream angles of attack (in degrees).
+
+# Returns
+- An `InviscidOutputs` object containing:
+  - `vs`: Tangential velocities.
+  - `cp`: Pressure coefficients.
+  - `cl`: Lift coefficients.
+  - `cd`: Drag coefficients (zeroed for inviscid).
+  - `cm`: Moment coefficients (zeroed for inviscid).
+"""
 function post_process(
     method::HessSmith, panel_geometry, system_geometry, strengths, flow_angles
 )
@@ -5,9 +27,33 @@ function post_process(
 end
 
 """
+    post_process(::HessSmith, panel_geometry, system_geometry, strengths, flow_angles)
 
-Calculate tangential velocity and surface pressures
+Computes tangential velocities, pressure coefficients, and aerodynamic coefficients
+(lift, drag, and moment) for a given configuration of panels and freestream conditions
+using the Hess-Smith panel method.
 
+# Arguments
+- `::HessSmith`: Marker type for dispatching the Hess-Smith solver method.
+- `panel_geometry::AbstractVector`: Vector of panel geometry objects, each representing an airfoil or body.
+- `system_geometry`: Precomputed system geometry structure (distances, angles, etc.) used for influence calculations.
+- `strengths::Matrix`: Matrix of vortex strengths for each panel and each vector component.
+- `flow_angles::Vector{<:Real}`: Freestream angles of attack (in degrees) to evaluate aerodynamic performance.
+
+# Returns
+- If `nbodies == 1`: An `InviscidOutputs` struct containing:
+  - `vs`: Matrix of tangential velocities for each panel and angle of attack.
+  - `cp`: Matrix of surface pressure coefficients.
+  - `cl`: Vector of lift coefficients.
+  - `cd`: Vector of drag coefficients (currently zero for inviscid flow).
+  - `cm`: Vector of moment coefficients (currently zero for inviscid flow).
+
+- If `nbodies > 1`: An `InviscidOutputs` struct containing:
+  - `vs::Vector{Matrix}`: List of tangential velocity matrices for each body.
+  - `cp::Vector{Matrix}`: List of pressure coefficient matrices for each body.
+  - `cl::Matrix`: Matrix of lift coefficients `[n_aoa, n_bodies]`.
+  - `cd::Matrix`: Matrix of drag coefficients (zero).
+  - `cm::Matrix`: Matrix of moment coefficients (zero).
 """
 function post_process(
     method::HessSmith,

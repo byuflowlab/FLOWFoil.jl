@@ -1,7 +1,39 @@
+"""
+    generate_system_matrices(method::HessSmith, panel_geometry, system_geometry)
+
+Wrapper function to generate the Hess-Smith system matrices for a single body. Internally wraps
+the panel geometry into a vector and delegates to the general multi-body function.
+
+# Arguments
+- `method::HessSmith`: The solver object or configuration struct for the Hess-Smith panel method.
+- `panel_geometry`: A named tuple representing a single body's panel geometry (e.g., from `generate_panel_geometry`).
+- `system_geometry`: A named tuple containing geometric data between panels (e.g., from `generate_system_geometry`).
+
+# Returns
+- A named tuple `(; A, b)` where:
+  - `A::Matrix`: The system matrix representing the vortex influence coefficients (LHS of linear system).
+  - `b::Vector`: The boundary condition vector (RHS of linear system).
+"""
 function generate_system_matrices(method::HessSmith, panel_geometry, system_geometry)
     return generate_system_matrices(method, [panel_geometry], system_geometry)
 end
 
+"""
+    generate_system_matrices(method::HessSmith, panel_geometry::AbstractVector, system_geometry)
+
+Generates the system matrices for solving the Hess-Smith panel method. This includes the vortex
+influence coefficient matrix (`A`) and the boundary condition vector (`b`), for one or more bodies.
+
+# Arguments
+- `method::HessSmith`: The solver object or configuration struct for the Hess-Smith panel method.
+- `panel_geometry::AbstractVector`: A vector of named tuples representing the panel geometry of each body.
+- `system_geometry`: A named tuple containing system-level geometric data (from `generate_system_geometry`).
+
+# Returns
+- A named tuple `(; A, b)` where:
+  - `A::Matrix`: The system matrix of vortex influence coefficients.
+  - `b::Vector`: The vector of boundary conditions imposed at the control points.
+"""
 function generate_system_matrices(
     method::HessSmith, panel_geometry::AbstractVector, system_geometry
 )
@@ -28,11 +60,11 @@ end
 
 Assembles the coefficient matrix.
 
-# Arguments:
+# Arguments
 - `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 
-# Returns:
+# Returns
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
 function assemble_vortex_matrix(
@@ -72,6 +104,16 @@ function assemble_vortex_matrix(
 end
 
 """
+    assemble_b_matrix(panel_geometry, system_geometry)
+
+Assembles the boundary condition vector.
+
+# Arguments
+- `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
+- `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
+
+# Returns
+- b::Vector{Float}` : The boundary condition vector for the linear system
 """
 function assemble_b_matrix(panel_geometry, system_geometry)   ### --- SETUP --- ###
 

@@ -13,7 +13,7 @@ A faster 2-norm.
 norm(A) = sqrt(mapreduce(x -> x^2, +, A))
 
 """
-    linear_transform(range1, range2, values)
+    linear_transform(source_range, target_range, source_values)
 
 Linear transfrom of values from range `(source_range[1], source_range[end])` to `(target_range[1], target_range[end])`
 

@@ -4,11 +4,11 @@ Included in the AirfoilTools module are the following common airfoil parameteriz
 
 ### Parameter Types
 Each of the parameterizations below have associated composite types whose fields are the parameters used in defining the airfoil geometries.  Each of these composite types is defined using the `@kwdef` macro such that the user does not need to remember the order of the fields, but can simply define the fields as though they were keyword arguments.
-In general, few of the fields are given defaults with the exception of thigns like trailing edge gap or z-positions, which are always defaulted to zero.
+In general, few of the fields are given defaults with the exception of things like trailing edge gap or z-positions, which are always defaulted to zero.
 In addition, some parameterization methods have specific values inherent to their methods. These are exposed to the user for convenience, but are also defaulted to the values inherent in the parameterization method.
 
 ### Coordinates
-For all of the parameterizations, the x-coordinates are defined to be along the chord-wise direction, and the z-coordinates are orthogonal to the x-coordinates.  This is done to be similar to the standard airframe coordinate system, with the x-direction being positve toward the back of the airframe, and the z-direction being up.
+For all of the parameterizations, the x-coordinates are defined to be along the chord-wise direction, and the z-coordinates are orthogonal to the x-coordinates.  This is done to be similar to the standard airframe coordinate system, with the x-direction being positive toward the back of the airframe, and the z-direction being up.
 
 In addition all coordinates are given clockwise from the trailing edge, even if the coordinates are split between upper and lower sides.  In other words, the coordinates are given from the lower trailing edge to the leading edge, then the leading edge back to the upper side trailing edge.  In general, if the coordinates are given in an upper and lower split, the leading edge point is repeated.
 

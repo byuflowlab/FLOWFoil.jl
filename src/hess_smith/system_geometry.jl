@@ -1,7 +1,47 @@
+"""
+    generate_system_geometry(method::HessSmith, panel_geometry)
+
+Wrapper function that constructs the full system geometry for the Hess-Smith panel method,
+accepting a single `panel_geometry` object (e.g., from `generate_panel_geometry`). Internally
+wraps the single input into a vector and delegates to the more general method.
+
+# Arguments
+- `method::HessSmith`: The Hess-Smith solver object.
+- `panel_geometry`: A named tuple returned from `generate_panel_geometry`
+
+# Returns
+- `system_geometry`: A named tuple with computed geometric data required for panel-panel influence calculations.
+"""
 function generate_system_geometry(method::HessSmith, panel_geometry)
     return generate_system_geometry(method, [panel_geometry])
 end
 
+"""
+    generate_system_geometry(method::HessSmith, panel_geometry::AbstractVector)
+
+Computes the system-level geometric data required by the Hess-Smith method for one or more bodies,
+based on their respective panel geometries. This includes angular differences between panels,
+distances from control points to panel nodes, and orientation metrics for influence calculations.
+
+# Arguments
+- `method::HessSmith`: The Hess-Smith solver object.
+- `panel_geometry::AbstractVector`: A vector of named tuples, each representing the panel geometry
+  of a single body, as returned by `generate_panel_geometry`.
+
+# Returns
+- `system_geometry::NamedTuple` containing:
+  - `nbodies::Int`: Number of bodies in the system.
+  - `panel_indices::Vector{UnitRange}`: Index ranges for each body’s panels in the full mesh.
+  - `mesh2panel::Vector{Int}`: Mapping from system mesh index to panel index per body.
+  - `sine_angle_panels::Matrix`: Sine of angle difference between panel pairs.
+  - `cos_angle_panels::Matrix`: Cosine of angle difference between panel pairs.
+  - `beta::Matrix`: Panel-to-panel angular influence terms.
+  - `r_x::Matrix`: x-component distances from control points to node points.
+  - `r_y::Matrix`: y-component distances from control points to node points.
+  - `r_squared::Matrix`: Squared distances from control points to node points.
+  - `r_influence::Matrix`: Euclidean distances from control points to node points.
+  - `chord_length::Vector`: Chord length of each body.
+"""
 function generate_system_geometry(method::HessSmith, panel_geometry::AbstractVector)
 
     ### --- Convenience Variables --- ###
@@ -65,6 +105,20 @@ function generate_system_geometry(method::HessSmith, panel_geometry::AbstractVec
     return generate_system_geometry!(method, system_geometry, panel_geometry)
 end
 
+"""
+    generate_system_geometry!(method::HessSmith, system_geometry, panel_geometry)
+
+In-place function that fills the `system_geometry` object with computed distances,
+angular differences, and influence metrics between all panels in the domain for one or more bodies.
+
+# Arguments
+- `method::HessSmith`: The Hess-Smith solver object.
+- `system_geometry::NamedTuple`: A pre-allocated structure for storing system-level geometry data.
+- `panel_geometry::AbstractVector`: A vector of named tuples, each representing a body's panel geometry.
+
+# Returns
+- The updated `system_geometry` named tuple with all fields computed.
+"""
 function generate_system_geometry!(
     method::HessSmith, system_geometry, panel_geometry)
     

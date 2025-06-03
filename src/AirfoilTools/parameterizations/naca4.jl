@@ -1,5 +1,7 @@
 """
-# Fields:
+    NACA4
+
+# Fields
 - `max_camber::Float=2.0` : maximum camber in % chord
 - `max_camber_pos::Float=4.0` : x-position of maximum camber point in 1/10 chord
 - `max_thickness::Float=12.0` : maximum thickness in % chord
@@ -17,12 +19,12 @@ end
 
 Compute thickness at a given chord-normalized x-position by NACA 4-series thickness equations.
 
-# Arguments:
-- `x::Float` : x position along chordlin, markersize=3, markershape=:squaree
+# Arguments
+- `x::Float` : x position along chordline, markersize=3, markershape=:squaree
 - `maxthick::Float` : Maximum thickness value
 
-# Keyword Arguments:
-- `blunt_te::Bool` : Flag whether trailing edge is blunt or not
+# Keyword Arguments
+- `blunt_te::Bool=false` : Flag whether trailing edge is blunt or not
 """
 function naca4_thickness(x, maxthick; blunt_te=false)
 
@@ -40,7 +42,7 @@ end
 
 Compute camber at a given chord-normalized x-position by NACA 4-series camber equations.
 
-# Arguments:
+# Arguments
 - `x::Float` : x position along chordline
 - `max_camber::Float64` : Maximum camber value
 - `max_camber_pos::Float64` : Position of maximum camber
@@ -65,15 +67,15 @@ end
 
 Compute x, z airfoil coordinates for N nodes, based on NACA 4-Series Parameterization.
 
-# Arguments:
+# Arguments
 - `parameters::NACA4` : NACA 4-series parameters
 
-# Keyword Arguments:
-- `N::Int` : Total number of coordinates to use.  This values should be odd, but if not, the number of points returned will be N-1.
+# Keyword Arguments
+- `N::Int=161` : Total number of coordinates to use.  This values should be odd, but if not, the number of points returned will be N-1.
 - `x::AbstractArray{Float}` : x coordinates (cosine spaced coordinates used by default)
-- `split::Bool` : Flag wheter to split into upper and lower halves.
+- `split::Bool=false` : Flag wheter to split into upper and lower halves.
 
-# Returns:
+# Returns
 If `split` == false:
  - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
  - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
@@ -100,18 +102,18 @@ end
 
 Compute x, z airfoil coordinates for N nodes, based on NACA 4-Series Parameterization.
 
-# Arguments:
+# Arguments
 - `c::Float` : Maximum camber value (percent of chord)
 - `p::Float` : Position along chord (in 10ths of chord) where maximum naca4_camber lies
 - `t::Float` : Maximum thickness of airfoil in percent chord
 
-# Keyword Arguments:
+# Keyword Arguments
 - `N::Int` : Total number of coordinates to use.  This values should be odd, but if not, the number of points returned will be N-1.
 - `x::AbstractArray{Float}` : x-coordinates (cosine spaced coordinates used by default)
 - `blunt_te::Bool` : Flag whether trailing edge is blunt or not
 - `split::Bool` : Flag wheter to split into upper and lower halves.
 
-# Returns:
+# Returns
 If `split` == false:
  - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
  - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
@@ -162,7 +164,14 @@ end
 
 Calculate NACA 4-series parameters based on input x,z coordinates.
 
-# Returns:
+# Arguments
+- `x::AbstractArray{Float}` : vector of x coordinates for airfoil
+- `z::AbstractArray{Float}` : vector of z coordinates for airfoil
+
+# Keyword Arguments
+- `blunt_te::Bool=false` : Flag whether trailing edge is blunt or not
+
+# Returns
 - `parameters::NACA4` : a parameter object of type NACA4.
 """
 function determine_naca4(x, z; blunt_te=false)

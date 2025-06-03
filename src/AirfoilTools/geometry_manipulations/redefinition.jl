@@ -3,10 +3,10 @@
 
 Returns cosine spaced x coordinates from 1 to 0 back to 1.
 
-# Arguments:
+# Arguments
 - `N::Integer` : Total number of points is N+1.
 
-# Returns:
+# Returns
 - `x::AbstractArray{Float}` : cosine spaced x-coordinates, starting at 1.0, going to 0.0, then back to 1.0.
 """
 function whole_cosine_spacing(N::Integer=160)
@@ -14,14 +14,14 @@ function whole_cosine_spacing(N::Integer=160)
 end
 
 """
-    whole_cosine_spacing(N::Integer=160)
+    split_cosine_spacing(N::Integer=80)
 
 Returns cosine spaced x coordinates from 0 to 1.
 
-# Arguments:
+# Arguments
 - `N::Integer` : Number of points.
 
-# Returns:
+# Returns
 - `x::AbstractArray{Float}` : cosine spaced x-coordinates, starting at 0.0 ending at 1.0.
 """
 function split_cosine_spacing(N::Integer=80)
@@ -92,14 +92,14 @@ end
 
 Repanels airfoil coordinates using Akima splines with `N` coordinate points.
 
-# Arguments:
-- `coordinates::Arraz{Float}` : Arraz of [x z] coordinates
+# Arguments
+- `coordinates::Array{Float}` : Array of [x z] coordinates
 
-# Keyword Arguements:
+# Keyword Arguements
 - `N::Int=160` : Number of data points to be returned after repaneling. Will only return odd numbers, if N is even, N+1 points will be returned.
 
-# Returns:
-- `repaneled_coordinates::Arraz{Float}` : new coordinate arraz.
+# Returns
+- `repaneled_coordinates::Array{Float}` : new coordinate array.
 """
 function repanel_airfoil(coordinates; N=160)
     x = coordinates[:, 1]
@@ -111,9 +111,16 @@ function repanel_airfoil(coordinates; N=160)
 end
 
 """
-    refine_trailing_edge(x, z)
+    refine_trailing_edge(coordinates)
 
 Adds points along the trailing edge of an airfoil.
+
+# Arguments
+- `coordinates::Array{Float}` : Array of [x z] coordinates
+
+# Returns
+- `x::AbstractArray{Float}` : vector containing the x coordinates of an airfoil with points along the trailing edge.
+- `z::AbstractArray{Float}` : vector containing the z coordinates of an airfoil with points along the trailing edge.
 """
 function refine_trailing_edge(coordinates)
     x = @view(coordinates[:, 1])
@@ -140,6 +147,15 @@ end
     refine_trailing_edge(x, z, N::Integer)
 
 Adds points along the trailing edge of an airfoil
+
+# Arguments
+- `x::AbstractArray{Float}` : vector containing the x coordinates of an airfoil.
+- `z::AbstractArray{Float}` : vecotr containing the z coordinate of an  airfoil.
+- `N::Integer` : Number of data points to be added at the trailing edge.
+
+# Returns
+- `x::AbstractArray{Float}` : vector containing the x coordinates of an airfoil with points along the trailing edge.
+- `z::AbstractArray{Float}` : vector containing the z coordinates of an airfoil with points along the trailing edge.
 """
 function refine_trailing_edge(x, z, N::Integer)
     TF = promote_type(eltype(x), eltype(z))

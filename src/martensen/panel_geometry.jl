@@ -1,3 +1,15 @@
+"""
+    generate_panel_geometry(method::Martensen, coordinates)
+
+Broadcasts `generate_panel_geometry!` over multiple sets of coordinates to generate panel geometries for multiple airfoils.
+
+# Arguments
+- `method::Martensen`: The panel method type.
+- `coordinates`: A collection (e.g., vector) of coordinate matrices, where each matrix defines the vertices of one airfoil.
+
+# Returns
+- A collection of updated `panel_geometry` objects corresponding to each set of input coordinates.
+"""
 function generate_panel_geometry(method::Martensen, coordinates)
     #broadcast for multiple airfoils
     return generate_panel_geometry.(Ref(method), coordinates)
@@ -27,6 +39,27 @@ function generate_panel_geometry(method::Martensen, coordinates::AbstractMatrix{
     return generate_panel_geometry!(method, panel_geometry, coordinates)
 end
 
+"""
+    generate_panel_geometry!(method::Martensen, panel_geometry, coordinates::Matrix{TF}) where {TF}
+
+Computes and updates the geometric properties of panels defined by given coordinates for the Martensen method.
+
+# Arguments
+- `method::Martensen`: The panel method type (used here for dispatch, but not directly referenced).
+- `panel_geometry`: A named tuple or struct containing fields for panel properties, which will be updated in-place. Expected fields:
+    - `npanels`: Number of panels
+    - `panel_center`: Matrix to hold panel center coordinates (control points)
+    - `panel_length`: Vector to hold lengths of each panel
+    - `panel_normal`: Matrix to hold unit normal vectors for each panel
+    - `delta_angle`: Vector to hold the change in panel angle (between neighboring panels)
+    - `panel_angle`: Vector to hold the angle of each panel relative to the x-axis
+    - `sine_vector`: Vector of sines of panel orientation angles
+    - `cosine_vector`: Vector of cosines of panel orientation angles
+- `coordinates::Matrix{TF}`: An (N+1)×2 matrix of x and y coordinates defining the panel vertices. Each consecutive pair defines a panel.
+
+# Returns
+- The updated `panel_geometry` object with all geometric properties filled.
+"""
 function generate_panel_geometry!(
     method::Martensen, panel_geometry, coordinates::Matrix{TF}
 ) where {TF}

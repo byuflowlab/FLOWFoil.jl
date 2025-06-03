@@ -1,6 +1,6 @@
 name = "FLOWFoil"
 uuid = "fb58ae67-a5c0-4a90-8078-890ae2c2e65e"
-authors = ["Judd Mehr", "Ayden Bennett", "Nathan Lehnhoff", "Tyler Critchfield"]
+authors = ["Judd Mehr", "Ayden Bennett", "Nathan Lehnhof", "Tyler Critchfield"]
 version = "0.1.0"
 
 [deps]

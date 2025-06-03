@@ -1,7 +1,37 @@
+"""
+    generate_system_matrices(method::Martensen, panel_geometry, system_geometry)
+
+Convenience method to generate system matrices for a single panel geometry body.
+
+# Arguments
+- `method::Martensen`: The Martensen method configuration object.
+- `panel_geometry`: A single panel geometry object representing one body.
+- `system_geometry`: Precomputed system geometry object for the panels.
+
+# Returns
+- Named tuple containing:
+  - `A`: Coefficient matrix of the system.
+  - `b`: Boundary condition vector (right-hand side).
+"""
 function generate_system_matrices(method::Martensen, panel_geometry, system_geometry)
     return generate_system_matrices(method, [panel_geometry], system_geometry)
 end
 
+"""
+    generate_system_matrices(method::Martensen, panel_geometry::AbstractVector, system_geometry)
+
+Generates the linear system matrices for multiple panel geometry bodies based on the Martensen method.
+
+# Arguments
+- `method::Martensen`: The Martensen method configuration object containing method parameters.
+- `panel_geometry::AbstractVector`: Vector of panel geometry objects, one for each body.
+- `system_geometry`: Precomputed system geometry object describing relative panel positions and distances.
+
+# Returns
+- Named tuple containing:
+  - `A`: Coefficient matrix for the linear system.
+  - `b`: Boundary condition vector (right-hand side).
+"""
 function generate_system_matrices(
     method::Martensen, panel_geometry::AbstractVector, system_geometry
 )
@@ -25,6 +55,21 @@ end
 #---------------------------------#
 #       COEFFICIENT MATRIX        #
 #---------------------------------#
+"""
+    assemble_periodic_vortex_matrix(panel_geometry, system_geometry, cascade_parameters)
+
+Constructs the vortex influence coefficient matrix (A) for a system of panels, applying cascade effects
+and Kutta conditions for each body.
+
+# Arguments
+- `panel_geometry`: Vector of panel geometry objects.
+- `system_geometry`: System geometry containing panel relative distances and indexing.
+- `cascade_parameters`: Named tuple containing parameters like `solidity`, `stagger`, `cascade`, 
+  `transition_value`, and `curvature_correction`.
+
+# Returns
+- Matrix `amat` of influence coefficients with Kutta condition rows and columns appropriately modified and reduced.
+"""
 function assemble_periodic_vortex_matrix(
     panel_geometry, system_geometry, cascade_parameters
 )
@@ -53,6 +98,16 @@ function assemble_periodic_vortex_matrix(
 end
 
 """
+    get_kutta_indices(system_geometry)
+
+Computes the panel indices associated with the Kutta condition (leading and trailing edges) for each body.
+
+# Arguments
+- `system_geometry`: System geometry object with body and panel indexing information.
+
+# Returns
+- `kutta_idxs::Matrix{Int}`: A matrix of size (nbodies, 2), where each row contains the indices of the
+  first and last panel for that body, representing Kutta condition panels.
 """
 function get_kutta_indices(system_geometry)
 
@@ -76,11 +131,11 @@ end
 
 Assembles the coefficient matrix for a given order of singularity.
 
-# Arguments:
+# Arguments
 - `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 
-# Returns:
+# Returns
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
 function assemble_periodic_vortex_matrix_raw(
@@ -165,7 +220,7 @@ end
 
 Assemble boundary condition vector.
 
-# Arguments:
+# Arguments
 - `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 
@@ -185,6 +240,19 @@ function assemble_periodic_right_hand_side(panel_geometry, system_geometry)
     return bc[1:end .∉ [kutta_idxs[:, 2]], :]
 end
 
+"""
+    assemble_periodic_boundary_conditions_raw(panel_geometry, system_geometry)
+
+Generates the raw boundary condition matrix representing flow tangency on each panel without Kutta condition enforcement.
+
+# Arguments
+- `panel_geometry`: Vector of panel geometry objects.
+- `system_geometry`: System geometry containing panel indexing and relative geometry.
+
+# Returns
+- `bc::Matrix{Float}`: Matrix where each row corresponds to a panel, containing the negative cosine and sine
+  of the panel angle components representing flow normal velocity boundary conditions.
+"""
 function assemble_periodic_boundary_conditions_raw(panel_geometry, system_geometry)
 
     ### --- SETUP --- ###

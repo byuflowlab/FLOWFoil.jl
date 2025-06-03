@@ -3,11 +3,11 @@
 
 Cacluate the influence of a periodic vortex at panel j onto panel i.
 
-# Arguments:
+# Arguments
 - `paneli::FLOWFoil.AxiSymPanel` : the ith panel (the panel being influenced).
 - `panelj::FLOWFoil.AxiSymPanel` : the jth panel (the panel doing the influencing).
 
-# Returns:
+# Returns
 - `aij::Float` : Influence of vortex strength at panel j onto panel i.
 """
 function calculate_periodic_vortex_influence(
@@ -42,6 +42,23 @@ function calculate_periodic_vortex_influence(
            panelj.panel_length[j]
 end
 
+"""
+    calculate_planar_vortex_influence(paneli, panelj, system_geometry, i, j, cascade_parameters)
+
+Calculates the influence coefficient of the vortex on panel `j` of `panelj` on panel `i` of `paneli` 
+in a planar flow setting, considering panel orientation and cascade parameters.
+
+# Arguments
+- `paneli`: Panel object for the influenced panel.
+- `panelj`: Panel object for the influencing panel.
+- `system_geometry`: Geometry object containing distances and related quantities (`r_x`, `r_y`, `r_squared`).
+- `i`: Index of the influenced panel in `paneli`.
+- `j`: Index of the influencing panel in `panelj`.
+- `cascade_parameters`: Object containing cascade-related parameters, including `stagger` angle in degrees.
+
+# Returns
+- Influence coefficient (Float) of vortex strength on induced velocity normal to the influenced panel.
+"""
 function calculate_planar_vortex_influence(
     paneli, panelj, system_geometry, i, j, cascade_parameters
 )
@@ -68,6 +85,19 @@ function calculate_planar_vortex_influence(
     return (u * cosine_panel_angle_i + v * sine_panel_angle_i) * panelj.panel_length[j]
 end
 
+"""
+    calculate_periodic_self_vortex_influence(panel, i, curvature_correction)
+
+Computes the self-induced vortex influence on panel `i` with optional curvature correction.
+
+# Arguments
+- `panel`: Panel object containing panel geometry and angle info.
+- `i`: Index of the panel for which the self-influence is computed.
+- `curvature_correction`: Boolean flag to apply curvature correction or not.
+
+# Returns
+- Self-induced vortex influence coefficient (Float) for panel `i`.
+"""
 function calculate_periodic_self_vortex_influence(panel, i, curvature_correction)
     #compute self-inducing coupling coefficients
 

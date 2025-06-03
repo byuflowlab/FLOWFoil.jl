@@ -1,5 +1,7 @@
 """
-# Fields:
+    CST
+
+# Fields
 - `upper_coefficients::AbstractArray{Float}` : Vector of coefficients defining the upper side.
 - `lower_coefficients::AbstractArray{Float}` : Vector of coefficients defining the lower side.
 - `trailing_edge_zu::Float=0.0` : z-position of the upper side trailing edge.
@@ -27,7 +29,7 @@ end
 
 """
     cst(
-        CST,
+        parameters::CST;
         N::Integer=80,
         x=split_cosine_spacing(N),
         split=false,
@@ -35,10 +37,10 @@ end
 
 Obtain airfoil coordiantes (clockwise from trailing edge) from the class shape transformation (CST) parameterization.
 
-# Arguments:
+# Arguments
 - `parameters::CST` : CST parameters for airfoil.
 
-# Keyword Arguments:
+# Keyword Arguments
 - `N::Integer=80` : number of points to use for each side
 - `x::AbstractArray{Float}=split_cosine_spacing(N)` : x-coordinates to use.
 - `trailing_edge_zu::Float=0.0` : upper side trailing edge gap
@@ -47,11 +49,12 @@ Obtain airfoil coordiantes (clockwise from trailing edge) from the class shape t
 - `N2::Float=1.0` : Class shape parameter 2
 - `split::Bool=false` : if true, returns upper and lower coordinates separately as xl, xu, zl, zu rather than just x, z.
 
-# Returns:
-If `split` == false:
+# Returns
+If `split` == false
  - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
  - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
-If `split` == true:
+
+ If `split` == true
  - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
  - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
  - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
@@ -86,11 +89,11 @@ end
 
 Obtain airfoil coordiantes (clockwise from trailing edge) from the class shape transformation (CST) parameterization.
 
-# Arguments:
+# Arguments
 - `upper_coefficients::AbstractArray{Float}` : Vector of CST coefficients for upper side of airfoil.
 - `lower_coefficients::AbstractArray{Float}` : Vector of CST coefficients for lower side of airfoil.
 
-# Keyword Arguments:
+# Keyword Arguments
 - `N::Integer=80` : number of points to use for each side
 - `x::AbstractArray{Float}=split_cosine_spacing(N)` : x-coordinates to use.
 - `trailing_edge_zu::Float=0.0` : upper side trailing edge gap
@@ -99,11 +102,12 @@ Obtain airfoil coordiantes (clockwise from trailing edge) from the class shape t
 - `N2::Float=1.0` : Class shape parameter 2
 - `split::Bool=false` : if true, returns upper and lower coordinates separately as xl, xu, zl, zu rather than just x, z.
 
-# Returns:
-If `split` == false:
+# Returns
+If `split` == false
  - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
  - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
-If `split` == true:
+
+If `split` == true
  - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
  - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
  - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
@@ -171,17 +175,19 @@ end
 
 Determine best-fit CST parameters using a least squares solve.
 
-# Arguments:
+# Arguments
 - `x::AbstractArray{Float}` : vector of x-coordinates.
 - `z::AbstractArray{Float}` : vector of z-coordinates.
 
-# Keyword Arguments:
+# Keyword Arguments
 - `n_upper_coefficients::Integer=8` : number of upper side coefficients to fit
 - `n_lower_coefficients::Integer=8` : number of lower side coefficients to fit
+- `trailing_edge_zu::Float=0.0` : z coordiante of the trailing edge upper surface
+- `trailing_edge_zl::Float=0.0` : z coordinate of the trailing edge lower surface
 - `N1::Float=0.5` : Class shape parameter 1
 - `N2::Float=1.0` : Class shape parameter 2
 
-# Returns:
+# Returns
 - `paramters::CST` : CST paramters for airfoil.
 """
 function determine_cst(
@@ -207,7 +213,7 @@ function determine_cst(
         zl,
         zu;
         n_upper_coefficients=n_upper_coefficients,
-        n_lower_coefficients=n_upper_coefficients,
+        n_lower_coefficients=n_lower_coefficients,
         N1=N1,
         N2=N2,
     )
@@ -227,20 +233,22 @@ end
 
 Determine best-fit CST parameters for upper and lower sides of airfoil using a least squares solve.
 
-# Arguments:
+# Arguments
 - `xl::AbstractArray{Float}` : vector of lower side x-coordinates.
 - `xu::AbstractArray{Float}` : vector of upper side x-coordinates.
 - `zl::AbstractArray{Float}` : vector of lower side z-coordinates.
 - `zu::AbstractArray{Float}` : vector of upper side z-coordinates.
 
-# Keyword Arguments:
+# Keyword Arguments
 - `n_upper_coefficients::Integer=8` : number of upper side coefficients to fit
 - `n_lower_coefficients::Integer=8` : number of lower side coefficients to fit
+- `trailing_edge_zu::Float=0.0` : z coordiante of the trailing edge upper surface
+- `trailing_edge_zl::Float=0.0` : z coordinate of the trailing edge lower surface
 - `N1::Float=0.5` : Class shape parameter 1
 - `N2::Float=1.0` : Class shape parameter 2
 
-# Returns:
-- `paramters::CST` : CST paramters for airfoil.
+# Returns
+- `parameters::CST` : CST paramters for airfoil.
 """
 function determine_cst(
     xl,
@@ -303,7 +311,24 @@ function determine_cst(
         trailing_edge_zl=lower_coeffs[end],
     )
 end
+"""
+    determine_half_cst(x, z; n_coefficients=8, trailing_edge_z=0.0, N1=0.5, N2=1.0)
 
+Determine best-fit CST parameters for half of the airfoil using a least squares solve.
+
+# Arguments
+- `x::AbstractArray{Float}` : vector of x coordinates for airfoil
+- `z::AbstractArray{Float}` : vecotr of z coordinates for airfoil
+
+# Keyword Arguments
+- `n_coefficients::Int=8` : number of coefficients to fit
+- `trailing_edge_z::Float=0.0` : z coordinate of trailing edge
+- `N1::Float=0.5` : Class Shape Parameter 1
+- `N2::Float=1.0` : Class Shape Parameter 2
+
+# Returns
+- `parameters::CST` : CST parameters for airfoil
+"""
 function determine_half_cst(
     x, z; n_coefficients::Integer=8, trailing_edge_z=0.0, N1=0.5, N2=1.0
 )
@@ -321,6 +346,24 @@ function determine_half_cst(
     return fit.param
 end
 
+"""
+    neuralfoil_half_cst(coefficients, x, dz, leading_edge_weight; N1=0.5, N2=1.0)
+
+Compute the y-coordinates for one side (typically upper or lower) of an airfoil using the Class-Shape Transformation (CST) method with optional Kulfan leading edge shaping.
+
+# Arguments
+- `coefficients::AbstractArray{Float}`: Vector of shape coefficients (Bernstein polynomial weights).
+- `x::AbstractArray{Float}`: Vector of x-coordinates (chordwise locations), typically ranging from 0 to 1.
+- `dz::Float`: Linear thickness offset (typically used for camber line blending).
+- `leading_edge_weight::Float`: Weight for the Kulfan-style leading edge shaping term.
+
+# Keyword Arguments
+- `N1::Float=0.5`: Class Shape Parameter 1
+- `N2::Float=1.0`: Class Shape Parameter 2
+
+# Returns
+- `y::AbstractArray{Float}`: Vector of y-coordinates defining the airfoil surface (upper or lower).
+"""
 function neuralfoil_half_cst(coefficients, x, dz, leading_edge_weight; N1=0.5, N2=1.0)
     C = @. x^N1 * (1.0 - x)^N2
 
@@ -340,6 +383,22 @@ function neuralfoil_half_cst(coefficients, x, dz, leading_edge_weight; N1=0.5, N
     return y
 end
 
+"""
+    neuralfoil_cst(x, p; N1=0.5, N2=1.0)
+
+Compute the y-coordinates for an airfoil using CST parameters.
+
+# Arguments
+- `x::AbstractArray{Float}`: Vector of x-coordinates
+- `p::AbstractArray{Float}` : Vector of CST parameters (first half is for the upper surface and second half is for the lower surface)
+
+# Keyword Arguments
+- `N1::Float=0.5`: Class Shape Parameter 1
+- `N2::Float=1.0`: Class Shape Parameter 2
+
+# Returns
+- `y::AbstractArray{Float}`: Vector of y-coordinates defining the airfoil with first half the upper surface and second half the lower.
+"""
 function neuralfoil_cst(x, p; N1=0.5, N2=1.0)
     np = Int((length(p) - 2) / 2)
     pu = p[1:np]
@@ -357,6 +416,25 @@ function neuralfoil_cst(x, p; N1=0.5, N2=1.0)
     return [yu; yl]
 end
 
+"""
+    determine_neuralfoil_cst(coordinates; n_coefficients=8, N1=0.5, N2=1.0)
+
+Fit CST (Class-Shape Transformation) parameters to a set of airfoil coordinates using nonlinear least squares optimization.
+
+# Arguments
+- `coordinates::Array{Float}`: Array of [x z] airfoil coordinates.
+
+# Keyword Arguments
+- `n_coefficients::Int=8`: Number of Bernstein polynomial coefficients to use for each surface (upper and lower).
+- `N1::Float=0.5`: Class Shape Parameter 1
+- `N2::Float=1.0`: Class Shape Parameter 2
+
+# Returns
+- `cst_upper::Vector{Float}`: CST shape coefficients for the upper surface.
+- `cst_lower::Vector{Float}`: CST shape coefficients for the lower surface.
+- `cst_LE::Float`: Leading-edge shape weight (Kulfan term).
+- `cst_TE::Float`: Trailing edge thickness (`dz`).
+"""
 function determine_neuralfoil_cst(coordinates; n_coefficients=8, N1=0.5, N2=1.0)
 
     # Pre-process coordinates

@@ -1,9 +1,48 @@
+"""
+    post_process(method::Mfoil, panel_geometry::NamedTuple, system_geometry, strengths, flow_angles; npanels=80)
+
+Post-processes the aerodynamic solution for a single airfoil by wrapping the vector version of `post_process`.
+
+# Arguments
+- `method::Mfoil`: The Mfoil method object (configuration).
+- `panel_geometry::NamedTuple`: Panel geometry data for a single airfoil.
+- `system_geometry`: System geometry containing info like panel indices and chord lengths.
+- `strengths`: Matrix of vortex strengths (rows correspond to nodes/panels, columns to different components).
+- `flow_angles`: Vector of flow angles of attack (in degrees).
+
+# Keyword Arguments
+- `npanels`: Number of panels to use for output (default 80).
+
+# Returns
+- An `InviscidOutputs` object containing aerodynamic coefficients and surface distributions.
+"""
 function post_process(method::Mfoil, panel_geometry::NamedTuple, system_geometry, strengths, flow_angles; npanels=80)
     return post_process(
         method, [panel_geometry], system_geometry, strengths, flow_angles
     )
 end
 
+"""
+    post_process(::Mfoil, panel_geometry::AbstractVector, system_geometry, strengths, flow_angles)
+
+Computes aerodynamic surface velocities, pressures, and coefficients (lift, drag, moment) for one or more airfoils over a range of flow angles.
+
+# Arguments
+- `::Mfoil`: Method configuration object (not used directly but required for dispatch).
+- `panel_geometry::AbstractVector`: Vector of panel geometry data, one for each airfoil/body.
+- `system_geometry`: System geometry object containing details such as panel and node indices, chord lengths, and mapping arrays.
+- `strengths`: Matrix containing vortex strengths at nodes for each angle of attack.
+- `flow_angles`: Vector of flow angles of attack in degrees.
+
+# Returns
+- If one airfoil, returns an `InviscidOutputs` struct with fields:
+  - `vs`: Surface velocity distributions.
+  - `cp`: Surface pressure distributions.
+  - `cl`: Lift coefficient array (angles × bodies).
+  - `cd`: Total drag coefficient array.
+  - `cm`: Moment coefficient array.
+- If multiple airfoils, returns an `InviscidOutputs` struct with surface velocities and pressures as vectors corresponding to each body.
+"""
 function post_process(
     ::Mfoil, panel_geometry::AbstractVector, system_geometry, strengths, flow_angles; #debug=false
 )

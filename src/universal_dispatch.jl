@@ -8,11 +8,11 @@
 
 Reformats inputs to be the expected format.
 
-# Arguments:
+# Arguments
 - `coordinates::Tuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a vecotr of matrices as well)
 - `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 
-# Returns:
+# Returns
 - `coordinates::Vector{Float}` : reformatted coordinates
 - `nbody::Int` : number of bodies
 - `aoa::Vector{Float}` : reformatted angles of attack
@@ -35,7 +35,7 @@ function reformat_inputs(coordinates::AbstractMatrix, flow_angle)
     if sc[1] == 2
         # shape into expected dimensions
         return reformat_inputs(
-            [coordinates[1, :] coordiantes[2, :]], flow_angle
+            [coordinates[1, :] coordinates[2, :]], flow_angle
         )
     else
         # pass through if already in expected dimensions
@@ -91,7 +91,7 @@ end
 """
     generate_panel_geometry(p, coordinates)
 
-Generate panel geometries for a give set of coordinates.
+Generate panel geometries for a given set of coordinates.
 
 # Arguments:
 - `method::Method` : method for solving

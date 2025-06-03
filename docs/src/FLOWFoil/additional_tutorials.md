@@ -115,7 +115,7 @@ angles_of_attack = range(-5.0, 15.0; step=1)
 reynolds = 2e6
 mach = 0.0
 
-method = NeuralFoil(reynolds, mach; model_size="xlarge")
+method = NeuralFoil(reynolds, mach; model_size="xlarge", n_crit=9.0, xtr_upper=1.0, xtr_lower=1.0)
 
 outputs = analyze([x y], angles_of_attack; method=method)
 ```
