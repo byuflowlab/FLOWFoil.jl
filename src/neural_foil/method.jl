@@ -109,5 +109,22 @@ function analyze_nf(coordinates, flow_angles; method=NeuralFoil())
     end
 
     # - Return Outputs - #
-    return outputs
+    if length(method.Re) == 1
+        return nf.NeuralOutputs(
+            dropdims(outputs.analysis_confidence; dims=2),
+            dropdims(outputs.cl; dims=2),
+            dropdims(outputs.cd; dims=2),
+            dropdims(outputs.cm; dims=2),
+            dropdims(outputs.top_xtr; dims=2),
+            dropdims(outputs.bot_xtr; dims=2),
+            dropdims(outputs.upper_bl_ue_over_vinf; dims=3),
+            dropdims(outputs.upper_theta; dims=3),
+            dropdims(outputs.upper_H; dims=3),
+            dropdims(outputs.lower_bl_ue_over_vinf; dims=3),
+            dropdims(outputs.lower_theta; dims=3),
+            dropdims(outputs.lower_H; dims=3),
+        )
+    else
+        return outputs
+    end
 end

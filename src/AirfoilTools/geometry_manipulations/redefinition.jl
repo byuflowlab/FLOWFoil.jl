@@ -48,11 +48,11 @@ function repanel_airfoil(x, z; N=160)
     @assert length(x) == length(z) "x and z vectors must be the same length"
 
     #First normalize the airfoil to between 0 and 1
-    normalize_airfoil!(x, z)
+    normalize_coordinates!(x, z)
 
     #let's figure out the cosine spacing.
     npoints = ceil(Int, N / 2)
-    akimax = cosine_spacing(npoints)
+    akimax = split_cosine_spacing(npoints)
 
     #now we split the top and bottom of the airfoil
     x1, x2, z1, z2 = split_upper_lower(x, z)
