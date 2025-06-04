@@ -148,3 +148,9 @@ method = LegacyXfoil(reynolds, mach; npan=140, ....)
 
 outputs = analyze([x y], angles_of_attack; method=method)
 ```
+
+Note that we return a separate output type for the LegacyXFoil method:
+
+```@docs
+FLOWFoil.LegacyXFOutputs
+```

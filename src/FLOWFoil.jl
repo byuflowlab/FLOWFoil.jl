@@ -8,7 +8,7 @@ using FLOWMath
 using ImplicitAD
 using SpecialFunctions
 import NeuralFoil as nf
-using Xfoil
+import Xfoil as xf
 
 #---------------------------------#
 #             INCLUDES            #
@@ -65,7 +65,7 @@ include("hess_smith/post_process.jl")
 include("neural_foil/method.jl")
 
 # LegacyXfoil
-include("LegacyXfoil/method.jl")
+include("legacy_xfoil/method.jl")
 
 ##### ----- CORE FUNCTIONALITY ----- #####
 
@@ -85,8 +85,8 @@ include("universal_geometry_utilities.jl")
 
 ##### ----- TYPES ----- #####
 
-export Mfoil, Xfoil, Lewis, Martensen, HessSmith, NeuralFoil, LegacyXfoil
-export InviscidOutputs, NeuralOutputs, LegacyXFOutputs
+export Mfoil, Xfoil, Lewis, Martensen, HessSmith, LegacyXfoil, NeuralFoil
+export InviscidOutputs, LegacyXFOutputs, NeuralOutputs
 
 ##### ----- FUNCTIONS ----- #####
 
