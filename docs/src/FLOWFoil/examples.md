@@ -22,18 +22,18 @@ surface_velocity, surface_pressure_coefficient, cl = FLOWFoil.AirfoilTools.jouko
 )
 
 # - Plot Stuff - #
-pl = plot(; xlabel="x", ylabel="cp", yflip=true)
-plot!(
-    pl,
-    x[7:340],
-    surface_pressure_coefficient[7:340];
-    linestyle=:dash,
-    linewidth=2,
-    label="Analytic Solution",
-)
+pl = plot(; xlabel="x", ylabel="cp", yflip=true) # hide
+plot!( # hide
+    pl, # hide
+    x[7:360], # hide
+    surface_pressure_coefficient[7:360]; # hide
+    linestyle=:dash, # hide
+    linewidth=2, # hide
+    label="Analytic Solution", # hide
+) # hide
 
 outputs = analyze([x,y], alpha; method="Mfoil")
-plot!(pl, outputs.x[7:360], outputs.cp[7:360], label="Mfoil")
+plot!(pl, outputs.x[7:360], outputs.cp[7:360], label="Mfoil") # hide
 ```
 
 TODO: add comparision figure for single joukowsky airfoil here
@@ -51,11 +51,56 @@ include(af_geom_path)
 
 outputs = analyze([[ximain etamain], [xiflap etaflap]], [0.0]; method=Mfoil())
 
-# TODO plot and save comparisons, hiding code
+# plot and save comparisons, hiding code
+# First panel: Airfoil geometry
+include("../assets/plots_default.jl") #hide
+plt1 = plot( # hide
+    ximain, etamain; # hide
+    linecolor = :navy, # hide
+    linewidth = 2, # hide
+    label = "Main Airfoil", # hide
+    aspect_ratio = 1, # hide
+    legend = :top, # hide
+    framestyle = :none, # hide
+    ticks = false, # hide
+) # hide
+
+plot!( # hide
+    plt1, # hide
+    xiflap, etaflap; # hide
+    linecolor = :red, # hide
+    linewidth = 2, # hide
+    label = "Flap Airfoil" # hide
+) # hide
+
+# Second panel: Cp comparison
+plt2 = plot( # hide
+    x[7:360], CP[7:360]; # hide
+    label = "Analytic", # hide
+    linewidth = 2, # hide
+    linecolor = :navy, # hide
+    xlabel = "x", # hide
+    ylabel = "cₚ", # hide
+    yflip = true, # hide
+    legend = :topright, # hide
+    size = (500, 300), # hide
+) # hide
+
+scatter!( # hide
+    plt2, # hide
+    x, cp_mfoil; # hide
+    label = "FLOWFoil", # hide
+    markercolor = :red, # hide
+    markersize = 3, # hide
+    alpha = 0.8 # hide
+) # hide
+
+# Combine both panels side-by-side
+final_plot = plot(plt1, plt2; layout = (1, 2), size = (900, 300)) # hide
+save_fig(final_plot, "two_inviscid_airfoils.jpg") # hide
 
 nothing #hide
 ```
-![](assets/two_inviscid_airfoils.jpg)
 
 We see excellent agreement with the analytical solution.
 
@@ -86,7 +131,36 @@ nothing # hide
 # plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4) #hide
 # plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs, label="FLOWFoil") #hide
 ```
-![](assets\bodyofrevolution.jpg)
+```@example axisym
+data_path = normpath( # hide
+    joinpath( # hide
+        splitdir(pathof(FLOWFoil))[1], "..", "test", "data", "bodyofrevolutioncoords.jl" # hide
+    ), # hide
+) # hide
+include(data_path) # hide
+
+# Start plot # hide
+plt = plot( # hide
+    xlabel = "x", # hide
+    ylabel = "V / V_∞", # hide
+    legend = :topright, # hide
+    size = (600, 400), # hide
+    xlims = (0, 1.5), # hide
+    ylims = (-0.2, 1.5), # hide
+    framestyle = :box, # hide
+) # hide
+
+# Plot geometry (gray curve) # hide
+plot!(plt, x, r; color = :gray, linewidth = 2, label = "geometry") # hide
+
+# Plot experimental data (red dots) # hide
+scatter!(plt, x[1:length(Vs_over_Vinf_vs)], Vs_over_Vinf_vs; # hide
+    color = :red, markerstrokecolor = :auto, label = "Experimental", markersize = 4) # hide
+
+# Plot panel method solution (blue line) # hide
+plot!(plt, x[1:length(Vs_over_Vinf_x)], Vs_over_Vinf_x; # hide
+    color = :navy, linewidth = 2, label = "Panel Method") # hide
+```
 
 ## Axisymmetric Annular Airfoil (Duct)
 
@@ -126,22 +200,21 @@ outputs = analyze(
 )
 
 # plot v # hide
-#=
+
 plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hide
 plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Center Body",markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs[2], label="FLOWFoil Center Body with Duct Effects") #hide
-=#
+
 ```
 
 ```@example axisym
 println(outputs)
 # plot cp # hide
-#=
+
 plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p") #hide
 plot!(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(pressurexlower, pressurelower, seriestype=:scatter, markershape=:dtriangle, label="Experimental Casing", color=1, markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.cp[1], label="FLOWFoil Duct with Center Body Effects",color=2) #hide
-=#
 ```
 
 Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.
@@ -172,4 +245,6 @@ flow_angles = [-35.0, 35.0]
 
 #solve for outputs
 outputs = analyze(coordinates, flow_angles; method=method)
+plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p", title="Coefficient of Pressure") # hide
+plot!(pl, x, outputs.cp, color=2, label="Martensen") # hide
 ```
