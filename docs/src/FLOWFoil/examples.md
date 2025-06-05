@@ -5,18 +5,35 @@
 TODO: add comparison with Joukowsky airfoil used in XFoil paper:
 ```@example Joukowsky
 using FLOWFoil
+using Plots
+using .AirfoilTools
 
 center = [-0.1; 0.1]
 R = 1.0
 alpha = 4.0
+Vinf = 1.0 
 
-# get joukowsky coordinates from AirfoilTools
+# - Joukowsky Geometry - #
+x, y = FLOWFoil.AirfoilTools.joukowsky(center, radius)
 
-# run joukowsky solution from AirfoilTools
+# - Surface Values - #
+surface_velocity, surface_pressure_coefficient, cl = FLOWFoil.AirfoilTools.joukowsky_flow(
+    center, radius, alpha, Vinf
+)
 
-# run analyze function
+# - Plot Stuff - #
+pl = plot(; xlabel="x", ylabel="cp", yflip=true)
+plot!(
+    pl,
+    x[7:340],
+    surface_pressure_coefficient[7:340];
+    linestyle=:dash,
+    linewidth=2,
+    label="Analytic Solution",
+)
 
-# plot and save comparision, but hide the code
+outputs = analyze([x,y], alpha; method="Mfoil")
+plot!(pl, outputs.x[7:360], outputs.cp[7:360], label="Mfoil")
 ```
 
 TODO: add comparision figure for single joukowsky airfoil here
@@ -38,9 +55,9 @@ outputs = analyze([[ximain etamain], [xiflap etaflap]], [0.0]; method=Mfoil())
 
 nothing #hide
 ```
+![](assets/two_inviscid_airfoils.jpg)
 
 We see excellent agreement with the analytical solution.
-
 
 ---
 
@@ -60,15 +77,16 @@ include(data_path)
 
 outputs = analyze(center_body_coordinates, [0.0]; method=Lewis(; body_of_revolution=[true]))
 
-# plot # hide
-#=
-include("../assets/plots_default.jl") #hide
-plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hid
-plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4) #hide
-plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs, label="FLOWFoil") #hide
-=#
-```
+nothing # hide
 
+# plot # hide
+
+# include("../assets/plots_default.jl") #hide
+# plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hid
+# plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4) #hide
+# plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs, label="FLOWFoil") #hide
+```
+![](assets\bodyofrevolution.jpg)
 
 ## Axisymmetric Annular Airfoil (Duct)
 
@@ -85,12 +103,10 @@ include(duct_path)
 outputs = analyze(duct_coordinates, [0.0]; method=Lewis(; body_of_revolution=[false]))
 
 # plot # hide
-#=
 plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p") #hide
 plot!(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(pressurexlower, pressurelower, seriestype=:scatter, markershape=:dtriangle, label="Experimental Casing", color=1, markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.cp, label="FLOWFoil",color=2) #hide
-=#
 ```
 
 As above, we plot experimental results along with our calculated values.
