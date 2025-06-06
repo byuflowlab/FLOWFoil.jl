@@ -44,7 +44,7 @@
     coordinates = ([x1 z1], [x2 z2])
     panels = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
     mesh = FLOWFoil.generate_system_geometry(Mfoil(), panels)
-    system = FLOWFoil.generate_system_matrices(pt, panels, mesh)
+    system = FLOWFoil.generate_system_matrices(Mfoil(), panels, mesh)
 
     @test all(
         system.b .==
