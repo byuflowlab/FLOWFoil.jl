@@ -57,7 +57,7 @@ function post_process(
 
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
-    nbodies = system_geometry.nbodies
+    @show nbodies = system_geometry.nbodies
 
     # - Initialize Outputs - #
     TF = eltype(system_geometry.k2)

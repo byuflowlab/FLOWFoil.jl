@@ -9,7 +9,7 @@ using Plots
 using .AirfoilTools
 
 center = [-0.1; 0.1]
-R = 1.0
+radius = 1.0
 alpha = 4.0
 Vinf = 1.0 
 
@@ -32,11 +32,9 @@ plot!( # hide
     label="Analytic Solution", # hide
 ) # hide
 
-outputs = analyze([x,y], alpha; method="Mfoil")
-plot!(pl, outputs.x[7:360], outputs.cp[7:360], label="Mfoil") # hide
+outputs = analyze(hcat(x,y), alpha; method=Mfoil())
+plot!(pl, x[7:360], outputs.cp[7:360], label="Mfoil") # hide
 ```
-
-TODO: add comparision figure for single joukowsky airfoil here
 
 ## Mfoil: Multiple inviscid airfoil comparison to analytic solution
 
@@ -97,7 +95,6 @@ scatter!( # hide
 
 # Combine both panels side-by-side
 final_plot = plot(plt1, plt2; layout = (1, 2), size = (900, 300)) # hide
-save_fig(final_plot, "two_inviscid_airfoils.jpg") # hide
 
 nothing #hide
 ```
@@ -122,46 +119,12 @@ include(data_path)
 
 outputs = analyze(center_body_coordinates, [0.0]; method=Lewis(; body_of_revolution=[true]))
 
-nothing # hide
-
 # plot # hide
-
-# include("../assets/plots_default.jl") #hide
-# plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hid
-# plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4) #hide
-# plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs, label="FLOWFoil") #hide
+include("../assets/plots_default.jl") #hide
+plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hid
+plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4) #hide
+plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs, label="FLOWFoil") #hide
 ```
-```@example axisym
-data_path = normpath( # hide
-    joinpath( # hide
-        splitdir(pathof(FLOWFoil))[1], "..", "test", "data", "bodyofrevolutioncoords.jl" # hide
-    ), # hide
-) # hide
-include(data_path) # hide
-
-# Start plot # hide
-plt = plot( # hide
-    xlabel = "x", # hide
-    ylabel = "V / V_∞", # hide
-    legend = :topright, # hide
-    size = (600, 400), # hide
-    xlims = (0, 1.5), # hide
-    ylims = (-0.2, 1.5), # hide
-    framestyle = :box, # hide
-) # hide
-
-# Plot geometry (gray curve) # hide
-plot!(plt, x, r; color = :gray, linewidth = 2, label = "geometry") # hide
-
-# Plot experimental data (red dots) # hide
-scatter!(plt, x[1:length(Vs_over_Vinf_vs)], Vs_over_Vinf_vs; # hide
-    color = :red, markerstrokecolor = :auto, label = "Experimental", markersize = 4) # hide
-
-# Plot panel method solution (blue line) # hide
-plot!(plt, x[1:length(Vs_over_Vinf_x)], Vs_over_Vinf_x; # hide
-    color = :navy, linewidth = 2, label = "Panel Method") # hide
-```
-
 ## Axisymmetric Annular Airfoil (Duct)
 
 If we define an airfoil shape in an axisymmetric scheme, we model an annular airfoil, or in other words, a duct.  To do so, we follow a similar procedure to bodies of revolution with the exception that we set `body_of_revolution=false`.
@@ -185,7 +148,6 @@ plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.cp, 
 
 As above, we plot experimental results along with our calculated values.
 
-
 ## Axisymmetric Mutli-element Systems
 
 As an example of an multi-element axisymmetric system (such as that used for a ducted rotor), we will simply combine the two previous cases.
@@ -208,7 +170,6 @@ plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1])
 ```
 
 ```@example axisym
-println(outputs)
 # plot cp # hide
 
 plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p") #hide
@@ -245,6 +206,13 @@ flow_angles = [-35.0, 35.0]
 
 #solve for outputs
 outputs = analyze(coordinates, flow_angles; method=method)
-plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p", title="Coefficient of Pressure") # hide
-plot!(pl, x, outputs.cp, color=2, label="Martensen") # hide
+
+# Panel midpoints (x has 51 nodes → 50 panels)
+xmid = 0.5 .* (x[1:end-1] .+ x[2:end]) #hide
+
+# Plot Cp at angle 1 (e.g. -35 degrees)
+plot(xmid, outputs.cp[:, 1], xlabel="x/c", ylabel="c_p", label="-35°", lw=2) #hide
+
+# Add Cp at angle 2 (e.g. 35 degrees)
+plot!(xmid, outputs.cp[:, 2], label="35°", lw=2, ls=:dash) #hide
 ```
