@@ -64,8 +64,9 @@ function analyze(coordinates, flow_angles; method::Method=Mfoil())
 
     if typeof(method) <: NeuralFoil
         return analyze_nf(coordinates[1], flow_angles; method=method)
+    elseif typeof(method) <: LegacyXfoil
+        return analyze_lxf(coordinates[1], flow_angles; method=method)
     else
-    if typeof(method) <: Martensen
         # Generate Panel Geometry
         panel_geometry = generate_panel_geometry(method, coordinates)
 
@@ -81,5 +82,4 @@ function analyze(coordinates, flow_angles; method::Method=Mfoil())
         # Post Process Solution
         return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
     end
-end
 end
