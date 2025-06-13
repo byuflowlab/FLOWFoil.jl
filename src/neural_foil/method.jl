@@ -92,7 +92,8 @@ function analyze_nf(coordinates, flow_angles; method=NeuralFoil())
 
     # - Run NeuralFoil - #
     outputs = nf.get_aero_from_coordinates(
-        reverse(coordinates; dims=1),
+        # reverse(coordinates; dims=1),
+        coordinates,
         flow_angles,
         method.Re;
         n_crit=method.n_crit,
