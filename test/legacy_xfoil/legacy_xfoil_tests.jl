@@ -22,7 +22,7 @@
     mach = 0.0
     n = length(alpha)
 
-    method = LegacyXfoil(alpha, re, mach)
+    method = LegacyXfoil(re, mach)
     
     # analyze with LegacyXfoil
     outputs = FLOWFoil.analyze_lxf(coordinates, alpha; method=method)
