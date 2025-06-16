@@ -16,10 +16,15 @@ Post-processes the aerodynamic solution for a single airfoil by wrapping the vec
 # Returns
 - An `InviscidOutputs` object containing aerodynamic coefficients and surface distributions.
 """
-function post_process(method::Mfoil, panel_geometry::NamedTuple, system_geometry, strengths, flow_angles; npanels=80)
-    return post_process(
-        method, [panel_geometry], system_geometry, strengths, flow_angles
-    )
+function post_process(
+    method::Mfoil,
+    panel_geometry::NamedTuple,
+    system_geometry,
+    strengths,
+    flow_angles;
+    npanels=80,
+)
+    return post_process(method, [panel_geometry], system_geometry, strengths, flow_angles)
 end
 
 """
@@ -44,7 +49,11 @@ Computes aerodynamic surface velocities, pressures, and coefficients (lift, drag
 - If multiple airfoils, returns an `InviscidOutputs` struct with surface velocities and pressures as vectors corresponding to each body.
 """
 function post_process(
-    ::Mfoil, panel_geometry::AbstractVector, system_geometry, strengths, flow_angles; #debug=false
+    ::Mfoil,
+    panel_geometry::AbstractVector,
+    system_geometry,
+    strengths,
+    flow_angles; #debug=false
 )
 
     ##### ----- Set Up ----- #####
@@ -89,10 +98,10 @@ function post_process(
     cm = zeros(TF, naoa, nbodies)
 
     # Surface Velocities
-    vs = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+    vs = [zeros(nidx[m][end] - nidx[m][1] + 1, naoa) for m in 1:nbodies]
 
     # Surface Pressures
-    cp = [zeros(nidx[m][end]-nidx[m][1]+1, naoa) for m in 1:nbodies]
+    cp = [zeros(nidx[m][end] - nidx[m][1] + 1, naoa) for m in 1:nbodies]
 
     ##### ----- Loop Through Bodies ----- #####
     for m in 1:nbodies

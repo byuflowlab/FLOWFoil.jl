@@ -15,7 +15,9 @@ function generate_panel_geometry(method::Martensen, coordinates)
     return generate_panel_geometry.(Ref(method), coordinates)
 end
 
-function generate_panel_geometry(method::Martensen, coordinates::AbstractMatrix{TF}) where {TF}
+function generate_panel_geometry(
+    method::Martensen, coordinates::AbstractMatrix{TF}
+) where {TF}
 
     ### --- SETUP --- ###
 

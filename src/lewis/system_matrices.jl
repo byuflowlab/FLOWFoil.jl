@@ -215,13 +215,6 @@ function assemble_ring_vortex_matrix_raw(
 
     return amat
 
-    # ## -- Apply Kutta Condition Subtractions -- ##
-    # for i in 1:nk
-    #     amat[kutta_idxs[i, 1], :] .-= amat[kutta_idxs[i, 2], :]
-    #     amat[:, kutta_idxs[i, 1]] .-= amat[:, kutta_idxs[i, 2]]
-    # end
-
-    # return amat[1:end .∉ [kutta_idxs[:, 2]], 1:end .∉ [kutta_idxs[:, 2]]]
 end
 
 #---------------------------------#
@@ -275,11 +268,6 @@ function assemble_ring_boundary_conditions_raw(
 
     ### --- SETUP --- ###
 
-    # # Count number of bodies requiring a Kutta Condition
-    # nk = count(br -> br == false, body_of_revolution)
-    # kutta_idxs = zeros(Int, nk, 2)
-    # kutta_count = 1
-
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
     N = idx[end][end]
@@ -296,10 +284,6 @@ function assemble_ring_boundary_conditions_raw(
 
         # generate portion of boundary condition array associated with mth body
         bc[idx[m], 1] = [-cos(panel_geometry[m].panel_angle[mesh2panel[i]]) for i in idx[m]]
-        # if !body_of_revolution[m]
-        #     kutta_idxs[kutta_count, :] = [idx[m][1]; idx[m][end]]
-        #     kutta_count += 1
-        # end
     end
 
     return bc

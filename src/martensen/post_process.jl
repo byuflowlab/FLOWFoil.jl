@@ -66,12 +66,8 @@ function post_process(
     # - Initialize Outputs - #
     TF = eltype(system_geometry.r_x)
 
-    vs = [
-        zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies
-    ]
-    cp = [
-        zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies
-    ]
+    vs = [zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies]
+    cp = [zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies]
 
     cl = zeros(naoa, nbodies)
     cd = zeros(naoa, nbodies)
@@ -79,8 +75,14 @@ function post_process(
 
     for m in 1:nbodies
         # vortex strengths per unit length
-        gamma0 = [strengths[idx[m][1:(end - 1)]  .- nbodies*(m-1), 1]; -strengths[idx[m][1] .- nbodies*(m-1) + 1, 1]]
-        gamma90 = [strengths[idx[m][1:(end - 1)] .- nbodies*(m-1), 2]; -strengths[idx[m][1] .- nbodies*(m-1) + 1, 2]]
+        gamma0 = [
+            strengths[idx[m][1:(end - 1)] .- nbodies * (m - 1), 1]
+            -strengths[idx[m][1] .- nbodies * (m - 1) + 1, 1]
+        ]
+        gamma90 = [
+            strengths[idx[m][1:(end - 1)] .- nbodies * (m - 1), 2]
+            -strengths[idx[m][1] .- nbodies * (m - 1) + 1, 2]
+        ]
 
         # total circulation
         gamma_u = dot(panel_geometry[m].panel_length, gamma0)
@@ -113,12 +115,11 @@ function post_process(
 
             # - Calculate surface velocity - #
             if m == 1
-                vs[m][:, a] = [
-                    (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m]
-                ]
+                vs[m][:, a] = [(w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m]]
             else
                 vs[m][:, a] = [
-                    (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for i in idx[m] .- idx[m-1][end]
+                    (w_x * gamma0[i] + w_y * gamma90[i]) / Vinf for
+                    i in idx[m] .- idx[m - 1][end]
                 ]
             end
 
@@ -127,13 +128,13 @@ function post_process(
 
             #compute cascade lift if cascade model is true, else use planar lift
             if method.cascade
-                cl[a,m] =
+                cl[a, m] =
                     2.0 *
                     system_geometry.pitch *
                     (tan(flow_angles[a]) - tan(beta2)) *
                     cos(betainf) #Important: This equation assumes that the chord length is 1.0
             else
-                cl[a,m] =
+                cl[a, m] =
                     2.0 * (gamma_u * w_x + gamma_v * w_y) /
                     (W * calculate_chord(panel_geometry))
                 #=

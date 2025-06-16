@@ -50,7 +50,7 @@ function generate_panel_geometry(method::Mfoil, coordinates::Matrix{TF}) where {
         panel_edges=zeros(TF, npanels, 2, 2),
         panel_vectors=zeros(TF, npanels, 2),
         panel_lengths=zeros(TF, npanels),
-        nodes=zeros(TF, npanels + 1, 2)
+        nodes=zeros(TF, npanels + 1, 2),
     )
 
     return generate_panel_geometry!(method, panel_geometry, coordinates)
@@ -69,7 +69,9 @@ Fills the `panel_geometry` structure with geometric data calculated from airfoil
 # Returns
 - The updated `panel_geometry` structure filled with panel edges, vectors, lengths, and node coordinates.
 """
-function generate_panel_geometry!(::Mfoil, panel_geometry, coordinates::Matrix{TF}) where {TF}
+function generate_panel_geometry!(
+    ::Mfoil, panel_geometry, coordinates::Matrix{TF}
+) where {TF}
 
     # Separate coordinates
     x = coordinates[:, 1]
@@ -79,7 +81,7 @@ function generate_panel_geometry!(::Mfoil, panel_geometry, coordinates::Matrix{T
     panel_geometry.nodes[1, :] = [x[1]; y[1]]
     panel_geometry.nodes[end, :] = [x[end]; y[end]]
 
-    for i in 1:panel_geometry.npanels
+    for i in 1:(panel_geometry.npanels)
         # Get node locations from x,y coordinates
         panel_geometry.panel_edges[i, :, :] .= [x[i] y[i]; x[i + 1] y[i + 1]]
 

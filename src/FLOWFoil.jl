@@ -86,7 +86,7 @@ include("universal_geometry_utilities.jl")
 ##### ----- TYPES ----- #####
 
 export Mfoil, Xfoil, Lewis, Martensen, HessSmith, LegacyXfoil, NeuralFoil
-export InviscidOutputs, LegacyXFOutputs, NeuralOutputs
+export InviscidOutputs, LegacyXFOutputs#, NeuralOutputs
 
 ##### ----- FUNCTIONS ----- #####
 

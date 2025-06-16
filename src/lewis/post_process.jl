@@ -22,7 +22,9 @@ The `flow_angles` argument is included for interface compatibility but is unused
   - `cd::Matrix`: Drag coefficient (zero; not calculated here).
   - `cm::Matrix`: Moment coefficient (zero; not calculated here).
 """
-function post_process(method::Lewis, panel_geometry, system_geometry, strengths, flow_angles; npanels=80)
+function post_process(
+    method::Lewis, panel_geometry, system_geometry, strengths, flow_angles; npanels=80
+)
     return post_process(
         method, [panel_geometry], system_geometry, strengths, flow_angles; npanels=npanels
     )
@@ -52,7 +54,12 @@ Computes surface velocity and pressure coefficient distributions for multiple ai
   - `cm::Matrix`: Moment coefficient (not calculated; zero-filled).
 """
 function post_process(
-    method::Lewis, panel_geometry::AbstractVector, system_geometry, strengths, flow_angles; npanels=80
+    method::Lewis,
+    panel_geometry::AbstractVector,
+    system_geometry,
+    strengths,
+    flow_angles;
+    npanels=80,
 )
 
     # - Rename for Convenience - #
@@ -62,8 +69,8 @@ function post_process(
     # - Initialize Outputs - #
     TF = eltype(system_geometry.k2)
 
-    vs = [zeros(idx[m][end]-idx[m][1]+1, 1) for m in 1:nbodies]
-    cp = [zeros(idx[m][end]-idx[m][1]+1, 1) for m in 1:nbodies]
+    vs = [zeros(idx[m][end] - idx[m][1] + 1, 1) for m in 1:nbodies]
+    cp = [zeros(idx[m][end] - idx[m][1] + 1, 1) for m in 1:nbodies]
     cl = zeros(1, nbodies)
     cd = zeros(1, nbodies)
     cm = zeros(1, nbodies)

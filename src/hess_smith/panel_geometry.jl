@@ -24,7 +24,9 @@ function generate_panel_geometry(method::HessSmith, coordinates)
     return generate_panel_geometry.(Ref(method), coordinates)
 end
 
-function generate_panel_geometry(method::HessSmith, coordinates::AbstractMatrix{TF}) where {TF}
+function generate_panel_geometry(
+    method::HessSmith, coordinates::AbstractMatrix{TF}
+) where {TF}
 
     ### --- SETUP --- ###
 
@@ -36,8 +38,8 @@ function generate_panel_geometry(method::HessSmith, coordinates::AbstractMatrix{
     panel_geometry = (;
         npanels=npanels,
         # - Initialize Outputs - #
-        x=zeros(TF, npanels+1),
-        y=zeros(TF, npanels+1),
+        x=zeros(TF, npanels + 1),
+        y=zeros(TF, npanels + 1),
         panel_center=zeros(TF, npanels, 2),
         panel_length=zeros(TF, npanels),
         panel_angle=zeros(TF, npanels),
@@ -79,21 +81,13 @@ function generate_panel_geometry!(
 ) where {TF}
 
     # Unpack Tuple
-    (;
-        x,
-        y,
-        npanels,
-        panel_center,
-        panel_length,
-        panel_angle,
-        sine_vector,
-        cosine_vector,
-    ) = panel_geometry
+    (; x, y, npanels, panel_center, panel_length, panel_angle, sine_vector, cosine_vector) =
+        panel_geometry
 
-    for i in 1:npanels+1
+    for i in 1:(npanels + 1)
         # Define the coordinates
-        x[i]=coordinates[i, 1]
-        y[i]=coordinates[i, 2]
+        x[i] = coordinates[i, 1]
+        y[i] = coordinates[i, 2]
     end
 
     ### --- Loop Through Coordinates --- ###
@@ -107,10 +101,9 @@ function generate_panel_geometry!(
         sine_vector[i] = (y[i + 1] - y[i]) / panel_length[i]
         cosine_vector[i] = (x[i + 1] - x[i]) / panel_length[i]
         panel_angle[i] = asind(sine_vector[i])
-        
+
         #Calculate Panel Vectors
         panel_geometry.panel_vectors[i, :] = [x[i + 1] - x[i]; y[i + 1] - y[i]]
-       
     end
 
     # - Return Panel Object - #

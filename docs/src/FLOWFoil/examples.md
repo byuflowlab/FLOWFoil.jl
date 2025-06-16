@@ -4,8 +4,6 @@
 
 ```@example Joukowsky
 using FLOWFoil
-using Plots
-using .AirfoilTools
 
 center = [-0.1; 0.1]
 radius = 1.0
@@ -13,11 +11,11 @@ alpha = 4.0
 Vinf = 1.0
 
 # - Joukowsky Geometry - #
-x, y = FLOWFoil.AirfoilTools.joukowsky(center, radius)
+x, y = FLOWFoil.AirfoilTools.joukowsky(center, radius, N=161)
 
 # - Analytic Solution - #
 surface_velocity, surface_pressure_coefficient, cl = FLOWFoil.AirfoilTools.joukowsky_flow(
-    center, radius, alpha, Vinf
+    center, radius, alpha, Vinf, N=161
 )
 
 # - FLOWFoil Solution - #
@@ -27,84 +25,15 @@ include("../assets/plots_default.jl") #hide
 pl = plot(; xlabel=L"x", ylabel=L"c_p", yflip=true) # hide
 plot!( # hide
     pl, # hide
-    x[7:360], # hide
-    surface_pressure_coefficient[7:360]; # hide
+    x[2:end-1], # hide
+    surface_pressure_coefficient[2:end-1]; # hide
     linestyle=:dash, # hide
     linewidth=2, # hide
     label="Analytic Solution", # hide
 ) # hide
 
-plot!(pl, x[7:360], outputs.cp[7:360], label="Mfoil") # hide
+plot!(pl, x[2:end-1], outputs.cp[2:end-1], label="Mfoil") # hide
 ```
-
-## Mfoil: Multiple inviscid airfoil comparison to analytic solution
-
-For a multi-element airfoil system, the procedure is identical to a single body system, except we input a vector of matrices for the coordinates of the various bodies.
-For this case, we'll use data that comes from ["An Exact Test Case for the Plane Potential Flow About Two Adjacent Lifting Aerofoils" by B. R. Williams.](https://reports.aerade.cranfield.ac.uk/handle/1826.2/2993)
-
-```@example Mfoil
-using FLOWFoil
-
-af_geom_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "docs", "src", "assets", "two_inviscid_airfoils.jl"))
-include(af_geom_path)
-
-outputs = analyze([[ximain etamain], [xiflap etaflap]], 0.0; method=Mfoil())
-
-# plot and save comparisons, hiding code #hide
-# First panel: Airfoil geometry #hide
-include("../assets/plots_default.jl") #hide
-#plt1 = plot( # hide
-#    ximain, etamain; # hide
-#    linecolor = 1, # hide
-#    linewidth = 2, # hide
-#    label = "Main Airfoil", # hide
-#    aspect_ratio = 1, # hide
-#    legend = :top, # hide
-#    framestyle = :none, # hide
-#    ticks = false, # hide
-#) # hide
-
-#plot!( # hide
-#    plt1, # hide
-#    xiflap, etaflap; # hide
-#    linecolor = 2, # hide
-#    linewidth = 2, # hide
-#    label = "Flap Airfoil" # hide
-#) # hide
-
-# Second panel: Cp comparison #hide
-scatter( # hide
-    ximain, cpmain; # hide
-    label = "Main Airfoil Analytic", # hide
-    xlabel = L"x", # hide
-    ylabel = L"c_p", # hide
-    yflip = true, # hide
-    legend = :topright, # hide
-    color=1, # hide
-    markerstrokewidth=0, # hide
-    markersize=4, #hide
-) # hide
-scatter!( # hide
-    xiflap, cpflap; # hide
-    label = "Flap Analytic", # hide
-    color = 2, # hide
-    markerstrokewidth=0, # hide
-    markersize=4, #hide
-    ) # hide
-
-plot!( # hide
-    ximain, outputs.cp[1]; # hide
-    label = "Main FLOWFoil", # hide
-    color=2, #hide
-) # hide
-plot!( # hide
-    xiflap, outputs.cp[2]; # hide
-    label = "Flap FLOWFoil", # hide
-    color = 1, # hide
-) # hide
-```
-
-We see excellent agreement with the analytical solution.
 
 ---
 

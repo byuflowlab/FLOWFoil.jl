@@ -34,9 +34,7 @@ function reformat_inputs(coordinates::AbstractMatrix, flow_angle)
 
     if sc[1] == 2
         # shape into expected dimensions
-        return reformat_inputs(
-            [coordinates[1, :] coordinates[2, :]], flow_angle
-        )
+        return reformat_inputs([coordinates[1, :] coordinates[2, :]], flow_angle)
     else
         # pass through if already in expected dimensions
         return reformat_inputs([coordinates], flow_angle)
@@ -62,24 +60,6 @@ function reformat_inputs(coordinates::AbstractArray, flow_angle)
     else
         aoa = flow_angle
     end
-
-    # # - Make Reynolds Number a Vector (if not one already) - #
-    # if reynolds == nothing
-    #     reynolds_numbers = [reynolds[1]]
-    # elseif length(reynolds) == 1
-    #     reynolds_numbers = [reynolds[1]]
-    # else
-    #     reynolds_numbers = reynolds
-    # end
-
-    # # - Make Mach Number a Vector (if not one already) - #
-    # if mach == nothing
-    #     mach_numbers = [mach[1]]
-    # elseif length(mach) == 1
-    #     mach_numbers = [mach[1]]
-    # else
-    #     mach_numbers = mach
-    # end
 
     return coordinates, nbody, aoa#, reynolds_numbers, mach_numbers
 end

@@ -1,11 +1,3 @@
-#=
-
-Convenience functions wrapping problem, system, solution, and post processing steps into single functions for user convenience
-
-Authors: Judd Mehr, Ayden Bennett
-
-=#
-
 """
     InviscidOutputs
 

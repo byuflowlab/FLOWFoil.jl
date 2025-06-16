@@ -1,11 +1,9 @@
 function solve(method::Mfoil, system_matrices)
-
     if method.viscous
         error("Viscous method not yet implemented.")
     else
         return solve_inviscid(method, system_matrices)
     end
-
 end
 
 """

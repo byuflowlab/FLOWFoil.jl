@@ -20,7 +20,7 @@ function calculate_periodic_vortex_influence(
     r_y = system_geometry.r_y[i, j]
 
     # cascade stuff
-    stagger = cascade_parameters.stagger*pi/180
+    stagger = cascade_parameters.stagger * pi / 180.0
     pitch = system_geometry.pitch
 
     # adjusted angles
@@ -45,7 +45,7 @@ end
 """
     calculate_planar_vortex_influence(paneli, panelj, system_geometry, i, j, cascade_parameters)
 
-Calculates the influence coefficient of the vortex on panel `j` of `panelj` on panel `i` of `paneli` 
+Calculates the influence coefficient of the vortex on panel `j` of `panelj` on panel `i` of `paneli`
 in a planar flow setting, considering panel orientation and cascade parameters.
 
 # Arguments
@@ -70,7 +70,7 @@ function calculate_planar_vortex_influence(
     y_j = panelj.panel_center[j]
 
     # cascade stuff
-    stagger = cascade_parameters.stagger*pi/180
+    stagger = cascade_parameters.stagger * pi / 180.0
 
     # adjusted angles
     sine_panel_angle_i = sin(stagger + paneli.panel_angle[i])
@@ -81,7 +81,7 @@ function calculate_planar_vortex_influence(
 
     # v = -(x_j - x_i) / (r * 2 * pi)
     v = system_geometry.r_x[i, j] / (2.0 * pi * system_geometry.r_squared[i, j])
-    
+
     return (u * cosine_panel_angle_i + v * sine_panel_angle_i) * panelj.panel_length[j]
 end
 
@@ -103,8 +103,7 @@ function calculate_periodic_self_vortex_influence(panel, i, curvature_correction
 
     if curvature_correction
         return 0.5 - (panel.delta_angle[i] - pi) / (4.0 * pi)
-    else 
+    else
         return -0.5
     end
-
 end

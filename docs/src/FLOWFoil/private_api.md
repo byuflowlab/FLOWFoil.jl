@@ -13,7 +13,7 @@ FLOWFoil.solve
 FLOWFoil.post_process
 ```
 
-## Utility Functions
+## Universal Utility Functions
 
 ```@docs
 FLOWFoil.get_d
@@ -26,4 +26,18 @@ FLOWFoil.smooth_distributions
 FLOWFoil.dot
 FLOWFoil.smooth_beta
 FLOWFoil.laitone_compressibility_correction
+```
+
+## Additional Method Utilities
+
+### Lewis
+```@autodocs
+Modules = [FLOWFoil]
+Pages = ["lewis/geometry_utils.jl"]
+```
+
+### Mfoil
+```@autodocs
+Modules = [FLOWFoil]
+Pages = ["mfoil/geometry_utils.jl"]
 ```

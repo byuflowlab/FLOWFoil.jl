@@ -70,7 +70,7 @@ function generate_system_geometry(method::Martensen, panel_geometry::AbstractVec
         r_x,
         r_y,
         r_squared,
-        pitch = calculate_chord(panel_geometry) / method.solidity,
+        pitch=calculate_chord(panel_geometry) / method.solidity,
     )
     return generate_system_geometry!(method, system_geometry, panel_geometry)
 end
@@ -78,7 +78,7 @@ end
 """
     generate_system_geometry!(method::Martensen, system_geometry, panel_geometry::AbstractVector)
 
-Populates distance matrices (`r_x`, `r_y`, `r_squared`) within the provided `system_geometry` 
+Populates distance matrices (`r_x`, `r_y`, `r_squared`) within the provided `system_geometry`
 based on panel center coordinates for all bodies.
 
 # Arguments

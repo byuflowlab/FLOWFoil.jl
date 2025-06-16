@@ -62,7 +62,7 @@ function assemble_influence_matrix(method::Mfoil, system_geometry)
             for i in nidx[m]
                 for j in pidx[n]
                     aij, aijp1 = calculate_linear_vortex_influence(system_geometry, i, j)
-                    
+
                     # add coefficients to matrix at correct nodes
                     if j == 1
                         amat[i, j + n - 1] = aij
@@ -144,16 +144,6 @@ function assemble_influence_matrix(method::Mfoil, system_geometry)
         end
     end
 
-    # println(size(amat))
-    # display(amat[1:61, 1:61])
-    # display(amat[62:122, 62:122])
-    # display(amat[1:61, 62:122])
-    # display(amat[62:122, 1:61])
-    # display(amat[(end - 1):end, 1:61])
-    # display(amat[(end - 1):end, 62:122])
-    # display(amat[1:61, (end - 1):end])
-    # display(amat[62:122, (end - 1):end])
-
     return amat
 end
 
@@ -214,8 +204,6 @@ function assemble_boundary_conditions(method::Mfoil, system_geometry)
             bmat[nidx[m][end], 2] = system_geometry.nodes[nidx[m][end], 1]
         end
     end
-
-    # display(bmat)
 
     return bmat
 end
