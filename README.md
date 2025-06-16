@@ -15,7 +15,7 @@ The following table includes the list of currently available methods (usage can 
 | Martensen | Inviscid, periodic, constant vortex | ✅ | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
 | HessSmith | Inviscid, constant source, single vortex | ✅ | ✅ | [4](https://byu.box.com/shared/static/ywfayozbj3sr2ot6b32u8nqk5brqvurt.pdf) |
 | LegacyXfoil | Wrapper for Xfoil.jl | ❌ | ❌ | [Xfoil.jl](https://github.com/byuflowlab/Xfoil.jl) |
-| NeuralFoil | Wrapper for NeuralFoil.jl | ❌ | ✅ | (NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
+| NeuralFoil | Wrapper for NeuralFoil.jl | ❌ | ✅ | [NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
 
 ## References:
 
