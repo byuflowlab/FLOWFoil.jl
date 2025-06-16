@@ -1,11 +1,8 @@
 # Private API
 
-```@contents
-Pages = ["private_api.md"]
-Depth = 5
-```
-
 ## Universal Dispatch
+
+These functions are universally called in the convenience function, [analyze](@ref) except for the [NeuralFoil](@ref) and [LegacyXfoil](@ref) methods, which bypass these functions in favor of simply calling those packages' analysis functions.
 
 ```@docs
 FLOWFoil.reformat_inputs
@@ -16,7 +13,7 @@ FLOWFoil.solve
 FLOWFoil.post_process
 ```
 
-## Universal Geometry Utilities
+## Utility Functions
 
 ```@docs
 FLOWFoil.get_d
@@ -24,11 +21,6 @@ FLOWFoil.get_r
 FLOWFoil.get_panel_tangent
 FLOWFoil.get_panel_normal
 FLOWFoil.calculate_chord
-```
-
-## Universal Utilities
-
-```@docs
 FLOWFoil.linear_transform
 FLOWFoil.smooth_distributions
 FLOWFoil.dot

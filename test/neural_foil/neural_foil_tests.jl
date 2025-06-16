@@ -1,37 +1,22 @@
 @testset "NeuralFoil Tests" begin
 
-    # extract geometry
-    x = Float64[]
-    y = Float64[]
-
-    f = open("test\\legacy_xfoil\\naca2412.dat", "r")
-
-    for line in eachline(f)
-        entries = split(chomp(line))
-        push!(x, parse(Float64, entries[1]))
-        push!(y, parse(Float64, entries[2]))
-    end
-
-    close(f)
-
-    coordinates = hcat(x, y)
-
     # set operating conditions
-    flow_angles = -9:1:13
+    flow_angles = -5:1:15
     reynolds = 1e6
-    mach = 0.0
+    model_size = "xlarge"
 
-    nf_outputs = nf.get_aero_from_coordinates(coordinates, flow_angles, reynolds; model_size="xlarge")
-    
-    outputs = FLOWFoil.analyze_nf([x y], flow_angles; method=NeuralFoil())
+    x, y = FLOWFoil.AirfoilTools.naca4()
 
-    clnf = nf_outputs.cl
-    cdnf = nf_outputs.cd
-    cmnf = nf_outputs.cm
-    acnf = nf_outputs.analysis_confidence
+    nf_outputs = nf.get_aero_from_coordinates(
+        reverse([x y]; dims=1), flow_angles, reynolds; model_size=model_size
+    )
 
-    @test isapprox(outputs.cl, clnf[:, 1], atol=1e-5)
-    @test isapprox(outputs.cd, cdnf[:, 1], atol=1e-5)
-    @test isapprox(outputs.cm, cmnf[:, 1], atol=1e-5)
-    @test isapprox(outputs.analysis_confidence, acnf[:, 1], atol=1e-5)
+    outputs = FLOWFoil.analyze(
+        [x y], flow_angles; method=NeuralFoil(reynolds; model_size=model_size)
+    )
+
+    @test isapprox(outputs.cl, nf_outputs.cl[:, 1])
+    @test isapprox(outputs.cd, nf_outputs.cd[:, 1])
+    @test isapprox(outputs.cm, nf_outputs.cm[:, 1])
+    @test isapprox(outputs.analysis_confidence, nf_outputs.analysis_confidence[:, 1], atol=1e-5)
 end

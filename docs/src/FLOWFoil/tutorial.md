@@ -24,7 +24,3 @@ angles_of_attack = range(-5.0, 15.0, step=1)
 # analyze
 outputs = analyze(x, y, angles_of_attack)
 ```
-
-```@docs
-FLOWFoil.InviscidOutputs
-```

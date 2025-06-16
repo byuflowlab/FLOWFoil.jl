@@ -12,8 +12,8 @@ The following table includes the list of currently available methods (usage can 
 |---|---|---|---|---|
 | Mfoil | Inviscid, linear vortex | ✅ | ✅ | [1](https://websites.umich.edu/~kfid/codes.html), [2](https://web.mit.edu/drela/Public/papers/xfoil_sv.pdf) |
 | Lewis | Inviscid, axisymmetric, constant vortex | ✅ | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
-| Martensen | Inviscid, periodic, constant vortex | ✅ | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
-| HessSmith | Inviscid, constant source, single vortex | ✅ | ✅ | [4](https://byu.box.com/shared/static/ywfayozbj3sr2ot6b32u8nqk5brqvurt.pdf) |
+| Martensen | Inviscid, periodic, constant vortex | ✅ (untested) | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
+| HessSmith | Inviscid, constant source, single vortex | ✅ (untested) | ✅ | [4](https://byu.box.com/shared/static/ywfayozbj3sr2ot6b32u8nqk5brqvurt.pdf) |
 | LegacyXfoil | Wrapper for Xfoil.jl | ❌ | ❌ | [Xfoil.jl](https://github.com/byuflowlab/Xfoil.jl) |
 | NeuralFoil | Wrapper for NeuralFoil.jl | ❌ | ✅ | [NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
 

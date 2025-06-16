@@ -12,10 +12,9 @@ makedocs(;
         "Home" => "index.md",
         "FLOWFoil" => [
             "Quick Start" => "FLOWFoil/tutorial.md",
-            "Basic Examples" => "FLOWFoil/additional_tutorials.md",
+            "Tutorials" => "FLOWFoil/additional_tutorials.md",
             "Additional Examples" => "FLOWFoil/examples.md",
-        #     "API Index" => "FLOWFoil/api.md",
-            "Theory" => "FLOWFoil/theory.md",
+            "API Reference" => ["FLOWFoil/public_api.md", "FLOWFoil/private_api.md"],
         ],
         "AirfoilTools" => [
             "Intro" => "AirfoilTools/intro.md",
@@ -25,7 +24,7 @@ makedocs(;
         ],
     ],
     sitename="FLOWFoil.jl",
-    authors="Judd Mehr <juddmehr@byu.edu>, Ayden Bennett <jbenne26@byu.edu>",
+    authors="Judd Mehr <juddmehr@byu.edu>, Tyler Critchfield, Ayden Bennett <jbenne26@byu.edu>, Nathan Lehnhof",
     # checkdocs=:exports,
     checkdocs=:none,
 )

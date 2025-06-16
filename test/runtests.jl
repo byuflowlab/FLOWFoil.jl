@@ -1,15 +1,19 @@
 using FLOWFoil
 import FLOWFoil.AirfoilTools as at
+
 using Test
+
 using LinearAlgebra
-import Xfoil as xf
+
 using ForwardDiff
 using FiniteDiff
 using ImplicitAD
-import NeuralFoil as nf
 
-@info("Hess Smith Tests")
-dir = joinpath(@__DIR__, "hess_smith")
+import NeuralFoil as nf
+import Xfoil as xf
+
+@info("Inviscid Mfoil Tests")
+dir = joinpath(@__DIR__, "mfoil")
 for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
     include(joinpath(dir, file))
 end
@@ -26,8 +30,14 @@ for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
     include(joinpath(dir, file))
 end
 
-@info("Inviscid Mfoil Tests")
-dir = joinpath(@__DIR__, "mfoil")
+@info("Hess Smith Tests")
+dir = joinpath(@__DIR__, "hess_smith")
+for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
+    include(joinpath(dir, file))
+end
+
+@info("LegacyXfoil Tests")
+dir = joinpath(@__DIR__, "legacy_xfoil")
 for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
     include(joinpath(dir, file))
 end
@@ -38,8 +48,3 @@ for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
     include(joinpath(dir, file))
 end
 
-@info("LegacyXfoil Tests")
-dir = joinpath(@__DIR__, "legacy_xfoil")
-for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
-    include(joinpath(dir, file))
-end

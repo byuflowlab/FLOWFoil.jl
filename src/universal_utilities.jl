@@ -38,8 +38,6 @@ Generates smooth surface distribution values.
 # Returns
 - `distribution::Vector{Float}` : Smoothed surface distribution
 - `xsmooth::Vector{Float}` : Smoothed x-coordinates
-
-# TODO: Consider returning spline objects rather than another set of discrete values.
 """
 function smooth_distributions(method::Mfoil, panel_geometry, distribution, npoints)
 
@@ -172,11 +170,11 @@ dot(A, B) = sum(a * b for (a, b) in zip(A, B))
 Compute a smoothened compressibility correction factor β based on Mach number.
 
 # Arguments
-- `mach::Real`: Mach number (flow speed / speed of sound).
-- `blend_range::Real=0.02`: Range near the cutoff Mach number (default 0.02) over which to blend corrections smoothly.
+- `mach::Float`: Mach number (flow speed / speed of sound).
+- `blend_range::Float=0.02`: Range near the cutoff Mach number (default 0.02) over which to blend corrections smoothly.
 
 # Returns
-- `Real`: Smoothed value of β used in compressibility corrections, transitioning near Mach 1.
+- `beta::Float`: Smoothed value of β used in compressibility corrections, transitioning near Mach 1.
 """
 function smooth_beta(mach; blend_range=0.02)
     b(M) = 1.0 / sqrt(1.0 - min(M, 0.999)^2)
@@ -189,15 +187,12 @@ end
 Apply Laitone's compressibility correction to a coefficient at given Mach number.
 
 # Arguments
-- `coeff::Real`: Original coefficient (e.g., lift coefficient) to be corrected.
-- `mach::Real`: Mach number of the flow.
-- `gamma::Real=1.4`: Ratio of specific heats (default is 1.4 for air).
+- `coeff::Float`: Original coefficient (e.g., lift coefficient) to be corrected.
+- `mach::Float`: Mach number of the flow.
+- `gamma::Float=1.4`: Ratio of specific heats (default is 1.4 for air).
 
 # Returns
-- `Real`: Corrected coefficient accounting for compressibility effects.
-
-# References
-- Based on Laitone's compressibility correction formula.
+- `cl::Float`: Corrected coefficient accounting for compressibility effects.
 """
 function laitone_compressibility_correction(coeff, mach; gamma=1.4)
     beta = smooth_beta(mach)

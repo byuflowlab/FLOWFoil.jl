@@ -4,19 +4,17 @@
 [![Build Status](https://github.com/byuflowlab/FLOWFoil.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/byuflowlab/FLOWFoil.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
 
-Contributors: Judd Mehr, Tyler Critchfield, Ayden Martensen, Nathan Lehnhof
-
 FLOWFoil is a collection of two dimensional potential flow solvers (panel methods) for airfoils, airfoil systems, and axisymmetric sections/systems.
 The following table includes the list of currently available methods (usage can be found in the docs).
 
 | Method | Type | Multi-body Compatible | AD Compatible (ForwardDiff.jl) | References or Wrapped Pacakge |
 |---|---|---|---|---|
-| Mfoil | Inviscid, linear vortex | ✅ | ✅ | [1](https://websites.umich.edu/~kfid/codes.html), [2](https://web.mit.edu/drela/Public/papers/xfoil_sv.pdf) |
-| Lewis | Inviscid, axisymmetric, constant vortex | ✅ | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
-| Martensen | Inviscid, periodic, constant vortex | ✅ | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
-| HessSmith | Inviscid, constant source, single vortex | ✅ | ✅ | [4](https://byu.box.com/shared/static/ywfayozbj3sr2ot6b32u8nqk5brqvurt.pdf) |
-| LegacyXfoil | Wrapper for Xfoil.jl | ❌ | ❌ | [Xfoil.jl](https://github.com/byuflowlab/Xfoil.jl) |
-| NeuralFoil | Wrapper for NeuralFoil.jl | ❌ | ✅ | [NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
+| [Mfoil](@ref) | Inviscid, linear vortex | ✅ | ✅ | [1](https://websites.umich.edu/~kfid/codes.html), [2](https://web.mit.edu/drela/Public/papers/xfoil_sv.pdf) |
+| [Lewis](@ref) | Inviscid, axisymmetric, constant vortex | ✅ | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
+| [Martensen](@ref) | Inviscid, periodic, constant vortex | ✅ (untested) | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
+| [HessSmith](@ref) | Inviscid, constant source, single vortex | ✅ (untested) | ✅ | [4](https://byu.box.com/shared/static/ywfayozbj3sr2ot6b32u8nqk5brqvurt.pdf) |
+| [LegacyXfoil](@ref) | Wrapper for Xfoil.jl | ❌ | ❌ | [Xfoil.jl](https://github.com/byuflowlab/Xfoil.jl) |
+| [NeuralFoil](@ref) | Wrapper for NeuralFoil.jl | ❌ | ✅ | [NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
 
 ## References:
 

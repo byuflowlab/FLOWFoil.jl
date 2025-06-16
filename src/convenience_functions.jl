@@ -32,26 +32,21 @@ end
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
-# Required Arguments
+# Arguments
 - `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
+- `flow_angles::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 OR
 - `x::Vector{Float}` : Vector of x-coordinates of airfoil geometry
 - `y::Vector{Float}` : Vector of y-coordinates of airfoil geometry
+- `flow_angles::Vector{Float}` : Vector of angles of attack (may be a single float as well)
 
 Note that inputting separate vectors for airfoil coordinates is only available for analysis of single airfoils/bodies.  Multi-airfoil/body systems require the use of a tuple of matrices for coordinate inputs.
 
-# Optional Arguments
-- `flow_angles::Vector{Float}=0.0` : Vector of angles of attack (may be a single float as well)
-- `reynolds::Vector{Float}=1e-6` : Vector of reynolds numbers (may be a single float as well)
-- `mach::Vector{Float}=0.0` : Vector of mach numbers (may be a single float as well)
-
-Note that Reynolds and Mach numbers are only used for viscous methods, and Flow Angles are unused in the axisymmetric methods.
-
 # Keyword Arguments
-- `method::Method=Mfoil()` : desired method for solving
+- `method::MethodType` : desired method for solving
 
 # Returns
-- `outputs::InviscidOutputs` : outputs object (note that only inviscid methods are currently implemented)
+- `outputs::OutputType` : outputs object (note that only inviscid methods are currently implemented)
 """
 function analyze(x, y, flow_angles; method::Method=Mfoil())
     return analyze([x y], flow_angles; method=method)

@@ -2,7 +2,6 @@
 
 ## Mfoil: Single inviscid airfoil comparision to analytic solution
 
-TODO: add comparison with Joukowsky airfoil used in XFoil paper:
 ```@example Joukowsky
 using FLOWFoil
 using Plots
@@ -11,18 +10,21 @@ using .AirfoilTools
 center = [-0.1; 0.1]
 radius = 1.0
 alpha = 4.0
-Vinf = 1.0 
+Vinf = 1.0
 
 # - Joukowsky Geometry - #
 x, y = FLOWFoil.AirfoilTools.joukowsky(center, radius)
 
-# - Surface Values - #
+# - Analytic Solution - #
 surface_velocity, surface_pressure_coefficient, cl = FLOWFoil.AirfoilTools.joukowsky_flow(
     center, radius, alpha, Vinf
 )
 
-# - Plot Stuff - #
-pl = plot(; xlabel="x", ylabel="cp", yflip=true) # hide
+# - FLOWFoil Solution - #
+outputs = analyze([x y], alpha; method=Mfoil())
+
+include("../assets/plots_default.jl") #hide
+pl = plot(; xlabel=L"x", ylabel=L"c_p", yflip=true) # hide
 plot!( # hide
     pl, # hide
     x[7:360], # hide
@@ -32,7 +34,6 @@ plot!( # hide
     label="Analytic Solution", # hide
 ) # hide
 
-outputs = analyze(hcat(x,y), alpha; method=Mfoil())
 plot!(pl, x[7:360], outputs.cp[7:360], label="Mfoil") # hide
 ```
 
@@ -47,56 +48,60 @@ using FLOWFoil
 af_geom_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "docs", "src", "assets", "two_inviscid_airfoils.jl"))
 include(af_geom_path)
 
-outputs = analyze([[ximain etamain], [xiflap etaflap]], [0.0]; method=Mfoil())
+outputs = analyze([[ximain etamain], [xiflap etaflap]], 0.0; method=Mfoil())
 
-# plot and save comparisons, hiding code
-# First panel: Airfoil geometry
+# plot and save comparisons, hiding code #hide
+# First panel: Airfoil geometry #hide
 include("../assets/plots_default.jl") #hide
-plt1 = plot( # hide
-    ximain, etamain; # hide
-    linecolor = :navy, # hide
-    linewidth = 2, # hide
-    label = "Main Airfoil", # hide
-    aspect_ratio = 1, # hide
-    legend = :top, # hide
-    framestyle = :none, # hide
-    ticks = false, # hide
-) # hide
+#plt1 = plot( # hide
+#    ximain, etamain; # hide
+#    linecolor = 1, # hide
+#    linewidth = 2, # hide
+#    label = "Main Airfoil", # hide
+#    aspect_ratio = 1, # hide
+#    legend = :top, # hide
+#    framestyle = :none, # hide
+#    ticks = false, # hide
+#) # hide
 
-plot!( # hide
-    plt1, # hide
-    xiflap, etaflap; # hide
-    linecolor = :red, # hide
-    linewidth = 2, # hide
-    label = "Flap Airfoil" # hide
-) # hide
+#plot!( # hide
+#    plt1, # hide
+#    xiflap, etaflap; # hide
+#    linecolor = 2, # hide
+#    linewidth = 2, # hide
+#    label = "Flap Airfoil" # hide
+#) # hide
 
-# Second panel: Cp comparison
-plt2 = plot( # hide
-    x[7:360], CP[7:360]; # hide
-    label = "Analytic", # hide
-    linewidth = 2, # hide
-    linecolor = :navy, # hide
-    xlabel = "x", # hide
-    ylabel = "cₚ", # hide
+# Second panel: Cp comparison #hide
+scatter( # hide
+    ximain, cpmain; # hide
+    label = "Main Airfoil Analytic", # hide
+    xlabel = L"x", # hide
+    ylabel = L"c_p", # hide
     yflip = true, # hide
     legend = :topright, # hide
-    size = (500, 300), # hide
+    color=1, # hide
+    markerstrokewidth=0, # hide
+    markersize=4, #hide
 ) # hide
-
 scatter!( # hide
-    plt2, # hide
-    x, cp_mfoil; # hide
-    label = "FLOWFoil", # hide
-    markercolor = :red, # hide
-    markersize = 3, # hide
-    alpha = 0.8 # hide
+    xiflap, cpflap; # hide
+    label = "Flap Analytic", # hide
+    color = 2, # hide
+    markerstrokewidth=0, # hide
+    markersize=4, #hide
+    ) # hide
+
+plot!( # hide
+    ximain, outputs.cp[1]; # hide
+    label = "Main FLOWFoil", # hide
+    color=2, #hide
 ) # hide
-
-# Combine both panels side-by-side
-final_plot = plot(plt1, plt2; layout = (1, 2), size = (900, 300)) # hide
-
-nothing #hide
+plot!( # hide
+    xiflap, outputs.cp[2]; # hide
+    label = "Flap FLOWFoil", # hide
+    color = 1, # hide
+) # hide
 ```
 
 We see excellent agreement with the analytical solution.
@@ -121,8 +126,7 @@ outputs = analyze(center_body_coordinates, [0.0]; method=Lewis(; body_of_revolut
 
 # plot # hide
 include("../assets/plots_default.jl") #hide
-plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hid
-plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4) #hide
+plot(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Data",markerstrokecolor=1, markercolor=1, markersize=4, xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}", legend=:bottomright) #hide
 plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs, label="FLOWFoil") #hide
 ```
 ## Axisymmetric Annular Airfoil (Duct)
@@ -140,8 +144,8 @@ include(duct_path)
 outputs = analyze(duct_coordinates, [0.0]; method=Lewis(; body_of_revolution=[false]))
 
 # plot # hide
-plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p") #hide
-plot!(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4) #hide
+include("../assets/plots_default.jl") #hide
+plot(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4, xlabel=L"\frac{x}{c}", ylabel=L"c_p", legend=:bottomright) #hide
 plot!(pressurexlower, pressurelower, seriestype=:scatter, markershape=:dtriangle, label="Experimental Casing", color=1, markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.cp, label="FLOWFoil",color=2) #hide
 ```
@@ -163,17 +167,14 @@ outputs = analyze(
 
 # plot v # hide
 
-plot(xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}") #hide
-plot!(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Center Body",markerstrokecolor=1, markercolor=1, markersize=4) #hide
+plot(Vs_over_Vinf_x, Vs_over_Vinf_vs, seriestype=:scatter, label="Experimental Center Body",markerstrokecolor=1, markercolor=1, markersize=4, xlabel=L"\frac{x}{c}", ylabel=L"\frac{V_s}{V_\infty}", legend=:bottomright) #hide
 plot!(0.5*(center_body_coordinates[1:end-1,1].+center_body_coordinates[2:end,1]), outputs.vs[2], label="FLOWFoil Center Body with Duct Effects") #hide
-
 ```
 
 ```@example axisym
 # plot cp # hide
 
-plot(xlabel=L"\frac{x}{c}", ylabel=L"c_p") #hide
-plot!(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4) #hide
+plot(pressurexupper, pressureupper, seriestype=:scatter, markershape=:utriangle, label="Experimental Nacelle", color=1, yflip=true, markerstrokecolor=1, markercolor=1, markersize=4, xlabel=L"\frac{x}{c}", ylabel=L"c_p", legend=:bottomright) #hide
 plot!(pressurexlower, pressurelower, seriestype=:scatter, markershape=:dtriangle, label="Experimental Casing", color=1, markerstrokecolor=1, markercolor=1, markersize=4) #hide
 plot!(0.5*(duct_coordinates[1:end-1,1].+duct_coordinates[2:end,1]), outputs.cp[1], label="FLOWFoil Duct with Center Body Effects",color=2) #hide
 ```
@@ -207,12 +208,16 @@ flow_angles = [-35.0, 35.0]
 #solve for outputs
 outputs = analyze(coordinates, flow_angles; method=method)
 
-# Panel midpoints (x has 51 nodes → 50 panels)
+# Panel midpoints (x has 51 nodes → 50 panels) # hide
 xmid = 0.5 .* (x[1:end-1] .+ x[2:end]) #hide
 
-# Plot Cp at angle 1 (e.g. -35 degrees)
-plot(xmid, outputs.cp[:, 1], xlabel="x/c", ylabel="c_p", label="-35°", lw=2) #hide
+include("../assets/plots_default.jl") #hide
+# Plot Cp at angle 1 (e.g. -35 degrees) #hide
+scatter(x_from_web_plot_digitizer_negative_35_degrees, cp_Lewis_negative_35_degrees, xlabel=L"\frac{x}{c}", ylabel=L"c_p", label="Lewis: -35°", color=1, markerstrokewidth=0, yflip=true, markersize=4, legend=:topright) #hide
+plot!(xmid, outputs.cp[:, 1], label="FLOWFoil", color=2) #hide
 
-# Add Cp at angle 2 (e.g. 35 degrees)
-plot!(xmid, outputs.cp[:, 2], label="35°", lw=2, ls=:dash) #hide
+```
+```@example cascade
+scatter(x_from_web_plot_digitizer_positive_35_degrees, cp_Lewis_positive_35_degrees, xlabel=L"{x}{c}", ylabel=L"c_p", label="Lewis: +35°", color=1, markerstrokewidth=0, yflip=true, markersize=4, legend=:topright) #hide
+plot!(xmid, outputs.cp[:, 2], label="FLOWFoil", color=2) #hide
 ```
