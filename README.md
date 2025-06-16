@@ -6,21 +6,28 @@
 
 
 FLOWFoil is a collection of two dimensional potential flow solvers (panel methods) for airfoils, airfoil systems, and axisymmetric sections/systems.
+
 The following table includes the list of currently available methods (usage can be found in the docs).
 
-| Method | Type | Multi-body Compatible | AD Compatible (ForwardDiff.jl) | References or Wrapped Pacakge |
-|---|---|---|---|---|
-| [Mfoil](@ref) | Inviscid, linear vortex | 🚧 (example under development) | ✅ | [1](https://websites.umich.edu/~kfid/codes.html), [2](https://web.mit.edu/drela/Public/papers/xfoil_sv.pdf) |
-| [Lewis](@ref) | Inviscid, axisymmetric, constant vortex | ✅ | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
-| [Martensen](@ref) | Inviscid, periodic, constant vortex | 🚧 (needs test case) | ✅ | [3](https://doi.org/10.1017/CBO9780511529542) |
-| [HessSmith](@ref) | Inviscid, constant source, single vortex | 🚧 (to be added) | ✅ | [4](https://byu.box.com/shared/static/ywfayozbj3sr2ot6b32u8nqk5brqvurt.pdf) |
-| [LegacyXfoil](@ref) | Wrapper for Xfoil.jl | ❌ | ❌ | [Xfoil.jl](https://github.com/byuflowlab/Xfoil.jl) |
-| [NeuralFoil](@ref) | Wrapper for NeuralFoil.jl | ❌ | ✅ | [NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
+|Method|Inviscid Mfoil/Xfoil|Lewis|Martensen|LegacyXfoil|NeuralFoil|
+|---|---|---|---|---|---|
+Description|A re-derivation of the Mfoil/Xfoil method and implementation in Julia. Currently only the inviscid portions are derived/implemented. | An axisymmetric method, useful for ducts and bodies of revolution. | A periodic method (with optional planar functionality) for axial cascades. |  Wrapper of Xfoil.jl | Wrapper of NeuralFoil.jl |
+Panel Type | Linear Vortex (+ Constant Source) | Constant Vortex | Constant Vortex | Constant Source + Single Vortex | Linear Vortex + Constant Source | Multi-Layer Perceptron |
+Boundary Condition|Dirichlet|Dirichlet|Dirichlet|Dirichlet|N/A|
+Viscous|🚧|⭕️|⭕️|✅|✅|
+Single-body Functional|✅|✅|✅|✅|✅|
+Multi-body Functional|🚧|✅|🚧|❌|❌|
+AD Compatible (ForwardDiff.jl)|✅|✅|✅|❌|✅|
+References or Wrapped Packages|[1](https://websites.umich.edu/~kfid/codes.html), [2](https://web.mit.edu/drela/Public/papers/xfoil_sv.pdf)|[3](https://doi.org/10.1017/CBO9780511529542) |[3](https://doi.org/10.1017/CBO9780511529542) | [Xfoil.jl](https://github.com/byuflowlab/Xfoil.jl)| [NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
+
+Key:
+- ✅ Implemented
+- 🚧 Under Development
+- ⭕️ Will likely not be implemented
+- ❌ Cannot be implemented
 
 ## References:
 
 1. [Fidkowski, K. J., "A Coupled Inviscid-Viscous Airfoil Analysis Solver, Revisited," AIAA Journal, 2021.](https://doi.org/10.2514/1.J061341)
 2. [Drela, M., "XFOIL: An Analysis and Design System for Low Reynolds Number Airfoils," 1989.](https://doi.org/10.1007/978-3-642-84010-4_1)
 3. [R. I. Lewis, "Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems," 1991](https://doi.org/10.1017/CBO9780511529542)
-4. [Ning, A. "Computational Aerodynamics," 2022](https://byu.box.com/shared/static/ywfayozbj3sr2ot6b32u8nqk5brqvurt.pdf)
-

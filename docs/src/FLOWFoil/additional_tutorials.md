@@ -76,26 +76,6 @@ method = Martensen(solidity=1.2, stagger=15.0)
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
-## Hess-Smith 2D Method
-
-We also have a version of the Hess-Smith method primarily for educational use that can be accessed with the `HessSmith` method type:
-
-```@docs
-FLOWFoil.HessSmith
-```
-
-```@example HessSmith
-using FLOWFoil
-
-x, y = AirfoilTools.naca4()
-
-angles_of_attack = range(-5.0, 15.0; step=1)
-
-method = HessSmith(V_inf=1.0)
-
-outputs = analyze(x, y, angles_of_attack; method=method)
-```
-
 ## NeuralFoil Method
 
 [NeuralFoil](https://github.com/peterdsharpe/NeuralFoil) is a multi-layer perceptron model of Xfoil.
