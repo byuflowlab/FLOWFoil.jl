@@ -14,7 +14,6 @@ FLOWFoil provides access to the following methods.
 FLOWFoil.Mfoil
 FLOWFoil.Lewis
 FLOWFoil.Martensen
-FLOWFoil.HessSmith
 FLOWFoil.LegacyXfoil
 FLOWFoil.NeuralFoil
 ```

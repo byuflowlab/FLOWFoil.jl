@@ -30,12 +30,6 @@ for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
     include(joinpath(dir, file))
 end
 
-# @info("Hess Smith Tests")
-# dir = joinpath(@__DIR__, "hess_smith")
-# for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
-#     include(joinpath(dir, file))
-# end
-
 @info("LegacyXfoil Tests")
 dir = joinpath(@__DIR__, "legacy_xfoil")
 for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))

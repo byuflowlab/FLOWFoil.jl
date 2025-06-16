@@ -53,14 +53,6 @@ include("martensen/system_matrices.jl")
 include("martensen/solve.jl")
 include("martensen/post_process.jl")
 
-# Hess-Smith (Educational)
-include("hess_smith/method.jl")
-include("hess_smith/panel_geometry.jl")
-include("hess_smith/system_geometry.jl")
-include("hess_smith/system_matrices.jl")
-include("hess_smith/solve.jl")
-include("hess_smith/post_process.jl")
-
 # NeuralFoil Translation
 include("neural_foil/method.jl")
 
@@ -85,7 +77,7 @@ include("universal_geometry_utilities.jl")
 
 ##### ----- TYPES ----- #####
 
-export Mfoil, Xfoil, Lewis, Martensen, HessSmith, LegacyXfoil, NeuralFoil
+export Mfoil, Xfoil, Lewis, Martensen, LegacyXfoil, NeuralFoil
 export InviscidOutputs, LegacyXFOutputs#, NeuralOutputs
 
 ##### ----- FUNCTIONS ----- #####
