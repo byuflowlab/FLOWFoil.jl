@@ -2,8 +2,7 @@
 Default Plots Settings for creating tikz native figures for dissertation
 =#
 
-using Plots;
-gr()
+using Plots
 using LaTeXStrings
 using Measures
 using Printf
