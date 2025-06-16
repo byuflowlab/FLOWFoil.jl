@@ -8,7 +8,7 @@ FLOWFoil is a collection of two dimensional potential flow solvers (panel method
 The following table includes the list of currently available methods (usage can be found in the docs).
 
 |Method|Xfoil/[Mfoil](@ref) in Julia|[Lewis](@ref)|[Martensen](@ref)|[LegacyXfoil](@ref)|[NeuralFoil](@ref)|
-|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|
 Description|A re-derivation of the Mfoil/Xfoil method and implementation in Julia. Currently only the inviscid portions are derived/implemented. | An axisymmetric method, useful for ducts and bodies of revolution. | A periodic method (with optional planar functionality) for axial cascades. |  Wrapper of Xfoil.jl | Wrapper of NeuralFoil.jl |
 Panel Type | Linear Vortex (+ Constant Source) | Constant Vortex | Constant Vortex | Constant Source + Single Vortex | Linear Vortex + Constant Source | Multi-Layer Perceptron |
 Boundary Condition|Dirichlet|Dirichlet|Dirichlet|Dirichlet|N/A|
