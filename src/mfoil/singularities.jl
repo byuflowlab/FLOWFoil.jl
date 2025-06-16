@@ -3,7 +3,7 @@
 
 Calculate value of  \$\\overline{\\Psi}^\\gamma\$
 
-# Arguments:
+# Arguments
  - `theta1::Float` : angle between panel and vector from node1 to evaluation point
  - `theta2::Float` : angle between panel and vector from node2 to evaluation point
  - `ln1::Float` : value of ln(rmag1), which may be that or 0.0, depening on evaluation point location
@@ -11,7 +11,6 @@ Calculate value of  \$\\overline{\\Psi}^\\gamma\$
  - `dmag::Float` : panel length
  - `h::Float` : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
  - `a::Float` : length of base of right triangle with height, h, and hypontenuse, r1.
-
 """
 function get_psibargamma(theta1, theta2, ln1, ln2, dmag, h, a)
     return 1.0 / (2.0 * pi) * (h * (theta2 - theta1) - dmag + a * ln1 - (a - dmag) * ln2)
@@ -22,7 +21,7 @@ end
 
 Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
 
-# Arguments:
+# Arguments
  - `psibargamma::Float` : value of \$\\overline{\\Psi}^\\gamma\$
  - `r1mag::Float` : distance from node1 to evaluation point
  - `r2mag::Float` : distance from node2 to evaluation point
@@ -33,7 +32,6 @@ Calculate value of  \$\\widetilde{\\Psi}^\\gamma\$
  - `dmag::Float` : panel length
  - `h::Float` : height of right triangle with hypontenuse, r1, and base, a, colinear with panel.
  - `a::Float` : length of base of right triangle with height, h, and hypontenuse, r1.
-
 """
 function get_psitildegamma(psibargamma, r1mag, r2mag, theta1, theta2, ln1, ln2, dmag, h, a)
     ptg =
@@ -47,7 +45,7 @@ end
 
 Calculate value of  \$\\overline{\\Psi}^\\sigma\$
 
-# Arguments:
+# Arguments
  - `theta1::Float` : Angle between panel and evaluation point, centered at node1.
  - `theta2::Float` : Angle between panel and evaluation point, centered at node2.
  - `ln1::Float` : Natural log of distance from node1 to evaluation point.
@@ -64,7 +62,7 @@ end
 
 Calculate value of  \$\\widetilde{\\Psi}^\\sigma\$
 
-# Arguments:
+# Arguments
  - `psibargamma::Float` : value of \$\\overline{\\Psi}^\\sigma\$
  - `r1mag::Float` : distance from node1 to evaluation point
  - `r2mag::Float` : distance from node2 to evaluation point
@@ -84,11 +82,10 @@ end
 
 Calculate linear vortex influence coefficients on the evaluation point from the panel between node1 and node2.
 
-# Arguments:
+# Arguments
  - `node1::Array{Float}(2)` : [x y] location of node1
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point
-
 """
 function calculate_linear_vortex_influence(system_geometry, i, j)
     # get psibargamma value
@@ -125,11 +122,10 @@ end
 
 Calculate constant vortex influence coefficients on the evaluation point from the panel between node1 and node2.
 
-# Arguments:
+# Arguments
  - `node1::Array{Float}(2)` : [x y] location of node1
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point
-
 """
 function calculate_constant_vortex_influence(system_geometry, i, j)
     # get psibargamma value
@@ -149,7 +145,7 @@ end
 
 Calculate constant source influence coefficients on the evaluation point from the panel between node1 and node2.
 
-# Arguments:
+# Arguments
  - `node1::Array{Float}(2)` : [x y] location of node1
  - `node2::Array{Float}(2)` : [x y] location of node2
  - `point::Array{Float}(2)` : [x y] location of evaluation point

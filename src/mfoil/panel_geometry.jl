@@ -1,9 +1,38 @@
+"""
+    generate_panel_geometry(method::Mfoil, coordinates)
+
+Generates panel geometries for multiple airfoils by broadcasting over a collection of coordinate sets.
+
+# Arguments
+- `method::Mfoil`: The Mfoil method configuration object.
+- `coordinates`: A collection (e.g. vector) of coordinate matrices, each representing airfoil node coordinates.
+
+# Returns
+- A concatenated vector of panel geometry objects for all provided airfoils.
+"""
 function generate_panel_geometry(method::Mfoil, coordinates)
 
     #broadcast for multiple airfoils
     return reduce(vcat, generate_panel_geometry.(Ref(method), coordinates))
 end
 
+"""
+    generate_panel_geometry(method::Mfoil, coordinates::Matrix{TF}) where {TF}
+
+Generates the panel geometry for a single airfoil given node coordinates.
+
+# Arguments
+- `method::Mfoil`: The Mfoil method configuration object.
+- `coordinates::Matrix{TF}`: Nx2 matrix containing the x and y coordinates of the airfoil nodes, where N is the number of nodes.
+
+# Returns
+- Named tuple `panel_geometry` containing:
+  - `npanels::Int`: Number of panels (nodes - 1).
+  - `panel_edges::Array{TF, 3}`: An (npanels, 2, 2) array containing the start and end points of each panel.
+  - `panel_vectors::Array{TF, 2}`: An (npanels, 2) array of vectors describing panel directions.
+  - `panel_lengths::Array{TF}`: Vector of panel lengths.
+  - `nodes::Array{TF, 2}`: Array of node coordinates (npanels + 1, 2).
+"""
 function generate_panel_geometry(method::Mfoil, coordinates::Matrix{TF}) where {TF}
 
     # Separate coordinates
@@ -27,6 +56,19 @@ function generate_panel_geometry(method::Mfoil, coordinates::Matrix{TF}) where {
     return generate_panel_geometry!(method, panel_geometry, coordinates)
 end
 
+"""
+    generate_panel_geometry!(method::Mfoil, panel_geometry, coordinates::Matrix{TF}) where {TF}
+
+Fills the `panel_geometry` structure with geometric data calculated from airfoil node coordinates.
+
+# Arguments
+- `method::Mfoil`: The Mfoil method configuration object (unused here but kept for interface consistency).
+- `panel_geometry`: Named tuple or mutable structure to be populated with panel data.
+- `coordinates::Matrix{TF}`: Nx2 matrix containing x and y coordinates of the airfoil nodes.
+
+# Returns
+- The updated `panel_geometry` structure filled with panel edges, vectors, lengths, and node coordinates.
+"""
 function generate_panel_geometry!(::Mfoil, panel_geometry, coordinates::Matrix{TF}) where {TF}
 
     # Separate coordinates

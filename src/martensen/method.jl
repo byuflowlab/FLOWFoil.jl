@@ -1,7 +1,7 @@
 """
     Martensen <: Method
 
-# Fields:
+# Fields
 - `cascade::Bool=true` : flag to apply cascade treatment or not
 - `solidity::Float=0.0` : Ratio between airfoil chord length and pitch. Airfoil pitch is simply the distance between chordlines in the cascade.
 - `stagger::Float=0.0` : Angle (in degrees) from axis of ration to airfoil chordline. Note that stagger is equivalent to the inflow angle minus the angle of attack.

@@ -1,3 +1,18 @@
+"""
+    post_process(method::Martensen, panel_geometry, system_geometry, strengths, flow_angles)
+
+Wrapper function to handle single airfoil case by calling the vectorized version.
+
+# Arguments
+- `method::Martensen`: The panel method type.
+- `panel_geometry`: Panel geometry object for a single airfoil.
+- `system_geometry`: System geometry object containing panel indices, etc.
+- `strengths`: Vortex strength matrix for the panels.
+- `flow_angles`: Vector of flow angles (degrees) at which to evaluate outputs.
+
+# Returns
+- `InviscidOutputs`: Struct containing velocity (`vs`), pressure coefficient (`cp`), lift (`cl`), drag (`cd`), and moment (`cm`) coefficients.
+"""
 function post_process(
     method::Martensen, panel_geometry, system_geometry, strengths, flow_angles
 )
@@ -6,6 +21,33 @@ function post_process(
     )
 end
 
+"""
+    post_process(
+        method::Martensen,
+        panel_geometry::AbstractVector,
+        system_geometry,
+        strengths,
+        flow_angles,
+    )
+
+Computes post-processed aerodynamic outputs such as surface velocities, pressure coefficients, and aerodynamic coefficients
+(lift, drag, moment) for one or multiple airfoils or bodies in a system.
+
+# Arguments
+- `method::Martensen`: The panel method type, including options such as `cascade`.
+- `panel_geometry::AbstractVector`: Vector of panel geometry objects for each body.
+- `system_geometry`: System geometry object containing indices and geometric data.
+- `strengths`: Matrix of vortex strengths for panels (dimensions related to panels and flow angles).
+- `flow_angles`: Vector of flow angles (in degrees) at which to evaluate aerodynamic results.
+
+# Returns
+- `InviscidOutputs`: Struct containing:
+    - `vs`: Surface velocity distributions for each panel and flow angle.
+    - `cp`: Pressure coefficients on the surface panels.
+    - `cl`: Lift coefficients for each body and flow angle.
+    - `cd`: Drag coefficients (currently zero arrays).
+    - `cm`: Moment coefficients (currently zero arrays).
+"""
 function post_process(
     method::Martensen,
     panel_geometry::AbstractVector,

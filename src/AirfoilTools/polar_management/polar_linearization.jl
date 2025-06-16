@@ -2,7 +2,16 @@
 
 """
     findclmax(aoa,cl)
+
 Determines clmax as greatest lift coefficient. Returns aoaclmax, clmax
+
+# Arguments
+- `aoa::AbstractArray{Float}` : vector of angles of attack
+- `cl::AbstractArray{Float}` : vector of lift coefficients
+
+# Returns
+- `aoaclmax::Float` : angle of attack of the maximum lift coefficient value
+- `clmax::Float` : maximum cl value
 """
 function findclmax(aoa, cl)
     indclmax = argmax(cl)
@@ -13,9 +22,18 @@ end #findclmax
 
 """
     findclmax(aoa,cl,npnts::Integer)
-Determines clmax as when all angles greater than the clmax angle for `npnts`
+Determines clmax when all angles greater than the clmax angle for `npnts`
 data points are less than clmax. Assumes points are ordered by angle of attack.
 Returns aoaclmax, clmax
+
+# Arguments
+- `aoa::AbstractArray{Float}` : vector of angles of attack
+- `cl::AbstractArray{Float}` : vector of lift coefficients
+- `npnts::Integer` : number of data points over which to verify that the `clmax` is a true maximum
+
+# Returns
+- `aoaclmax::Float` : angle of attack of the maximum lift coefficient value
+- `clmax::Float` : maximum cl value
 """
 function findclmax(aoa, cl, npnts::Integer)
     # default to basic method if conditions not satisfied
@@ -35,9 +53,18 @@ end #findclmax
 
 """
     findclmax(aoa,cl,range::AbstractFloat)
-Determines clmax as when all angles greater than the clmax angles for `range`
+Determines clmax when all angles greater than the clmax angles for `range`
 radians are less than clmax. Assumes points are ordered by angle of attack.
 Returns aoaclmax, clmax
+
+# Arguments
+- `aoa::AbstractArray{Float}` : vector of angles of attack
+- `cl::AbstractArray{Float}` : vector of lift coefficients
+- `range::AbstractFloat` : Range (in radians) over which to verify that the `clmax` is a true maximum
+
+# Returns
+- `aoaclmax::Float` : angle of attack of the maximum lift coefficient value
+- `clmax::Float` : maximum cl value
 """
 function findclmax(aoa, cl, range::AbstractFloat)
     # default to basic method if conditions not satisfied
@@ -64,6 +91,14 @@ end #findclmax
 """
     findclmin(aoa,cl)
 Determines clmin as smallest lift coefficient.  Returns aoaclmin, clmin
+
+# Arguments
+- `aoa::AbstractArray{Float}` : vector of angles of attack
+- `cl::AbstractArray{Float}` : vector of lift coefficients
+
+# Returns
+- `aoaclmin::Float` : angle of attack of the minimum lift coefficient value
+- `clmin::Float` : minimum cl value
 """
 function findclmin(aoa, cl)
     indclmin = argmin(cl)
@@ -77,6 +112,15 @@ end #findclmax
 Determines clmin as when all angles less than the clmin angle for `npnts` data
 points are greater than clmin. Assumes points are ordered by angle of attack.
 Returns aoaclmin, clmin
+
+# Arguments
+- `aoa::AbstractArray{Float}` : vector of angles of attack
+- `cl::AbstractArray{Float}` : vector of lift coefficients
+- `npnts::Integer` : number of points over which to verify that the `clmin` is a true minimum
+
+# Returns
+- `aoaclmin::Float` : angle of attack of the minimum lift coefficient value
+- `clmin::Float` : minimum cl value
 """
 function findclmin(aoa, cl, npnts::Integer)
     # default to basic method if conditions not satisfied
@@ -98,6 +142,15 @@ end #findclmax
     findclmin(aoa,cl,range::AbstractFloat)
 Determines clmin as when all points less than the clmin angle for `range`
 radians are greater than clmin. Returns aoaclmin, clmin
+
+# Arguments
+- `aoa::AbstractArray{Float}` : vector of angles of attack
+- `cl::AbstractArray{Float}` : vector of lift coefficients
+- `range::AbstractFloat` : range (in radians) over which to verify that the `clmin` is a true minimum
+
+# Returns
+- `aoaclmin::Float` : angle of attack of the minimum lift coefficient value
+- `clmin::Float` : minimum cl value
 """
 function findclmin(aoa, cl, range::AbstractFloat)
     # default to basic method if conditions not satisfied
@@ -123,10 +176,24 @@ end #findclmax
 
 """
     fitliftslope(aoa,cl,tol::Real=0.05,allnegfit::Bool=false)
+
 Returns the lift slope and zero lift angle of attack as well as the data used
 to compute these parameters.  The tolerance `tol` (in terms of cl) for the fit
 and whether to include all data points below zero angle of attack `allnegfit`
 may be specified. Returns liftslope,zeroliftangle,aoafit,clfit
+
+# Arguments
+- `aoa::AbstractArray{Float}`: Vector of angles of attack (in radians), ordered from lowest to highest.
+- `cl::AbstractArray{Float}`: Corresponding lift coefficients for each angle of attack.
+- `tol::Real=0.05`: Tolerance for fitting error (in lift coefficient units). Used to determine the extent of the linear region.
+- `allnegfit::Bool=false`: If `true`, all data points at negative angles of attack will be included in the fit regardless of error.
+- `center::Real=0.0`: Center angle (in radians) around which to start the fitting procedure. Defaults to 0.
+
+# Returns
+- `liftslope::Float`: Slope of the linear fit (∂Cl/∂α) in 1/rad.
+- `zeroliftangle::Float`: Zero-lift angle of attack (in radians), where the fitted lift curve crosses Cl = 0.
+- `aoafit::AbstractArray{Float}`: Angles of attack used in the linear fit.
+- `clfit::AbstractArray{Float}`: Corresponding lift coefficients used in the linear fit.
 """
 function fitliftslope(aoa, cl, tol::Real=0.05, allnegfit::Bool=false, center=0.0)
     if length(aoa) != length(cl)
@@ -243,10 +310,24 @@ function fitliftslope(aoa, cl, tol::Real=0.05, allnegfit::Bool=false, center=0.0
 end
 
 """
-    findclmaxlinear(aoa,cl,liftslope::Real,zeroliftangle::Real;tol::Real=0.1,
-    interpolate::Bool=true)
+    findclmaxlinear(aoa, cl, liftslope::Real, zeroliftangle::Real; tol::Real=0.1, interpolate::Bool=true)
+
 Returns the angle of attack and cl of the maximum linear lift coefficient. `tol`
 is used to determine the liftslope line tolerance. Returns aoaclmaxlinear,clmaxlinear
+
+# Arguments
+- `aoa::AbstractArray{Float}`: Vector of angles of attack (in radians or degrees, consistently).
+- `cl::AbstractArray{Float}`: Corresponding vector of lift coefficients.
+- `liftslope::Float`: Linear lift curve slope (typically in 1/rad).
+- `zeroliftangle::Float`: Angle of attack corresponding to zero lift (x-intercept of the linear fit).
+
+# Keyword Arguments
+- `tol::Float=0.1`: Tolerance threshold for deviation from the linear model. If `|cl - predicted_cl| > tol`, the curve is considered nonlinear.
+- `interpolate::Bool=true`: If `true`, interpolates between points to more accurately estimate the departure point from linearity.
+
+# Returns
+- `aoaclmaxlinear::Float`: Angle of attack where the linear portion of the lift curve ends.
+- `clmaxlinear::Float`: Corresponding lift coefficient at `aoaclmaxlinear`.
 """
 function findclmaxlinear(
     aoa, cl, liftslope::Real, zeroliftangle::Real; tol::Real=0.1, interpolate::Bool=true

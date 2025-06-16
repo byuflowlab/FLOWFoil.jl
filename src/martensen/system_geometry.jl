@@ -1,7 +1,37 @@
+"""
+    generate_system_geometry(method::Martensen, panel_geometry)
+
+Generates system geometry for a single body by wrapping the vector version.
+
+# Arguments
+- `method::Martensen`: The panel method object containing method parameters.
+- `panel_geometry`: Panel geometry object for a single body.
+
+# Returns
+- A system geometry named tuple containing indexing, distance arrays, and pitch.
+"""
 function generate_system_geometry(method::Martensen, panel_geometry)
     return generate_system_geometry(method, [panel_geometry])
 end
 
+"""
+    generate_system_geometry(method::Martensen, panel_geometry::AbstractVector)
+
+Generates system geometry data for one or more bodies in a panel method simulation.
+
+# Arguments
+- `method::Martensen`: The panel method object containing parameters like solidity.
+- `panel_geometry::AbstractVector`: Vector of panel geometry objects, one per body.
+
+# Returns
+- A named tuple containing:
+  - `nbodies`: Number of bodies.
+  - `panel_indices`: Vector of ranges indexing each body's panels within the global panel mesh.
+  - `mesh2panel`: Vector mapping mesh indices to panel indices.
+  - `r_x`, `r_y`: Matrices containing x and y distances between panel centers.
+  - `r_squared`: Matrix of squared distances.
+  - `pitch`: Characteristic pitch length for cascade geometry.
+"""
 function generate_system_geometry(method::Martensen, panel_geometry::AbstractVector)
 
     ### --- Convenience Variables --- ###
@@ -45,6 +75,20 @@ function generate_system_geometry(method::Martensen, panel_geometry::AbstractVec
     return generate_system_geometry!(method, system_geometry, panel_geometry)
 end
 
+"""
+    generate_system_geometry!(method::Martensen, system_geometry, panel_geometry::AbstractVector)
+
+Populates distance matrices (`r_x`, `r_y`, `r_squared`) within the provided `system_geometry` 
+based on panel center coordinates for all bodies.
+
+# Arguments
+- `method::Martensen`: The panel method object.
+- `system_geometry`: Named tuple with pre-allocated fields for geometry data.
+- `panel_geometry::AbstractVector`: Vector of panel geometry objects for each body.
+
+# Returns
+- The updated `system_geometry` with computed distances filled in.
+"""
 function generate_system_geometry!(
     method::Martensen, system_geometry, panel_geometry::AbstractVector
 )

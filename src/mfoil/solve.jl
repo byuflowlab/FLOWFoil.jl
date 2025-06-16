@@ -15,13 +15,12 @@ solve the system_matrices for the vortex and streamfunction strengths.
 
 Outputs the InviscidSolution object which contains the system_matrices.
 
-# Arguments:
+# Arguments
 - `system_matrices::InviscidSystem` : system_matrices to solve.
 - `mesh::Mesh` : Mesh defining geometry (to put into solution object)
 
-# Returns:
+# Returns
  - `x::inviscid solution, consisting of node vortex strengths`
-
 """
 function solve_inviscid(method::Mfoil, system_matrices)
 

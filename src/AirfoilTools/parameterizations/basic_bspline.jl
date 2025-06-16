@@ -1,5 +1,7 @@
 """
-# Fields:
+    BasicBSpline
+
+# Fields
 - `leading_edge_radius::Float` : leading edge radius
 - `trailing_edge_camber_angle::Float` : trailing edge camber angle (angle of chordline from horizontal at trailing edge).
 - `wedge_angle::Float` : Wedge angle (angle between upper and lower surfaces at trailing edge).
@@ -19,16 +21,15 @@ end
 
 Obtain airfoil coordinates from a B-Spline parameterization method.
 
-# Arguments:
+# Arguments
 - `parameters::BasicBSpline` : BasicBSpline parameters.
 
-# Keyword Arguments:
+# Keyword Arguments
 - `N::Integer=160` : number of points to use when defining the airfoil
 - `split::Bool` : flag whether to output upper and lower coordinates separately
 - `return_nurbs::Bool` : flag whether to output spline knots and control points as well
 
-# Returns:
-
+# Returns
 if split=false
 - `x::AbstractArray{Float}` : x-coordinates from lower TE clockwise to upper TE
 - `z::AbstractArray{Float}` : z-coordinates from lower TE clockwise to upper TE
@@ -61,19 +62,18 @@ end
 
 Obtain airfoil coordinates from a B-Spline parameterization method.
 
-# Arguments:
+# Arguments
 - `leading_edge_radius::Float` : Leading Edge Radius
 - `trailing_edge_camber_angle::Float` : Trailing Edge Camber Angle (degrees)
 - `wedge_angle::Float` : Wedge Angle (degrees)
 
-# Keyword Arguments:
-- `trailing_edge_gap::Float` : Trailing Edge Gap
-- `third_ctrlpt_position::Float` : The x postion of the third control point.
-- `split::Bool` : flag whether to output upper and lower coordinates separately
-- `return_nurbs::Bool` : flag whether to output spline object
+# Keyword Arguments
+- `trailing_edge_gap::Float=0` : Trailing Edge Gap
+- `third_ctrlpt_position::Float=1/3` : The x postion of the third control point.
+- `split::Bool=false` : flag whether to output upper and lower coordinates separately
+- `return_nurbs::Bool=false` : flag whether to output spline object
 
-# Returns:
-
+# Returns
 if split=false
 - `x::AbstractArray{Float}` : x-coordinates from lower TE clockwise to upper TE
 - `z::AbstractArray{Float}` : z-coordinates from lower TE clockwise to upper TE
@@ -84,7 +84,7 @@ if split=true
 - `xl::AbstractArray{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
 - `zl::AbstractArray{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
 
-if return_nurbs=true, also return:
+if return_nurbs=true, also return
 - `NURBSu::NURBS.NURBScurve` : upper spline object
 - `NURBSl::NURBS.NURBScurve` : lower spline object
 """
@@ -125,23 +125,21 @@ function basic_bspline(
 end
 
 """
-    definespline()
+    definespline(leading_edge_radius, trailing_edge_camber_angle, wedge_angle, trailing_edge_gap, third_ctrlpt_position)
 
 Calculate the x and y location of the control points, and weight them according to
 the weighting vector. Also, provide generic knot vectors.
 
-# Inputs:
-- third_ctrlpt_position : x position of the 2nd and 6th control points in degree 3.
-- leading_edge_radius : Leading edge radius
-- wedge_angle : The trailing edge wedge angle
-- trailing_edge_gap : The trailing edge gap
-- weights : vector weights for the control points, leave empty for unity.
+# Arguments
+- leading_edge_radius::Float : Leading edge radius
+- trailing_edge_camber_angle::Float : trailing edge camber angle in degrees
+- wedge_angle::Float : The trailing edge wedge angle in degrees
+- trailing_edge_gap::Float : The trailing edge gap
+- third_ctrlpt_position::Float : x position of the 2nd and 6th control points in degree 3.
 
-# Keyword Arguments:
-
-# Outputs:
-- knots : the knot vector of the curve
-- controlpoints : control point vector (x,y,w)
+# Returns
+- `knots::AbstractArray{Float}`: The knot vector of the curve.
+- `controlpoints::AbstractArray{Tuple{Float,3}}`: The control point vector, where each point is a tuple of (x, y, w).
 """
 function definespline(
     leading_edge_radius,
@@ -199,20 +197,22 @@ function definespline(
 end
 
 """
-        get_spline_coordinates()
-Get plotable coordinates from the weighted control points.
+    get_spline_coordinates(nurbs; N=80)
 
-# Arguments:
-- `knots::AbstractArray{Float}` : knot vector
-- `controlpoints::AbstractArray{Float,2} `: Control Point matrix
-- `degree::Int` : degree of the NURBS curve
+Compute and return plottable coordinates from a NURBS (Non-Uniform Rational B-Spline) curve.
 
-# Keyword Arguments:
-- `N::Int` : number of coordinates, or panels that will be generated
+# Arguments
+- `nurbs::NURBS`: A NURBS curve object with fields:
+    - `knots::AbstractVector{Float64}`: Knot vector
+    - `controlPoints::AbstractMatrix{Float64}`: Weighted control points (each column is a point)
+    - `degree::Int`: Degree of the curve
 
-# Returns:
-- `x::AbstractArray{Float}` : x Airfoil coordinates
-- `z::AbstractArray{Float}` : z Airfoil coordinates
+# Keyword Arguments
+- `N::Int=80`: Number of segments (returns `N + 1` sampled points)
+
+# Returns
+- `x::Vector{Float64}`: x-coordinates of the sampled curve
+- `z::Vector{Float64}`: z-coordinates of the sampled curve
 """
 function get_spline_coordinates(nurbs; N=80)
 

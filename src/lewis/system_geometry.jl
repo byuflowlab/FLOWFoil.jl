@@ -1,8 +1,39 @@
-# - If single airfoil, need to put Panel object in a vector - #
+"""
+    generate_system_geometry(method::Lewis, panel_geometry)
+
+Generate system geometry for a single airfoil by wrapping it in a vector and
+calling the vector version of the function.
+
+# Arguments
+- `method::Lewis`: Marker type indicating the Lewis method.
+- `panel_geometry`: A single panel geometry object.
+
+# Returns
+- `system_geometry`: A NamedTuple containing system-wide geometric information,
+  suitable for the Lewis method.
+"""
 function generate_system_geometry(method::Lewis, panel_geometry)
     return generate_system_geometry(method, [panel_geometry])
 end
 
+"""
+    generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
+
+Generate the system geometry for multiple bodies (airfoils) for the Lewis method.
+
+# Arguments
+- `method::Lewis`: Marker type indicating the Lewis method.
+- `panel_geometry`: Vector of panel geometry objects, each representing one body.
+
+# Returns
+- `system_geometry::NamedTuple` with fields:
+  - `nbodies::Int`: Number of bodies.
+  - `panel_indices::Vector{UnitRange}`: Index ranges for panels of each body.
+  - `mesh2panel::Vector{Int}`: Mapping from mesh indices to panel indices.
+  - `z::Matrix{TF}`: Normalized axial (z) distances between panel centers.
+  - `r::Matrix{TF}`: Normalized radial (r) distances between panel centers.
+  - `k2::Matrix{TF}`: k² values used in elliptic integral calculations.
+"""
 function generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
 
     ### --- Convenience Variables --- ###
@@ -42,6 +73,21 @@ function generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
     return generate_system_geometry!(method, system_geometry, panel_geometry)
 end
 
+"""
+    generate_system_geometry!(method::Lewis, system_geometry, panel_geometry)
+
+Populate and update the `system_geometry` NamedTuple fields by computing the normalized
+distances and elliptic integral parameters between panels of all bodies.
+
+# Arguments
+- `method::Lewis`: Marker type indicating the Lewis method.
+- `system_geometry`: NamedTuple created by `generate_system_geometry`, containing
+  pre-allocated arrays and indexing information.
+- `panel_geometry`: Vector of panel geometry objects.
+
+# Returns
+- The updated `system_geometry` NamedTuple with filled-in distance and elliptic integral parameters.
+"""
 function generate_system_geometry!(method::Lewis, system_geometry, panel_geometry)
 
     # extract fields

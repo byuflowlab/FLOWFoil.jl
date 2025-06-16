@@ -1,3 +1,19 @@
+"""
+    generate_system_matrices(method::Mfoil, panel_geometry, system_geometry)
+
+Constructs the linear system matrices for the panel method aerodynamic problem.
+
+# Arguments
+- `method::Mfoil`: The aerodynamic method object defining the solution approach.
+- `panel_geometry`: Geometry data for the airfoil panels (unused directly here but available for extensions).
+- `system_geometry`: Precomputed system geometry containing panel and node indices and influence parameters.
+
+# Returns
+- Named tuple with:
+  - `A`: The coefficient matrix (influence matrix) representing panel interactions.
+  - `b`: The boundary conditions vector representing the RHS of the linear system.
+  - `node_indices`: The node indexing ranges for each body in the system.
+"""
 function generate_system_matrices(method::Mfoil, panel_geometry, system_geometry)
     # Get coeffiecient matrix (A, left hand side)
     A = assemble_influence_matrix(method, system_geometry)
@@ -11,17 +27,16 @@ end
 #---------------------------------#
 #       COEFFICIENT MATRIX        #
 #---------------------------------#
-
 """
     assemble_influence_matrix(v::Vortex, system_geometry, TE_geometry)
 
 Assembles the "A" matrix (left hand side coefficient matrix).
 
-# Arguments:
+# Arguments
 - `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 - `TE_geometry::system_geometry` : The system_geometry object associated with the trailing edge gap panels
 
-# Returns:
+# Returns
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
 function assemble_influence_matrix(method::Mfoil, system_geometry)
@@ -155,7 +170,7 @@ This implementation doesn't precisely fit.  As stated in other places, this Xfoi
 
 Assemble Dirchilet boundary condition vector.
 
-# Arguments:
+# Arguments
 - `panels::Vector{Panel}` : Vector of panel objects (one for each body in the system)
 - `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
 - `TE_geometry::system_geometry` : The system_geometry object associated with the trailing edge gap panels

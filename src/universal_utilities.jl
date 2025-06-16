@@ -11,12 +11,12 @@ end
 
 Linear transfrom of values from range (source_range[1], raend) to (target_range[1], target_range[end])
 
-# Arguments:
+# Arguments
 - `source_range::Vector{Float{` : range values come from
 - `target_range::Vector{Float}` : range onto which we are transforming
 - `source_values::Array{Float}` : array of source_values to transform
 
-# Returns:
+# Returns
  - `target_values::Array{Float}` : array of transformed source_values onto target range
 """
 function linear_transform(source_range, target_range, source_values)
@@ -30,12 +30,12 @@ end
 
 Generates smooth surface distribution values.
 
-# Arguments:
+# Arguments
 - `panel_geometry::NamedTuple` : NamedTuple that comes from `generate_panel_geometry`. Must contain `panel_edges`.
 - `distribution::Array{Float}` : surface distribution values
 - `npoints::Int` : Total number of points in the new distribution covering the entire airfoil. (There will be `(npoints+1)/2` points on the top and bottom surfaces, respectively.)
 
-# Returns:
+# Returns
 - `distribution::Vector{Float}` : Smoothed surface distribution
 - `xsmooth::Vector{Float}` : Smoothed x-coordinates
 
@@ -166,12 +166,39 @@ dot(A, B) = sum(a * b for (a, b) in zip(A, B))
 #---------------------------------#
 #         Mach Correction         #
 #---------------------------------#
+"""
+    smooth_beta(mach; blend_range=0.02)
 
+Compute a smoothened compressibility correction factor β based on Mach number.
+
+# Arguments
+- `mach::Real`: Mach number (flow speed / speed of sound).
+- `blend_range::Real=0.02`: Range near the cutoff Mach number (default 0.02) over which to blend corrections smoothly.
+
+# Returns
+- `Real`: Smoothed value of β used in compressibility corrections, transitioning near Mach 1.
+"""
 function smooth_beta(mach; blend_range=0.02)
     b(M) = 1.0 / sqrt(1.0 - min(M, 0.999)^2)
     return FLOWMath.quintic_blend(b(mach), b(0.99), mach, 0.975, blend_range)
 end
 
+"""
+    laitone_compressibility_correction(coeff, mach; gamma=1.4)
+
+Apply Laitone's compressibility correction to a coefficient at given Mach number.
+
+# Arguments
+- `coeff::Real`: Original coefficient (e.g., lift coefficient) to be corrected.
+- `mach::Real`: Mach number of the flow.
+- `gamma::Real=1.4`: Ratio of specific heats (default is 1.4 for air).
+
+# Returns
+- `Real`: Corrected coefficient accounting for compressibility effects.
+
+# References
+- Based on Laitone's compressibility correction formula.
+"""
 function laitone_compressibility_correction(coeff, mach; gamma=1.4)
     beta = smooth_beta(mach)
     denom = beta + mach^2 * coeff / (2.0 * beta) * (1.0 + (gamma - 1) * mach^2 / 2.0)

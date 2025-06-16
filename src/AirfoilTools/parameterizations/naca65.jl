@@ -247,12 +247,12 @@ end
 
 This computes the corresponding camber for a given x value for the NACA 65 series. 
 
-# Arguments:
+# Arguments
 - `a::TF` : Mean-line designation, fraction of chord from leading edge over which design load is uniform. Should be listed in the airfoil descirption
 - `cli::TF` : Design lift coefficient in tenths of chord. Usually first number after the 2nd dash (ie NACA 65-3-818 would input 0.8 for cli)
 - `x::TF` : x value (note that x must be normalized by the chord length)
 
-# Returns:
+# Returns
 - `yc::Float` : Amount of camber y_c for a given x value on the airfoil
 """
 function computed_camber_line(
@@ -286,15 +286,15 @@ end
 
 This computes the corresponding slopes of the mean line for a given x value on the airfoil
 
-# Arguments:
+# Arguments
 - `x::TF` : x value (note that x must be normalized by the chord length)
 - `clo::TF` : Design lift coefficient in tenths of chord. Usually first number after the 2nd dash (ie NACA 65-3-818 would input 0.8 for cli)
 - `a::TF` : Mean-line designation, fraction of chord from leading edge over which design load is uniform. Should be listed in the airfoil descirption
 
-# Keyword Arguments:
+# Keyword Arguments
 - `slope_tolerance::Float = 0.000001` : step size taken for the derivative
 
-# Returns:
+# Returns
 - `tan_theta::Float` : Tangent of the mean line slope
 - `sin_theta::Float` : Sine of the mean line slope
 - `cos_theta::Float` : Cosine of the mean line slope
@@ -331,11 +331,11 @@ end
 
 This computes the thicknes coordinate and leading edge radius from tabulated thickness forms
 
-# Arguments:
+# Arguments
 - `series_number::String` : Airfoil series number (see naca65 doc string for more details)
 - `xpt::TF` : Desired x value to compute the thickness value
 
-# Returns:
+# Returns
 - `y_t::Float` : thickness value at specified x value
 - `leading_edge_radius::Float` : Tabulated leading edge thickness - make sure it is in x/c units!
 """
@@ -374,17 +374,17 @@ Cambered blade sections are obtained by applying the thickness perpendicular to 
 In the designation the camber is given by the first number after the dash in tenths of cl_o.
 For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for cl_o = 0.8 and cl_o = 1.2, respectively.
 
-# Arguments:
+# Arguments
 - `clo::TF` : Design lift coefficient in tenths of chord. Usually first number after the 2nd dash (ie NACA 65-3-818 would input 0.8 for clo)
 - `a::TF` : Mean-line designation, fraction of chord from leading edge over which design load is uniform.
 - `series_number::String` : digits of the airfoil series family with clo of 0 (ie NACA 65-3-818 would be "3-010")
 
-# Keyword Arguments:
+# Keyword Arguments
 - `x::Vector{TF} = nothing` : input x values if specificing x values manually
 - `split::Boolean = false` : if true, then the output will be split between top and bottom coordinates
 - `extra_blending::Boolean = false` : If desired number of points is large (> 300ish) then set to true and it will add some extra blending if desired. Note: This is generally not needed!
 
-# ouptuts:
+# ouptuts
 - `x::Vector{TF}` : x coordinates
 - `y::Vector{TF}` : y coordinates
 """
@@ -504,15 +504,16 @@ In the designation the camber is given by the first number after the dash in ten
 For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for cl_o = 0.8 and cl_o = 1.2, respectively.
 
 This specific function plots the NACA 65-010 series which uses special mean line and thickness form coordinates. It scales those coordinates based on the cl_o value.
-# Arguments:
+
+# Arguments
 - `clo::TF` : Design lift coefficient in tenths of chord. Usually first number after the 2nd dash (ie NACA 65-3-818 would input 0.8 for clo)
 
-# Keyword Arguments:
+# Keyword Arguments
 - `x::Vector{TF} = nothing` : input x values if specificing x values manually
 - `split::Boolean = false` : if true, then the output will be split between top and bottom coordinates
 - `extra_blending::Boolean = false` : If desired number of points is large (> 300ish) then set to true and it will add some extra blending if desired. Note: This is generally not needed!
 
-# ouptuts:
+# ouptuts
 - `x::Vector{TF}` : x coordinates
 - `y::Vector{TF}` : y coordinates
 """

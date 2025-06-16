@@ -3,6 +3,35 @@ function generate_system_geometry(method::Mfoil, panel_geometry::NamedTuple)
     return generate_system_geometry(method, [panel_geometry])
 end
 
+"""
+    generate_system_geometry(method::Mfoil, panel_geometry::AbstractVector; gap_tolerance=1e-10)
+
+Constructs the system geometry for a multi-airfoil panel method simulation.  
+This includes indexing arrays, combined node and panel data, chord lengths, and precomputed influence geometry for each panel and trailing edge panel.
+
+# Arguments
+- `method::Mfoil`: The aerodynamic method object (currently unused, but kept for API consistency).
+- `panel_geometry::AbstractVector`: Vector of panel geometry named tuples, one per airfoil/body, containing nodes, panel edges, vectors, lengths, etc.
+
+# Keyword Arguments
+- `gap_tolerance`: Threshold tolerance to detect blunt (non-sharp) trailing edges, default `1e-10`.
+
+# Returns
+- A named tuple `system_geometry` containing:
+  - `nbodies`: Number of bodies/airfoils.
+  - `panel_indices`: Vector of panel index ranges for each body.
+  - `node_indices`: Vector of node index ranges for each body.
+  - `nodes`: Combined matrix of all nodes for all bodies.
+  - `mesh2panel`: Mapping from global mesh index to panel index.
+  - `chord_length`: Overall chord length of the system (max trailing edge - min leading edge).
+  - `panel_length`: Vector of panel lengths for all panels combined.
+  - `r1`, `lnr1`, `r1normal`, `r1tangent`, `theta1`, `r2`, `lnr2`, `theta2`: Matrices of precomputed influence geometry quantities for all panels on all field points.
+  - `TE_geometry`: Named tuple with trailing edge gap panel geometry and related influence parameters:
+    - `blunt_te`: Boolean vector indicating blunt trailing edges.
+    - `panel_length`: Trailing edge gap lengths.
+    - `tdp`, `txp`: Trailing edge panel parameters.
+    - `r1`, `lnr1`, `r1normal`, `r1tangent`, `theta1`, `r2`, `lnr2`, `theta2`: Influence geometry matrices for trailing edge panels.
+"""
 function generate_system_geometry(method::Mfoil, panel_geometry::AbstractVector; gap_tolerance=1e-10)
 
     ### --- Convenience Variables --- ###
@@ -246,16 +275,16 @@ end
 
 Calculate all the various geometric pieces of the influence coefficients.
 
-# Arguments:
+# Arguments
 - `influence_panel_edge::Array{Float}` : Array of the edge locations of the panel doing the influencing.
 - `influence_panel_vector::Vector{Float}` : Vector from the first to second panel edge.
 - `influence_panel_length::Float` : Length of the influencing panel.
 - `field_point::Vector::Float` : position of field point (point being influence).
 
-# Keyword Arguments:
+# Keyword Arguments
 - `gap_tolerance::Float` : Distance at which self-induction is assumed (to avoid NaNs and Infs). default = 1e-10
 
-# Returns:
+# Returns
 - `r1::Matrix{TF}` : distance from first panel edge of influence panel to field point
 - `r2::Matrix{TF}` : distance from second panel edge of influence panel to field point.
 - `r1normal::Matrix{TF}` : component of r1 in normal direction of influence panel

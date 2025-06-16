@@ -1,7 +1,39 @@
+"""
+    generate_system_matrices(method::Lewis, panel_geometry, system_geometry)
+
+Generate the system matrices (coefficient matrix `A` and right-hand side vector `b`)
+for the Lewis method given panel geometry and system geometry.
+
+# Arguments
+- `method::Lewis`: Marker type indicating the Lewis method.
+- `panel_geometry`: A single panel geometry object.
+- `system_geometry`: System geometry NamedTuple containing relative panel positions.
+
+# Returns
+- NamedTuple with fields:
+  - `A::Matrix{Float}`: Coefficient matrix of the linear system.
+  - `b::Vector{Float}`: Right-hand side vector for boundary conditions.
+"""
 function generate_system_matrices(method::Lewis, panel_geometry, system_geometry)
     return generate_system_matrices(method, [panel_geometry], system_geometry)
 end
 
+"""
+    generate_system_matrices(method::Lewis, panel_geometry::AbstractVector, system_geometry)
+
+Generate the system matrices (coefficient matrix `A` and right-hand side vector `b`)
+for multiple bodies using the Lewis method.
+
+# Arguments
+- `method::Lewis`: Marker type indicating the Lewis method.
+- `panel_geometry::Vector{Panel}`: Vector of panel geometry objects for each body.
+- `system_geometry`: System geometry NamedTuple containing relative panel positions.
+
+# Returns
+- NamedTuple with fields:
+  - `A::Matrix{Float}`: Coefficient matrix of the linear system.
+  - `b::Vector{Float}`: Right-hand side vector for boundary conditions.
+"""
 function generate_system_matrices(
     method::Lewis, panel_geometry::AbstractVector, system_geometry
 )
@@ -22,17 +54,18 @@ end
 #---------------------------------#
 
 """
-    assemble_ring_influence_matrix(body_of_revolution, panel_geometry, system_geometry)
+    assemble_ring_vortex_matrix(body_of_revolution, panel_geometry, system_geometry)
 
-Assembles the "A" matrix (left hand side coefficient matrix).
+Assembles the coefficient matrix `A` of influence coefficients for the
+Lewis ring vortex method, applying back diagonal corrections and Kutta conditions.
 
-# Arguments:
-- `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
-- `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
-- `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
+# Arguments
+- `body_of_revolution::Vector{Bool}`: Flags indicating if bodies are bodies of revolution.
+- `panel_geometry::Vector{Panel}`: Vector of panel geometry objects.
+- `system_geometry`: NamedTuple containing system geometry.
 
-# Returns:
-- A::Matrix{Float}` : The influence coefficient matrix for the linear system
+# Returns
+- `A::Matrix{Float}`: The assembled influence coefficient matrix.
 """
 function assemble_ring_vortex_matrix(body_of_revolution, panel_geometry, system_geometry)
     amat = assemble_ring_vortex_matrix_raw(
@@ -60,6 +93,18 @@ function assemble_ring_vortex_matrix(body_of_revolution, panel_geometry, system_
 end
 
 """
+    get_kutta_indices(body_of_revolution, system_geometry)
+
+Identify the panel indices for each body where Kutta conditions apply.
+For bodies that are NOT bodies of revolution, returns leading and trailing edge panel indices.
+
+# Arguments
+- `body_of_revolution::Vector{Bool}`: Flags indicating if bodies are bodies of revolution.
+- `system_geometry`: NamedTuple containing system geometry.
+
+# Returns
+- `kutta_idxs::Matrix{Int}`: Nx2 matrix where each row contains indices of
+  leading and trailing edge panels for bodies requiring Kutta condition.
 """
 function get_kutta_indices(body_of_revolution, system_geometry)
 
@@ -81,6 +126,19 @@ function get_kutta_indices(body_of_revolution, system_geometry)
 end
 
 """
+    apply_back_diagonal_correction!(amat, panel_geometry, idx, m2p)
+
+Apply back diagonal correction to the coefficient matrix `amat` for bodies
+that are not bodies of revolution. This modifies the matrix in-place.
+
+# Arguments
+- `amat::Matrix{Float}`: Coefficient matrix to modify.
+- `panel_geometry::Panel`: Panel geometry object for the current body.
+- `idx::UnitRange`: Index range for panels of the current body.
+- `m2p::Vector{Int}`: Mapping from mesh indices to panel indices.
+
+# Returns
+- `nothing`: modifies `amat` in place.
 """
 function apply_back_diagonal_correction!(amat, panel_geometry, idx, m2p)
     # if m == n && !body_of_revolution[m]
@@ -107,6 +165,19 @@ function apply_back_diagonal_correction!(amat, panel_geometry, idx, m2p)
     return nothing
 end
 
+"""
+    assemble_ring_vortex_matrix_raw(body_of_revolution, panel_geometry, system_geometry)
+
+Compute the raw influence coefficient matrix `A` before corrections for all bodies and panels.
+
+# Arguments
+- `body_of_revolution::Vector{Bool}`: Flags indicating if bodies are bodies of revolution.
+- `panel_geometry::Vector{Panel}`: Vector of panel geometry objects.
+- `system_geometry`: NamedTuple containing system geometry.
+
+# Returns
+- `amat::Matrix{Float}`: Raw influence coefficient matrix.
+"""
 function assemble_ring_vortex_matrix_raw(
     body_of_revolution, panel_geometry, system_geometry
 )
@@ -160,15 +231,15 @@ end
 """
     assemble_right_hand_side(body_of_revolution, panel_geometry, system_geometry)
 
-Assemble boundary condition vector.
+Assemble the boundary condition vector `b` for the Lewis method, applying Kutta condition subtractions.
 
-# Arguments:
-- `panel_geometry::Vector{Panel}` : Vector of panel objects (one for each body in the system)
-- `body_of_revolution::Vector{Bool}` : flags whether bodies are bodies of revolution or not.
-- `system_geometry::system_geometry` : The system_geometry object containing relative geometry for the influence coefficient calculations.
+# Arguments
+- `body_of_revolution::Vector{Bool}`: Flags indicating if bodies are bodies of revolution.
+- `panel_geometry::Vector{Panel}`: Vector of panel geometry objects.
+- `system_geometry`: NamedTuple containing system geometry.
 
 # Returns
- - `b::Matrix{Float}` : Boundary condition matrix
+- `b::Vector{Float}`: Boundary condition vector with Kutta conditions applied.
 """
 function assemble_right_hand_side(body_of_revolution, panel_geometry, system_geometry)
     bc = assemble_ring_boundary_conditions_raw(
@@ -185,6 +256,19 @@ function assemble_right_hand_side(body_of_revolution, panel_geometry, system_geo
     return bc[1:end .∉ [kutta_idxs[:, 2]]]
 end
 
+"""
+    assemble_ring_boundary_conditions_raw(body_of_revolution, panel_geometry, system_geometry)
+
+Compute the raw boundary condition vector before applying Kutta condition subtractions.
+
+# Arguments
+- `body_of_revolution::Vector{Bool}`: Flags indicating if bodies are bodies of revolution.
+- `panel_geometry::Vector{Panel}`: Vector of panel geometry objects.
+- `system_geometry`: NamedTuple containing system geometry.
+
+# Returns
+- `bc::Vector{Float}`: Raw boundary condition vector.
+"""
 function assemble_ring_boundary_conditions_raw(
     body_of_revolution, panel_geometry, system_geometry
 )

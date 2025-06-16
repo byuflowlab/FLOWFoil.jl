@@ -5,7 +5,9 @@
 ######################################################################
 
 """
-# Fields:
+    KarmanTrefftz
+
+# Fields
 - `beta::Float` : angle, in radians indicating center of circle relative to origin
 - `radius::Float` : radius of circle
 - `wedge_angle::Float` : angle, in radians, of airfoil wedge angle
@@ -39,19 +41,20 @@ end
 
 Karman-Trefftz airfoil parameterization based on angle beta, raidus, and wedge angle.
 
-# Arguments:
+# Arguments
 - `paramters::KarmanTrefftz` : KarmanTrefftz parameters
 
-# Keyword Arguments:
-- `N::Int` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
-- `normalize::Bool` : Flag whether to normalize output to unit chord and shift to have leading edge at zero.
-- `split::Bool` : Flag wheter to split into upper and lower halves.
+# Keyword Arguments
+- `N::Int=361` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
+- `normalize::Bool=true` : Flag whether to normalize output to unit chord and shift to have leading edge at zero.
+- `split::Bool=false` : Flag wheter to split into upper and lower halves.
 
-# Returns:
-If `split` == false:
+# Returns
+If `split` == false
 - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
 - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
-If `split` == true:
+
+If `split` == true
 - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
 - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
 - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
@@ -68,21 +71,22 @@ end
 
 Karman-Trefftz airfoil parameterization based on angle beta, raidus, and wedge angle.
 
-# Arguments:
+# Arguments
 - `beta::Float` : angle, in radians indicating center of circle relative to origin
 - `radius::Float` : radius of circle
 - `wedge_angle::Float` : angle, in radians, of airfoil wedge angle
 
-# Keyword Arguments:
-- `N::Int` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
-- `normalize::Bool` : Flag whether to normalize output to unit chord and shift to have leading edge at zero.
-- `split::Bool` : Flag wheter to split into upper and lower halves.
+# Keyword Arguments
+- `N::Int=361` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
+- `normalize::Bool=true` : Flag whether to normalize output to unit chord and shift to have leading edge at zero.
+- `split::Bool=false` : Flag wheter to split into upper and lower halves.
 
-# Returns:
-If `split` == false:
+# Returns
+If `split` == false
 - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
 - `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
-If `split` == true:
+
+If `split` == true
 - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
 - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
 - `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
@@ -131,20 +135,21 @@ end
 
 Identical to `karman_trefftz(beta, radius, wedge_angle)` but using center-based version.
 
-# Arguments:
+# Arguments
 - `center::AbstractArray{Float}` : [x z] location of circle center relative to origin
 - `wedge_angle::Float` : angle, in radians, of airfoil wedge angle
 
-# Keyword Arguments:
-- `N::Int` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
-- `normalize::Bool` : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
-- `split::Bool` : Flag wheter to split into upper and lower halves.
+# Keyword Arguments
+- `N::Int=361` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
+- `normalize::Bool=true` : Flag whether to normalize out put to unit chord and shift to have leading edge at zero.
+- `split::Bool=false` : Flag wheter to split into upper and lower halves.
 
-# Returns:
-IF split == False:
+# Returns
+IF split == False
 - `x::AbstractArray{Float}` : Array of x coordinates
 - `z::AbstractArray{Float}` : Array of z coordinates
-IF split == True:
+
+IF split == True
 - `xu::AbstractArray{Float}` : Array of upper half of x coordinates
 - `xl::AbstractArray{Float}` : Array of lower half of x coordinates
 - `zu::AbstractArray{Float}` : Array of upper half of z coordinates
@@ -165,7 +170,9 @@ end
 ######################################################################
 
 """
-# Fields:
+    Joukowsky
+
+# Fields
 - `center::AbstractArray{Float}` : [x z] location of center of circle relative to origin
 - `radius::Float` : radius of circle
 """
@@ -175,24 +182,25 @@ end
 end
 
 """
-    joukowsky(parameters::Joukowsky; N, fortest=false, normalize=true, split=false)
+    joukowsky(parameters::Joukowsky; N=361, fortest=false, normalize=true, split=false)
 
 Joukowsky airfoil parameterization.
 
-# Arguments:
+# Arguments
 - `parameters::Joukowsky` : Joukowsky parameters
 
-# Keyword Arguments:
-- `N::Int` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
-- `fortest::Bool` : Flag to output non-coordinate paramters used in 'joukowsky_flow()'
-- `normalize::Bool` : Flag whether to normalize to unit chord and translate the leading edge to zero.
-- `split::Bool` : Flag wheter to split output into upper and lower surfaces.
+# Keyword Arguments
+- `N::Int=361` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
+- `fortest::Bool=false` : Flag to output non-coordinate paramters used in 'joukowsky_flow()'
+- `normalize::Bool=true` : Flag whether to normalize to unit chord and translate the leading edge to zero.
+- `split::Bool=false` : Flag wheter to split output into upper and lower surfaces.
 
-# Returns:
-IF split == False:
+# Returns
+IF split == False
 - `x::AbstractArray{Float}` : Array of x coordinates
 - `z::AbstractArray{Float}` : Array of z coordinates
-IF split == True:
+
+IF split == True
 - `xu::AbstractArray{Float}` : Array of upper half of x coordinates
 - `xl::AbstractArray{Float}` : Array of lower half of x coordinates
 - `zu::AbstractArray{Float}` : Array of upper half of z coordinates
@@ -205,25 +213,26 @@ function joukowsky(p::Joukowsky; N=361, fortest=false, normalize=true, split=fal
 end
 
 """
-    joukowsky(center, radius; N, fortest=false, normalize=true, split=false)
+    joukowsky(center, radius; N=361, fortest=false, normalize=true, split=false)
 
 Joukowsky airfoil parameterization.
 
-# Arguments:
+# Arguments
 - `center::AbstractArray{Float}` : [x z] location of center of circle relative to origin
 - `radius::Float` : radius of circle
 
-# Keyword Arguments:
-- `N::Int` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
-- `fortest::Bool` : Flag to output non-coordinate paramters used in 'joukowsky_flow()'
-- `normalize::Bool` : Flag whether to normalize to unit chord and translate the leading edge to zero.
-- `split::Bool` : Flag wheter to split output into upper and lower surfaces.
+# Keyword Arguments
+- `N::Int=361` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
+- `fortest::Bool=false` : Flag to output non-coordinate paramters used in 'joukowsky_flow()'
+- `normalize::Bool=true` : Flag whether to normalize to unit chord and translate the leading edge to zero.
+- `split::Bool=false` : Flag wheter to split output into upper and lower surfaces.
 
-# Returns:
-IF split == False:
+# Returns
+IF split == False
 - `x::AbstractArray{Float}` : Array of x coordinates
 - `z::AbstractArray{Float}` : Array of z coordinates
-IF split == True:
+
+IF split == True
 - `xu::AbstractArray{Float}` : Array of upper half of x coordinates
 - `xl::AbstractArray{Float}` : Array of lower half of x coordinates
 - `zu::AbstractArray{Float}` : Array of upper half of z coordinates
@@ -264,16 +273,16 @@ end
 
 Calculate the analytic surface velocities and pressures as well as lift coefficient for a joukowsky airfoil.
 
-# Arguments:
+# Arguments
 - `center::AbstractArray{Float}` : [x z] location of circle center relative to origin
 - `radius::Float` : Radius of circle
 - `alpha::Float` : Angle of attack in degrees
 - `vinf::Float` : Freestream velocity
 
-# Keyword Arguments:
-- `N::Int` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
+# Keyword Arguments
+- `N::Int=361` : Total number of coordinates to use. Can be even or odd, but it is recommended to be odd for a clear leading edge point.
 
-# Returns:
+# Returns
 - `vsurf::AbstractArray{Float}` : Magnitude of surface velocities at the nodes
 - `cpsurf::AbstractArray{Float}` : Surface pressures at the nodes
 - `cl::Float` : Lift coefficient

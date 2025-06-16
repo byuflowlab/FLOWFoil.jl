@@ -1,7 +1,7 @@
 """
     Mfoil <: Method
 
-# Fields:
+# Fields
 - `viscous::Bool` : Flag whether to run an inviscid (false) or viscous (true) analysis.
 """
 @kwdef struct Mfoil{TB} <: Method

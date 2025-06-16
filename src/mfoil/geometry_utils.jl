@@ -3,10 +3,10 @@
 
 Calculate various items needed for trailing edge treatment.
 
-# Arguments:
+# Arguments
  - `nodes::Array{Float,2}` : Array of [x y] locations for the airfoil nodes.
 
-# Returns:
+# Returns
  - `tdp::Float` : dot product of TE bisection and TE gap unit vectors
  - `txp::Float` : "cross product" of TE bisection and TE gap unit vectors
  - `trailing_edge_gap::Float` : TE gap distance
@@ -63,10 +63,9 @@ end
 
 Get angle (in radians) between panel and vector from node1 to evaluation point.
 
-# Arguments:
+# Arguments
  - `h::Float` : Distance, normal to panel, between panel and evaluation point.
  - `a::Float` : Distance, tangent to panel, between node1 and evaluation point.
-
 """
 function get_theta(h, a)
     return atan(h, a)
@@ -77,11 +76,10 @@ end
 
 Get angle (in radians) between panel and vector from node2 to evaluation point.
 
-# Arguments:
+# Arguments
  - `h::Float` : Distance, normal to panel, between panel and evaluation point.
  - `a::Float` : Distance, tangent to panel, between node1 and evaluation point.
  - `dmag::Float` : Panel lentgh.
-
 """
 function get_theta2(h, a, dmag)
     return atan(h, a - dmag)
@@ -92,11 +90,10 @@ end
 
 Calculate distance from panel to evalulation point in the panel normal direction.
 
-# Arguments:
+# Arguments
  - `r1::Vector{Float}` : vector from node1 to evalulation point.
  - `d::Vector{Float}` : vector from node1 to node2.
  - `dmag::Float` : panel length
-
 """
 function get_r_normal(r1, d, dmag)
 
@@ -114,11 +111,10 @@ end
 
 Calculate distance from panel to evalulation point in the panel tangent direction.
 
-# Arguments:
+# Arguments
  - `r1::Vector{Float}` : vector from node1 to evalulation point.
  - `d::Vector{Float}` : vector from node1 to node2.
  - `dmag::Float` : panel length
-
 """
 function get_r_tangent(r1, d, dmag)
 

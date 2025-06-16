@@ -3,8 +3,7 @@
 
 Calculate panel length (between adjacent nodes).
 
-
-# Arguments:
+# Arguments
  - `node1::Array{Float}(2)` : [x y] location of first node
  - `node2::Array{Float}(2)` : [x y] location of second node
 
@@ -20,10 +19,13 @@ end
 
 """
     get_d(node1, node2)
+
 Calculate panel length (between adjacent nodes).
-# Arguments:
+
+# Arguments
  - `node1::Array{Float}(2)` : [x y] location of first node
  - `node2::Array{Float}(2)` : [x y] location of second node
+
 # Returns
  - `d::Vector{Float}` : vector from node1 to node2
  - `dmag::Float` : length of panel between node1 and node2
@@ -39,7 +41,7 @@ end
 
 Calculate the vector, \$\\mathbf{r}\$, and distance, \$|r|\$, from the node to the evaluation point
 
-# Arguments:
+# Arguments
  - `node::Array{Float}` : [x y] position of node
  - `point::Array{Float}` : [x y] position of point.
 
@@ -73,10 +75,9 @@ end
 
 Get unit tangent to panel.
 
-# Arguments:
+# Arguments
  - `d::Vector{Float}` : vector from node1 to node2.
  - `dmag::Float` : panel length
-
 """
 function get_panel_tangent(d, dmag)
     return (dmag == 0.0) ? [0.0; 0.0] : (d / dmag)
@@ -87,10 +88,9 @@ end
 
 Get unit normal to panel.
 
-# Arguments:
+# Arguments
  - `d::Vector{Float}` : vector from node1 to node2.
  - `dmag::Float` : panel length
-
 """
 function get_panel_normal(d, dmag)
 
@@ -104,6 +104,15 @@ function get_panel_normal(d, dmag)
 end
 
 """
+    calculate_chord(panel_geometry)
+
+Calculate the chord length of an airfoil system based on panel geometry.
+
+# Arguments
+- `panel_geometry::AbstractVector`: A vector of panel geometry objects. Each object is expected to have a field `panel_center` containing the (x, y) coordinates of panel centers.
+
+# Returns
+- `Float64`: The chord length, defined as the difference between the maximum and minimum x-coordinates of the panel centers across all airfoil bodies.
 """
 function calculate_chord(panel_geometry)
     minx = Inf
