@@ -28,15 +28,16 @@ plotsgray = RGB(128 / 255, 128 / 255, 128 / 255) #gray
 function plots_default(;
     #     #:Plot
     # background_color=RGBA(1, 1, 1, 0),
-    background_color=nothing,
-    # background_color_outside = nothing,
+    # background_color=RGB(31 / 255, 36 / 255, 36 / 255),#nothing,
+    background_color = nothing,
     #     display_type,
     dpi=300,
     #     extra_kwargs,
     #     extra_plot_kwargs,
     # fontfamily="Palatino_Roman",
     # fontfamily="Palatino Roman",
-    foreground_color=RGB(128 / 255, 128 / 255, 128 / 255), #gray, plotsgray,
+    # foreground_color=RGB(128 / 255, 128 / 255, 128 / 255), #gray, plotsgray,
+    foreground_color=RGB(143 / 255, 145.5 / 255, 145.5 / 255),
     #     html_output_format,
     #     inset_subplots,
     #     layout,
@@ -52,7 +53,7 @@ function plots_default(;
     #     plot_titlefontvalign,
     #     pos,
     #     show,
-    size=(400, 300) .* 5.0 ./ 4.0, #it appears that 100 ≈ 1inch in LaTeX
+    size = (400, 300) .* 5.0 ./ 4.0, #it appears that 100 ≈ 1inch in LaTeX
     # size=(600, 450), #it appears that 100 ≈ 1inch in LaTeX
     # size=(800, 600), #it appears that 100 ≈ 1inch in LaTeX
     #     tex_output_standalone,
@@ -134,12 +135,15 @@ function plots_default(;
     #     camera,
     #     clims,
     color_palette=[
-        RGB(0, 92 / 255, 171 / 255), #blue
-        RGB(190 / 255, 76 / 255, 77 / 255),
-        RGB(105 / 255, 174 / 255, 95 / 255),
-        RGB(167 / 255, 84 / 255, 164 / 255),
-        RGB(190 / 255, 147 / 255, 61 / 255),
-        RGB(128 / 255, 128 / 255, 128 / 255), #gray
+        # RGB(0, 92 / 255, 171 / 255), #blue
+        RGB(100 / 255, 150 / 255, 200 / 255),
+        # RGB(190 / 255, 76 / 255, 77 / 255),
+        RGB(200 / 255, 100 / 255, 100 / 255),
+        # RGB(105 / 255, 174 / 255, 95 / 255),
+        RGB(100 / 255, 200 / 255, 100 / 255),
+        # RGB(167 / 255, 84 / 255, 164 / 255),
+        # RGB(190 / 255, 147 / 255, 61 / 255),
+        RGB(150 / 255, 150 / 255, 150 / 255), #gray
     ],
     #color_palette=[
     #    RGB(0.0, 46.0 / 255.0, 93.0 / 255.0), #BYU Blue
