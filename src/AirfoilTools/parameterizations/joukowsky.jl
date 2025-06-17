@@ -25,11 +25,11 @@ Joukowsky airfoil parameterization.
 - `split::Bool=false` : Flag wheter to split output into upper and lower surfaces.
 
 # Returns
-IF split == False
+IF split == false
 - `x::AbstractArray{Float}` : Array of x coordinates
 - `z::AbstractArray{Float}` : Array of z coordinates
 
-IF split == True
+IF split == true
 - `xu::AbstractArray{Float}` : Array of upper half of x coordinates
 - `xl::AbstractArray{Float}` : Array of lower half of x coordinates
 - `zu::AbstractArray{Float}` : Array of upper half of z coordinates
@@ -57,11 +57,11 @@ Joukowsky airfoil parameterization.
 - `split::Bool=false` : Flag wheter to split output into upper and lower surfaces.
 
 # Returns
-IF split == False
+IF split == false
 - `x::AbstractArray{Float}` : Array of x coordinates
 - `z::AbstractArray{Float}` : Array of z coordinates
 
-IF split == True
+IF split == true
 - `xu::AbstractArray{Float}` : Array of upper half of x coordinates
 - `xl::AbstractArray{Float}` : Array of lower half of x coordinates
 - `zu::AbstractArray{Float}` : Array of upper half of z coordinates

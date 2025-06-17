@@ -85,8 +85,8 @@ If `split` == false:
 If `split` == true:
  - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
  - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
- - `zl::AbstractArray{Float}` : Vector of lower half of y coordinates from trailing edge to leading edge.
- - `zu::AbstractArray{Float}` : Vector of upper half of y coordinates from leading edge to trailing edge.
+ - `yl::AbstractArray{Float}` : Vector of lower half of y coordinates from trailing edge to leading edge.
+ - `yu::AbstractArray{Float}` : Vector of upper half of y coordinates from leading edge to trailing edge.
 """
 function naca4(parameters::NACA4; N=161, x=nothing, split=false)
     return naca4(
@@ -123,8 +123,8 @@ If `split` == false:
 If `split` == true:
  - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
  - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
- - `zl::AbstractArray{Float}` : Vector of lower half of y coordinates from trailing edge to leading edge.
- - `zu::AbstractArray{Float}` : Vector of upper half of y coordinates from leading edge to trailing edge.
+ - `yl::AbstractArray{Float}` : Vector of lower half of y coordinates from trailing edge to leading edge.
+ - `yu::AbstractArray{Float}` : Vector of upper half of y coordinates from leading edge to trailing edge.
 """
 function naca4(
     c=2.0, p=4.0, t=12.0; N=161, x=nothing, blunt_trailing_edge=false, split=false
@@ -145,8 +145,8 @@ function naca4(
 
     #initialize arrays
     TF = promote_type(typeof(c), eltype(x))
-    zu = zeros(TF, N) #upper y values
-    zl = zeros(TF, N) #lower y values
+    yu = zeros(TF, N) #upper y values
+    yl = zeros(TF, N) #lower y values
 
     #--Calculate y-values--#
     #naca4_thickness distribution
@@ -156,13 +156,13 @@ function naca4(
     zbar = naca4_camber.(x, Ref(maximum_camber), Ref(maximum_camber_position))
 
     #y-positions at chordwise stations
-    zl = @. zbar - T / 2
-    zu = @. zbar + T / 2
+    yl = @. zbar - T / 2
+    yu = @. zbar + T / 2
 
     if split
-        return reverse(x), x, reverse(zl), zu
+        return reverse(x), x, reverse(yl), yu
     else
-        return [reverse(x); x[2:end]], [reverse(zl); zu[2:end]]
+        return [reverse(x); x[2:end]], [reverse(yl); yu[2:end]]
     end
 end
 

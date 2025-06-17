@@ -20,6 +20,8 @@ using LsqFit
 using FLOWMath
 using NURBS
 using StaticArrays
+using NLsolve
+import ImplicitAD as iad
 
 #---------------------------------#
 #             EXPORTS             #
@@ -32,6 +34,7 @@ export BasicBSpline, basic_bspline#, determine_basic_bspline
 export KarmanTrefftz, karman_trefftz#, determine_karman_trefftz
 export Joukowsky, joukowsky, joukowsky_flow#, determine_joukowsky
 export CST, cst, determine_cst
+export CircularArcCST, circular_arc_cst
 export PARSEC, parsec, determine_parsec
 export ModifiedPARSEC, modified_parsec, determine_modified_parsec
 
@@ -53,8 +56,11 @@ include("parameterizations/naca4.jl")
 # NACA 65-series
 include("parameterizations/naca65.jl")
 
-# Class Shape Transformation
+# Class Shape Transformation (CST)
 include("parameterizations/cst.jl")
+
+# Circular Arc Camber line CST
+include("parameterizations/circular_arc_cst.jl")
 
 # Generalized B-Spline (Rajnarayan)
 include("parameterizations/basic_bspline.jl")
