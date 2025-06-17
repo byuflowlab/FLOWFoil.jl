@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Additional Examples · FLOWFoil.jl</title><meta name="title" content="Additional Examples · FLOWFoil.jl"/><meta property="og:title" content="Additional Examples · FLOWFoil.jl"/><meta property="twitter:title" content="Additional Examples · FLOWFoil.jl"/><meta name="description" content="Documentation for FLOWFoil.jl."/><meta property="og:description" content="Documentation for FLOWFoil.jl."/><meta property="twitter:description" content="Documentation for FLOWFoil.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="FLOWFoil.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">FLOWFoil.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">FLOWFoil</span><ul><li><a class="tocitem" href="../tutorial/">Quick Start</a></li><li><a class="tocitem" href="../additional_tutorials/">Tutorials</a></li><li class="is-active"><a class="tocitem" href>Additional Examples</a><ul class="internal"><li><a class="tocitem" href="#Mfoil:-Single-inviscid-airfoil-comparision-to-analytic-solution"><span>Mfoil: Single inviscid airfoil comparision to analytic solution</span></a></li><li><a class="tocitem" href="#Axisymmetric-Body-of-Revolution"><span>Axisymmetric Body of Revolution</span></a></li><li><a class="tocitem" href="#Axisymmetric-Annular-Airfoil-(Duct)"><span>Axisymmetric Annular Airfoil (Duct)</span></a></li><li><a class="tocitem" href="#Axisymmetric-Mutli-element-Systems"><span>Axisymmetric Mutli-element Systems</span></a></li><li><a class="tocitem" href="#Linear-Cascade"><span>Linear Cascade</span></a></li></ul></li><li><a class="tocitem" href="../api/">API Index</a></li></ul></li><li><span class="tocitem">AirfoilTools</span><ul><li><a class="tocitem" href="../../AirfoilTools/intro/">Intro</a></li><li><a class="tocitem" href="../../AirfoilTools/parameterizations/">Airfoil Generation</a></li><li><a class="tocitem" href="../../AirfoilTools/geometry_manipulations/">Airfoil Manipulation</a></li><li><a class="tocitem" href="../../AirfoilTools/api/">API Index</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">FLOWFoil</a></li><li class="is-active"><a href>Additional Examples</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Additional Examples</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/byuflowlab/FLOWFoil.jl/blob/{commit}{path}#L{line}" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/byuflowlab/FLOWFoil.jl/blob/main/docs/src/FLOWFoil/examples.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Additional-Examples"><a class="docs-heading-anchor" href="#Additional-Examples">Additional Examples</a><a id="Additional-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Additional-Examples" title="Permalink"></a></h1><h2 id="Mfoil:-Single-inviscid-airfoil-comparision-to-analytic-solution"><a class="docs-heading-anchor" href="#Mfoil:-Single-inviscid-airfoil-comparision-to-analytic-solution">Mfoil: Single inviscid airfoil comparision to analytic solution</a><a id="Mfoil:-Single-inviscid-airfoil-comparision-to-analytic-solution-1"></a><a class="docs-heading-anchor-permalink" href="#Mfoil:-Single-inviscid-airfoil-comparision-to-analytic-solution" title="Permalink"></a></h2><p>This example uses the same Joukowsky airfoil presented in the original Xfoil paper. We show here that our derivation and implementation of an Xfoil-like method also matches well to the analytical solution.</p><pre><code class="language-julia hljs">using FLOWFoil
+
+center = [-0.1; 0.1]
+radius = 1.0
+alpha = 4.0
+
+# - Joukowsky Geometry - #
+x, y = FLOWFoil.AirfoilTools.joukowsky(center, radius, N=161)
+
+# Plot Geometry
+plot(x, y; aspectratio=1, xlabel=L&quot;x&quot;, ylabel=L&quot;y&quot;, label=&quot;&quot;)</code></pre><img src="2cc024bf.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - Analytic Solution - #
+surface_velocity, surface_pressure_coefficient, cl = FLOWFoil.AirfoilTools.joukowsky_flow(
+    center, radius, alpha; N=161
+)
+
+# - FLOWFoil Solution - #
+outputs = analyze([x y], alpha; method=Mfoil())
+
+# - Plot Outputs - #
+plot(
+    x[2:(end - 1)],
+    surface_pressure_coefficient[2:(end - 1)];
+    xlabel=L&quot;x&quot;,
+    ylabel=L&quot;c_p&quot;,
+    yflip=true,
+    linestyle=:dash,
+    label=&quot;Analytic Solution&quot;,
+)
+plot!(x[2:(end - 1)], outputs.cp[2:(end - 1)]; label=&quot;FLOWFoil&quot;)</code></pre><img src="869f0f7d.svg" alt="Example block output"/><hr/><h2 id="Axisymmetric-Body-of-Revolution"><a class="docs-heading-anchor" href="#Axisymmetric-Body-of-Revolution">Axisymmetric Body of Revolution</a><a id="Axisymmetric-Body-of-Revolution-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Body-of-Revolution" title="Permalink"></a></h2><p>For this example, we use experimental data of a body of revolution from chapter 4 of <a href="https://doi.org/10.1017/CBO9780511529542">&quot;Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems&quot; by  R. I. Lewis</a>. Note that for the axisymmetric examples, we will use (z,r) rather than (x,y) to name our coordinates in the common cylindrical frame that ducts and bodies of revolution are defined.</p><pre><code class="language-julia hljs">using FLOWFoil
+
+data_path = normpath(
+    joinpath(
+        splitdir(pathof(FLOWFoil))[1], &quot;..&quot;, &quot;test&quot;, &quot;data&quot;, &quot;bodyofrevolutioncoords.jl&quot;
+    ),
+)
+# read in center_body_coordinates as well as normalized surface velocities.
+include(data_path)
+
+# - Plot Geometry - #
+plot(
+    center_body_coordinates[:, 1],
+    center_body_coordinates[:, 2];
+    aspectratio=1,
+    ylim=(0,Inf),
+    xlabel=L&quot;z&quot;,
+    ylabel=L&quot;r&quot;,
+    label=&quot;&quot;
+)</code></pre><img src="b72167e3.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - FLOWFoil Solution - #
+outputs = analyze(center_body_coordinates, [0.0]; method=Lewis(; body_of_revolution=[true]))
+
+# - Plot Outputs - #
+scatter(
+    Vs_over_Vinf_x,
+    Vs_over_Vinf_vs;
+    label=&quot;Experimental Data&quot;,
+    xlabel=L&quot;\frac{z}{c}&quot;,
+    ylabel=L&quot;\frac{V_s}{V_\infty}&quot;,
+)
+plot!(
+    0.5 * (center_body_coordinates[1:(end - 1), 1] .+ center_body_coordinates[2:end, 1]),
+    outputs.vs;
+    label=&quot;FLOWFoil&quot;,
+)</code></pre><img src="0a3f2f0e.svg" alt="Example block output"/><hr/><h2 id="Axisymmetric-Annular-Airfoil-(Duct)"><a class="docs-heading-anchor" href="#Axisymmetric-Annular-Airfoil-(Duct)">Axisymmetric Annular Airfoil (Duct)</a><a id="Axisymmetric-Annular-Airfoil-(Duct)-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Annular-Airfoil-(Duct)" title="Permalink"></a></h2><p>If we define an airfoil shape in an axisymmetric scheme, we model an annular airfoil, or in other words, a duct.  To do so, we follow a similar procedure to bodies of revolution with the exception that we set <code>body_of_revolution=false</code>. The following case comes from the same book as the body of revolution above, but this time for a duct with a NACA 662-015 cross section.</p><pre><code class="language-julia hljs">using FLOWFoil
+
+duct_path = normpath(
+    joinpath(splitdir(pathof(FLOWFoil))[1], &quot;..&quot;, &quot;test&quot;, &quot;data&quot;, &quot;naca_662-015.jl&quot;)
+)
+include(duct_path)
+
+# - Plot Geometry - #
+plot(
+    duct_coordinates[:, 1],
+    duct_coordinates[:, 2];
+    aspectratio=1,
+    xlabel=L&quot;z&quot;,
+    ylabel=L&quot;r&quot;,
+    label=&quot;&quot;,
+)</code></pre><img src="258bd2d1.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - FLOWFoil Solution - #
+outputs = analyze(duct_coordinates, [0.0]; method=Lewis(; body_of_revolution=[false]))
+
+# - Plot Outputs - #
+scatter(
+    pressurexupper,
+    pressureupper;
+    markershape=:utriangle,
+    label=&quot;Experimental Nacelle&quot;,
+    yflip=true,
+    xlabel=L&quot;\frac{z}{c}&quot;,
+    ylabel=L&quot;c_p&quot;,
+)
+scatter!(
+    pressurexlower,
+    pressurelower;
+    markershape=:dtriangle,
+    label=&quot;Experimental Casing&quot;,
+)
+plot!(
+    0.5 * (duct_coordinates[1:(end - 1), 1] .+ duct_coordinates[2:end, 1]),
+    outputs.cp;
+    label=&quot;FLOWFoil&quot;,
+)</code></pre><img src="8d107575.svg" alt="Example block output"/><p>As above, we plot experimental results along with our calculated values.</p><hr/><h2 id="Axisymmetric-Mutli-element-Systems"><a class="docs-heading-anchor" href="#Axisymmetric-Mutli-element-Systems">Axisymmetric Mutli-element Systems</a><a id="Axisymmetric-Mutli-element-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Mutli-element-Systems" title="Permalink"></a></h2><p>As an example of an multi-element axisymmetric system (such as that used for a ducted rotor), we will simply combine the two previous cases. Note that we include the coordinates for the various bodies as a tuple of matrices, and in this case, we need to indicate in the <code>Lewis</code> method fields which of the bodies is a body of revolution (currently, the method only works if the annular airfoil comes first). We simply put the previous two cases together to show that a multi-body cases works, and the results are reasonable.</p><pre><code class="language-julia hljs">using FLOWFoil
+
+# - Plot Geometry - #
+plot(
+    center_body_coordinates[:, 1],
+    center_body_coordinates[:, 2];
+    aspectratio=1,
+    xlabel=L&quot;z&quot;,
+    ylabel=L&quot;r&quot;,
+    label=&quot;Center Body&quot;,
+)
+plot!(
+    duct_coordinates[:, 1],
+    duct_coordinates[:, 2];
+    label=&quot;Duct&quot;,
+)</code></pre><img src="a07188a6.svg" alt="Example block output"/><pre><code class="language-julia hljs">outputs = analyze(
+    (duct_coordinates, center_body_coordinates), [0.0];
+    method=Lewis(; body_of_revolution=[false, true]),
+)
+
+scatter(
+    Vs_over_Vinf_x,
+    Vs_over_Vinf_vs;
+    label=&quot;Experimental Center Body&quot;,
+    xlabel=L&quot;\frac{z}{c}&quot;,
+    ylabel=L&quot;\frac{V_s}{V_\infty}&quot;,
+)
+plot!(
+    0.5 * (center_body_coordinates[1:(end - 1), 1] .+ center_body_coordinates[2:end, 1]),
+    outputs.vs[2];
+    label=&quot;FLOWFoil Center Body with Duct Effects&quot;,
+)</code></pre><img src="6c57f6a2.svg" alt="Example block output"/><pre><code class="language-julia hljs">scatter(
+    pressurexupper,
+    pressureupper;
+    markershape=:utriangle,
+    label=&quot;Experimental Nacelle&quot;,
+    yflip=true,
+    xlabel=L&quot;\frac{z}{c}&quot;,
+    ylabel=L&quot;c_p&quot;,
+)
+scatter!(
+    pressurexlower,
+    pressurelower;
+    markershape=:dtriangle,
+    label=&quot;Experimental Casing&quot;,
+)
+plot!(
+    0.5 * (duct_coordinates[1:(end - 1), 1] .+ duct_coordinates[2:end, 1]),
+    outputs.cp[1];
+    label=&quot;FLOWFoil Duct with Center Body Effects&quot;,
+)</code></pre><img src="b349d183.svg" alt="Example block output"/><p>Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.</p><hr/><h2 id="Linear-Cascade"><a class="docs-heading-anchor" href="#Linear-Cascade">Linear Cascade</a><a id="Linear-Cascade-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-Cascade" title="Permalink"></a></h2><p>For this example, we uses data from chapter 2 of <a href="https://doi.org/10.1017/CBO9780511529542">&quot;Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems&quot; by  R. I. Lewis</a> for a linear cascade section with inflow angle of +/- 35 degrees with zero twist.</p><pre><code class="language-julia hljs">using FLOWFoil
+
+#this file contains the coordinates of the C4/70C50 airfoil as defined by lewis as well as the values of the pressure coefficient
+data_path = normpath(
+    joinpath(
+        splitdir(pathof(FLOWFoil))[1], &quot;..&quot;, &quot;test&quot;, &quot;data&quot;, &quot;chapter2_lewis_validation.jl&quot;
+    ),
+)
+include(data_path)
+
+#previously defined coordinates in chapter2_lewis_validation.jl
+coordinates = [x y]
+
+# - Plot Geometry - #
+plot(x, y; apsectratio=1, xlabel=L&quot;x&quot;, ylabel=L&quot;y&quot;, label=&quot;&quot;)</code></pre><img src="69956ff1.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - Set up remaining inputs - #
+# Define method inputs
+method = Martensen(; solidity=1.0 / 0.900364, stagger=0.0)
+
+# define angles of attack
+# in this case the angles of attack = the inflow angles since stagger is 0
+flow_angles = [-35.0, 35.0]
+
+# - FLOWFoil Solution - #
+outputs = analyze(coordinates, flow_angles; method=method)
+
+# Panel midpoints (x has 51 nodes → 50 panels)
+xmid = 0.5 .* (x[1:end-1] .+ x[2:end])
+
+# - Plot Outputs - #
+# Plot cp for alpha = -35 degrees
+
+scatter(
+    x_from_web_plot_digitizer_negative_35_degrees,
+    cp_Lewis_negative_35_degrees;
+    xlabel=L&quot;\frac{x}{c}&quot;,
+    ylabel=L&quot;c_p&quot;,
+    label=&quot;Lewis: -35°&quot;,
+    yflip=true,
+)
+plot!(xmid, outputs.cp[:, 1]; label=&quot;FLOWFoil&quot;)</code></pre><img src="a1d14db0.svg" alt="Example block output"/><pre><code class="language-julia hljs"># Plot cp for alpha = +35 degrees
+
+scatter(
+    x_from_web_plot_digitizer_positive_35_degrees,
+    cp_Lewis_positive_35_degrees;
+    xlabel=L&quot;\frac{x}{c}&quot;,
+    ylabel=L&quot;c_p&quot;,
+    label=&quot;Lewis: +35°&quot;,
+    yflip=true,
+)
+plot!(xmid, outputs.cp[:, 2]; label=&quot;FLOWFoil&quot;)</code></pre><img src="72817cb5.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../additional_tutorials/">« Tutorials</a><a class="docs-footer-nextpage" href="../api/">API Index »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.0 on <span class="colophon-date" title="Tuesday 17 June 2025 19:53">Tuesday 17 June 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
