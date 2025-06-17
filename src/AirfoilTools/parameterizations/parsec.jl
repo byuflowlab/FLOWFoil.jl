@@ -135,7 +135,7 @@ function calculate_modified_parsec_coefficients(p, side=1)
     A = [r1; r2; r3; r4; r5; r6]
 
     #solve for x in Ax=b (A\b)
-    return A \ b
+    return iad.implicit_linear(A, b)
 end
 
 """
@@ -411,7 +411,8 @@ function calculate_parsec_coefficients(p, side=1)
     A = [r1; r2; r3; r4; r5; r6]
 
     # - solve for x in Ax=b (A\b) - #
-    return A \ b
+    # return A \ b
+    return iad.implicit_linear(A, b)
 end
 
 """

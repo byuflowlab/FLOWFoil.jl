@@ -2,7 +2,9 @@
 
 AirfoilTools is a submodule of FLOWFoil containing useful airfoil geometry generation and manipulation routines that are commonly used in the BYU FLOW Lab.
 
-## Airfoil Parameterizations
+## Airfoil Generation
+
+Several common airfoil parameterization methods are implemented in AirfoilTools for generating various airfoil geometries.
 
 |Method|Status|Fit|
 |---|---|---|
@@ -26,13 +28,12 @@ Key:
 
 
 ## Airfoil Geometry Manipulation
+
+Occasionally, we might want to manipulate airfoil geoemtries for some reason.  We also have methods for the following in the AirfoilTools module:
+
 - split into upper/lower sides
-- re-panel (spline + interpolate)
 - flip, rotate, translate, and normalize
-
-
-## Airfoil Polar Manipulation
-- Lift polar linearization
+- re-panel (spline + interpolate)
 
 
 ## Contribution

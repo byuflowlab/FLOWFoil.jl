@@ -16,23 +16,23 @@ function flip!(x)
 end
 
 """
-    zero_z_te!(coordinates)
+    zero_y_te!(coordinates)
 
 Places trailing edge on the x-axis.
 
 # Arguments
 - `coordinates::Array{Float}` : Array of [x y] coordinates to be updated in place.
 """
-function zero_z_te!(coordinates)
-    idxmaxx = indmax(coordinates[:, 1])
-    coordiantes[:, 2] .-= coordaintes[idxmaxx, 2]
+function zero_y_te!(coordinates)
+    _, idxmaxx = findmax(coordinates[:, 1])
+    coordinates[:, 2] .-= coordinates[idxmaxx, 2]
     return coordinates
 end
 
 """
     rotate_coordinates!(coordinates, angle; rotation_point=[0.0; 0.0])
 
-Rotate coordiantes clockwise about `rotation_point` by `angle` in degrees.
+Rotate coordinates clockwise about `rotation_point` by `angle` in degrees.
 
 # Arguments
 - `coordinates::Array{Float}` : Array of [x y] coordinates to be updated in place.

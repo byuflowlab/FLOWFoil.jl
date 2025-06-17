@@ -1,4 +1,4 @@
-# Common Parameterizations
+# Airfoil Generation
 
 ### Parameter Types
 Most of the parameterizations below have associated composite types whose fields are the parameters used in defining the airfoil geometries.  Each of these composite types is defined using the `@kwdef` macro such that the user does not need to remember the order of the fields, but can simply define the fields as though they were keyword arguments.

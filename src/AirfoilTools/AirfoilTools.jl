@@ -42,7 +42,7 @@ export ModifiedPARSEC, modified_parsec, determine_modified_parsec
 export whole_cosine_spacing,
     split_cosine_spacing, repanel_airfoil, refine_trailing_edge, linear_transform
 export split_upper_lower
-export flip!, zero_z_te!, rotate_coordinates!, normalize_coordinates!, position_coordinates!
+export flip!, zero_y_te!, rotate_coordinates!, normalize_coordinates!, position_coordinates!
 
 #---------------------------------#
 #            INCLUDES             #
