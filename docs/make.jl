@@ -20,7 +20,7 @@ makedocs(;
             "Intro" => "AirfoilTools/intro.md",
             "Airfoil Generation" => "AirfoilTools/parameterizations.md",
             "Airfoil Manipulation" => "AirfoilTools/geometry_manipulations.md",
-            "API Reference" => "AirfoilTools/api.md",
+            "API Index" => "AirfoilTools/api.md",
         ],
     ],
     sitename="FLOWFoil.jl",
