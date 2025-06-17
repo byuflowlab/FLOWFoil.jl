@@ -34,7 +34,7 @@ function plots_default(;
     dpi=300,
     #     extra_kwargs,
     #     extra_plot_kwargs,
-    fontfamily="Palatino_Roman",
+    # fontfamily="Palatino_Roman",
     # fontfamily="Palatino Roman",
     foreground_color=RGB(128 / 255, 128 / 255, 128 / 255), #gray, plotsgray,
     #     html_output_format,
@@ -177,7 +177,8 @@ function plots_default(;
     #     foreground_color_subplot,
     #     foreground_color_title,
     #     framestyle = :zerolines,
-    #     left_margin,
+    left_margin=10mm,
+    bottom_margin=10mm,
     # legend=false, # include legend true/false
     #     legendfontcolor,
     #     legendfontfamily,
@@ -192,7 +193,7 @@ function plots_default(;
     #     legendtitlefontrotation,
     #     legendtitlefontsize,
     #     legendtitlefontvalign,
-    margin=0mm,
+    # margin=0mm,
     #     projection,
     #     right_margin,
     #     subplot_index,
@@ -228,7 +229,7 @@ function plots_default(;
     #     guidefontcolor,
     #     guidefontfamily,
     #     guidefonthalign,
-    #     guidefontrotation,
+    yguidefontrotation=-90,
     guidefontsize=11,
     #     guidefontvalign,
     # ylims=(0, 3),
@@ -261,7 +262,7 @@ function plots_default(;
         dpi=dpi,
         # extra_kwargs=extra_kwargs,
         # extra_plot_kwargs=extra_plot_kwargs,
-        fontfamily=fontfamily,
+        # fontfamily=fontfamily,
         foreground_color=foreground_color,
         #     html_output_format,
         #     inset_subplots,
@@ -385,7 +386,8 @@ function plots_default(;
         #     foreground_color_subplot,
         #     foreground_color_title,
         #     framestyle = :zerolines,
-        #     left_margin,
+        left_margin=left_margin,
+        bottom_margin=bottom_margin,
         # legend=false, # include legend true/false
         #     legendfontcolor,
         #     legendfontfamily,
@@ -400,7 +402,7 @@ function plots_default(;
         #     legendtitlefontrotation,
         #     legendtitlefontsize,
         #     legendtitlefontvalign,
-        margin=margin,
+        # margin=margin,
         #     projection,
         #     right_margin,
         #     subplot_index,
@@ -437,6 +439,7 @@ function plots_default(;
         #     guidefontfamily,
         #     guidefonthalign,
         #     guidefontrotation,
+        yguidefontrotation=yguidefontrotation,
         guidefontsize=guidefontsize,
         #     guidefontvalign,
         # ylims=(0, 3),
@@ -466,10 +469,3 @@ function plots_default(;
 end
 
 plots_default()
-
-function latexsize(x, y)
-    return (x * 96, y * 96)
-end
-
-# - Rotate y-axis - #
-extra_kwargs = Dict(:subplot => Dict("ylabel style" => "{align=center, rotate=-90}"))

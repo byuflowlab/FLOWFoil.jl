@@ -1,3 +1,7 @@
+import Base.BroadcastStyle
+isscalar(x::T) where {T} = isscalar(T)
+isscalar(::Type{T}) where {T} = BroadcastStyle(T) isa Broadcast.DefaultArrayStyle{0}
+
 #= NOTE:
     Used in problem definition function to help count number of bodies, the coordinates of which are a tuple of vectors if multiple bodies are being analyzed together.
 =#

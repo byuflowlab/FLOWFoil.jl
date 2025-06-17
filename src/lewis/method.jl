@@ -6,6 +6,10 @@
 
 Note that if multiple bodies are used, the annular airfoil should come before the body of revolution.
 """
-@kwdef struct Lewis{TB} <: Method
-    body_of_revolution::TB = [false]
+struct Lewis{TB} <: Method
+    body_of_revolution::TB
+end
+
+function Lewis(; body_of_revolution=false)
+    return Lewis(isscalar(body_of_revolution) ? [body_of_revolution] : body_of_revolution)
 end
