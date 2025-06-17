@@ -12,7 +12,7 @@ The following table includes the list of currently available methods (usage can 
 |Method|Inviscid Mfoil/Xfoil|Lewis|Martensen|LegacyXfoil|NeuralFoil|
 |---|---|---|---|---|---|
 Description|A re-derivation of the Mfoil/Xfoil method and implementation in Julia. Currently only the inviscid portions are derived/implemented. | An axisymmetric method, useful for ducts and bodies of revolution. | A periodic method (with optional planar functionality) for axial cascades. |  Wrapper of Xfoil.jl | Wrapper of NeuralFoil.jl |
-Panel Type | Linear Vortex (+ Constant Source) | Constant Vortex | Constant Vortex | Linear Vortex + Constant Source | Multi-Layer Perceptron |
+Panel Type | Linear Vortex (+ Constant Source) | Constant Vortex | Constant Vortex | Linear Vortex + Constant Source | N/A |
 Boundary Condition|Dirichlet|Dirichlet|Dirichlet|Dirichlet|N/A|
 Viscous|🚧|⭕️|⭕️|✅|✅|
 Single-body Functional|✅|✅|✅|✅|✅|
