@@ -35,7 +35,7 @@ FLOWFoil.Mfoil
 
 ## Lewis' Method for Axisymmetric Bodies
 
-An axisymmetric method based on that described by [Lewis](https://doi.org/10.1017/CBO9780511529542) can be accessed using the `Lewis` method type:
+An axisymmetric method based on the one described by [Lewis](https://doi.org/10.1017/CBO9780511529542) can be accessed using the `Lewis` method type:
 
 ```@example lewis
 using FLOWFoil
@@ -49,7 +49,7 @@ r .+= 1.0
 # indicate that the body is not a body of revolution (i.e. a duct)
 method = Lewis(; body_of_revolution=false)
 
-# note: we need to input an an angle of attack, even though it is unused
+# note: we need to input an an angle of attack, even though it is unused in this method.
 outputs = analyze(x, r, 0.0; method=method)
 ```
 

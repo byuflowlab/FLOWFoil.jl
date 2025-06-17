@@ -14,7 +14,7 @@ makedocs(;
             "Quick Start" => "FLOWFoil/tutorial.md",
             "Tutorials" => "FLOWFoil/additional_tutorials.md",
             "Additional Examples" => "FLOWFoil/examples.md",
-            "API Reference" => ["FLOWFoil/public_api.md", "FLOWFoil/private_api.md"],
+            "API Index" => "FLOWFoil/api.md",
         ],
         "AirfoilTools" => [
             "Intro" => "AirfoilTools/intro.md",

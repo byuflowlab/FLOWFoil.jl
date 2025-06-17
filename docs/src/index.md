@@ -15,6 +15,7 @@ Boundary Condition|Dirichlet|Dirichlet|Dirichlet|Dirichlet|N/A|
 Viscous|🚧|⭕️|⭕️|✅|✅|
 Single-body Functional|✅|✅|✅|✅|✅|
 Multi-body Functional|🚧|✅|🚧|❌|❌|
+Able to model blunt trailing edges|✅|⭕️|⭕️|✅|✅|
 AD Compatible (ForwardDiff.jl)|✅|✅|✅|❌|✅|
 References or Wrapped Packages|[1](https://websites.umich.edu/~kfid/codes.html), [2](https://web.mit.edu/drela/Public/papers/xfoil_sv.pdf)|[3](https://doi.org/10.1017/CBO9780511529542) |[3](https://doi.org/10.1017/CBO9780511529542) | [Xfoil.jl](https://github.com/byuflowlab/Xfoil.jl)| [NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
 
@@ -23,6 +24,11 @@ Key:
 - 🚧 Under Development
 - ⭕️ Will likely not be implemented
 - ❌ Cannot be implemented
+
+
+# AirfoilTools
+
+In conjunction with the analysis functions of FLOWFoil, AirfoilTools provides several convenience functions for generating and manipulating airfoil geometry and polars.
 
 
 ## References:
