@@ -1,6 +1,6 @@
 # Additional Examples
 
-## Mfoil: Single inviscid airfoil comparision to analytic solution
+## Xfoil: Single inviscid airfoil comparision to analytic solution
 
 This example uses the same Joukowsky airfoil presented in the original Xfoil paper.
 We show here that our derivation and implementation of an Xfoil-like method also matches well to the analytical solution.
@@ -27,7 +27,7 @@ surface_velocity, surface_pressure_coefficient, cl = FLOWFoil.AirfoilTools.jouko
 )
 
 # - FLOWFoil Solution - #
-outputs = analyze([x y], alpha; method=Mfoil())
+outputs = analyze([x y], alpha; method=Xfoil())
 
 # - Plot Outputs - #
 include("../assets/plots_default.jl") #hide

@@ -48,7 +48,7 @@ plot(pcl, pcd; size=(900,300))
 ```
 
 Output structures depend on the method selected, but in general you'll get lift (cl) and drag (cd) and some other values depending on the method.
-In this case, we are using the default Xfoil/[Mfoil](@ref) method and the outputs are an `InviscidOutputs` type, which all of the non-wrapped methods use currently:
+In this case, we are using the default [Xfoil](@ref) method and the outputs are an `InviscidOutputs` type, which all of the non-wrapped methods use currently:
 
 ```@docs
 FLOWFoil.InviscidOutputs

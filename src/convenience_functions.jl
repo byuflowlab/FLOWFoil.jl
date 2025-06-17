@@ -19,8 +19,8 @@ struct InviscidOutputs{TM,TV}
 end
 
 """
-    analyze(coordinates, flow_angles=0.0; method::Method=Mfoil())
-    analyze(x, y, flow_angles=0.0; method::Method=Mfoil())
+    analyze(coordinates, flow_angles=0.0; method::Method=Xfoil())
+    analyze(x, y, flow_angles=0.0; method::Method=Xfoil())
 
 Convenience function for setting up, solving, and post-processing airfoils and airfoil systems.
 
@@ -40,11 +40,11 @@ Note that inputting separate vectors for airfoil coordinates is only available f
 # Returns
 - `outputs::OutputType` : outputs object (note that only inviscid methods are currently implemented)
 """
-function analyze(x, y, flow_angles; method::Method=Mfoil())
+function analyze(x, y, flow_angles; method::Method=Xfoil())
     return analyze([x y], flow_angles; method=method)
 end
 
-function analyze(coordinates, flow_angles; method::Method=Mfoil())
+function analyze(coordinates, flow_angles; method::Method=Xfoil())
 
     # Reformat inputs as needed
     coordinates, nbodies, flow_angles = reformat_inputs(coordinates, flow_angles)

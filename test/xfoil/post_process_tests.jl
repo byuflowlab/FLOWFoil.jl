@@ -4,7 +4,7 @@
 
     x, y = AirfoilTools.naca4()
     coordinates = [x y]
-    outputs = analyze(coordinates, [0.0; 5.0]; method=Mfoil())
+    outputs = analyze(coordinates, [0.0; 5.0]; method=Xfoil())
 
     xf.set_coordinates(reverse(x), reverse(y))
     cl0, cm0 = xf.solve_alpha(0.0)

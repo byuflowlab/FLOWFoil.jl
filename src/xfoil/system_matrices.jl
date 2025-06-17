@@ -1,10 +1,10 @@
 """
-    generate_system_matrices(method::Mfoil, panel_geometry, system_geometry)
+    generate_system_matrices(method::Xfoil, panel_geometry, system_geometry)
 
 Constructs the linear system matrices for the panel method aerodynamic problem.
 
 # Arguments
-- `method::Mfoil`: The aerodynamic method object defining the solution approach.
+- `method::Xfoil`: The aerodynamic method object defining the solution approach.
 - `panel_geometry`: Geometry data for the airfoil panels (unused directly here but available for extensions).
 - `system_geometry`: Precomputed system geometry containing panel and node indices and influence parameters.
 
@@ -14,7 +14,7 @@ Constructs the linear system matrices for the panel method aerodynamic problem.
   - `b`: The boundary conditions vector representing the RHS of the linear system.
   - `node_indices`: The node indexing ranges for each body in the system.
 """
-function generate_system_matrices(method::Mfoil, panel_geometry, system_geometry)
+function generate_system_matrices(method::Xfoil, panel_geometry, system_geometry)
     # Get coeffiecient matrix (A, left hand side)
     A = assemble_influence_matrix(method, system_geometry)
 
@@ -39,7 +39,7 @@ Assembles the "A" matrix (left hand side coefficient matrix).
 # Returns
 - A::Matrix{Float}` : The influence coefficient matrix for the linear system
 """
-function assemble_influence_matrix(method::Mfoil, system_geometry)
+function assemble_influence_matrix(method::Xfoil, system_geometry)
 
     TE_geometry = system_geometry.TE_geometry
 
@@ -168,7 +168,7 @@ Assemble Dirchilet boundary condition vector.
 # Returns
  - `b::Matrix{Float}` : Boundary condition matrix
 """
-function assemble_boundary_conditions(method::Mfoil, system_geometry)
+function assemble_boundary_conditions(method::Xfoil, system_geometry)
 
     TE_geometry = system_geometry.TE_geometry
 
@@ -187,7 +187,7 @@ function assemble_boundary_conditions(method::Mfoil, system_geometry)
 
         # if closed trailing edge, set second to last element of the boundary conditions to zero (for change in last node equation for sharp trailing edges)
         #=
-          NOTE: mfoil does not do the following,
+          NOTE: Xfoil does not do the following,
           but rather keeps the rhs as [-y,x] in all cases:
         =#
         bmat[nidx[m][1]:nidx[m][end - 1], 1] = [

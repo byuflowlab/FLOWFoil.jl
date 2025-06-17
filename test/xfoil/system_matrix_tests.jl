@@ -8,7 +8,7 @@
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
     y = [-0.01; -0.5; 0.0; 0.5; 0.01]
     coordinates = [x y]
-    pt = Mfoil()
+    pt = Xfoil()
 
     # Generate Panel Geometry
     panels = FLOWFoil.generate_panel_geometry(pt, coordinates)
@@ -42,9 +42,9 @@
     z2 = zeros(3)
 
     coordinates = ([x1 z1], [x2 z2])
-    panels = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
-    mesh = FLOWFoil.generate_system_geometry(Mfoil(), panels)
-    system = FLOWFoil.generate_system_matrices(Mfoil(), panels, mesh)
+    panels = FLOWFoil.generate_panel_geometry(Xfoil(), coordinates)
+    mesh = FLOWFoil.generate_system_geometry(Xfoil(), panels)
+    system = FLOWFoil.generate_system_matrices(Xfoil(), panels, mesh)
 
     @test all(
         system.b .==

@@ -1,1 +1,0 @@
-# mfoil (XFoil) implementation

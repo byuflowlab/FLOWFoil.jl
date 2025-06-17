@@ -7,14 +7,14 @@ The analyze function is the way to run analyses with any method available in FLO
 FLOWFoil.analyze
 ```
 
-## Mfoil (inviscid) Method
+## Xfoil (inviscid) Method
 
-An Xfoil-like method, actually based on [mfoil](https://websites.umich.edu/~kfid/codes.html) can be accessed using the `Mfoil` method type:
+An Xfoil-like method, actually based on [Xfoil](https://websites.umich.edu/~kfid/codes.html) can be accessed using the `Xfoil` method type:
 
-Note that we have also set `Xfoil=Mfoil` so you can also use the `Xfoil` method type with identical results.
-Currently, this method only includes the inviscid methods of Xfoil/Mfoil.
+Note that we have also set `Xfoil=Xfoil` so you can also use the `Xfoil` method type with identical results.
+Currently, this method only includes the inviscid methods of Xfoil/Xfoil.
 
-```@example Mfoil
+```@example Xfoil
 using FLOWFoil
 
 x, y = AirfoilTools.naca4()
@@ -22,15 +22,15 @@ x, y = AirfoilTools.naca4()
 angles_of_attack = range(-5.0, 15.0; step=1)
 
 # viscous solver not yet implemented
-method = Mfoil(viscous=false)
+method = Xfoil(viscous=false)
 
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
-Currently, the Mfoil method outputs are of type InviscidOutputs.  This is also the default method used in the [Quick Start](@ref).
+Currently, the Xfoil method outputs are of type InviscidOutputs.  This is also the default method used in the [Quick Start](@ref).
 
 ```@docs
-FLOWFoil.Mfoil
+FLOWFoil.Xfoil
 ```
 
 ## Lewis' Method for Axisymmetric Bodies
@@ -87,7 +87,7 @@ The InviscidOutputs type is also used for the Martensen method.
 FLOWFoil.Martensen
 ```
 !!! note
-    If the `cascade` option is set to false, this method becomes a standard planar airfoil method, but uses constant vortices, so the Mfoil/Xfoil method is the superior method in that case.
+    If the `cascade` option is set to false, this method becomes a standard planar airfoil method, but uses constant vortices, so the Xfoil method is the superior method in that case.
 
 ## NeuralFoil Method
 

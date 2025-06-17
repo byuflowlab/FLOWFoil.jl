@@ -1,10 +1,10 @@
 """
-    post_process(method::Mfoil, panel_geometry::NamedTuple, system_geometry, strengths, flow_angles; npanels=80)
+    post_process(method::Xfoil, panel_geometry::NamedTuple, system_geometry, strengths, flow_angles; npanels=80)
 
 Post-processes the aerodynamic solution for a single airfoil by wrapping the vector version of `post_process`.
 
 # Arguments
-- `method::Mfoil`: The Mfoil method object (configuration).
+- `method::Xfoil`: The Xfoil method object (configuration).
 - `panel_geometry::NamedTuple`: Panel geometry data for a single airfoil.
 - `system_geometry`: System geometry containing info like panel indices and chord lengths.
 - `strengths`: Matrix of vortex strengths (rows correspond to nodes/panels, columns to different components).
@@ -17,7 +17,7 @@ Post-processes the aerodynamic solution for a single airfoil by wrapping the vec
 - An `InviscidOutputs` object containing aerodynamic coefficients and surface distributions.
 """
 function post_process(
-    method::Mfoil,
+    method::Xfoil,
     panel_geometry::NamedTuple,
     system_geometry,
     strengths,
@@ -28,12 +28,12 @@ function post_process(
 end
 
 """
-    post_process(::Mfoil, panel_geometry::AbstractVector, system_geometry, strengths, flow_angles)
+    post_process(::Xfoil, panel_geometry::AbstractVector, system_geometry, strengths, flow_angles)
 
 Computes aerodynamic surface velocities, pressures, and coefficients (lift, drag, moment) for one or more airfoils over a range of flow angles.
 
 # Arguments
-- `::Mfoil`: Method configuration object (not used directly but required for dispatch).
+- `::Xfoil`: Method configuration object (not used directly but required for dispatch).
 - `panel_geometry::AbstractVector`: Vector of panel geometry data, one for each airfoil/body.
 - `system_geometry`: System geometry object containing details such as panel and node indices, chord lengths, and mapping arrays.
 - `strengths`: Matrix containing vortex strengths at nodes for each angle of attack.
@@ -49,7 +49,7 @@ Computes aerodynamic surface velocities, pressures, and coefficients (lift, drag
 - If multiple airfoils, returns an `InviscidOutputs` struct with surface velocities and pressures as vectors corresponding to each body.
 """
 function post_process(
-    ::Mfoil,
+    ::Xfoil,
     panel_geometry::AbstractVector,
     system_geometry,
     strengths,
@@ -121,7 +121,7 @@ function post_process(
             ### --- Get Surface Distributions --- ###
             # - Get Surface Velocity - #
             #= NOTE:
-                For xfoil-like method, the "solution" values ARE the velocity components on the surface.
+                For Xfoil-like method, the "solution" values ARE the velocity components on the surface.
             =#
             vti = [
                 gamma0[i] * cosd(flow_angles[a]) + gamma90[i] * sind(flow_angles[a]) for

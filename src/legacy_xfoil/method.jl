@@ -132,7 +132,7 @@ Analysis function for LegacyXfoil.
     - `cd::AbstractArray{Float}` : coefficient of drag
     - `cdp::AbstractArray{Float}` : coefficient of pressure drag
     - `cm::AbstractArray{Float}` : coefficient of moments
-    - `converged::Bool` : whether xfoil converged on a solution
+    - `converged::Bool` : whether Xfoil converged on a solution
 """
 function analyze_lxf(coordinates, alpha; method=LegacyXfoil())
 

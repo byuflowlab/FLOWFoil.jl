@@ -2,23 +2,23 @@
 @testset "Mesh" begin
     x = [1; 0.5; 0; 0.5; 1]
     y = [0; -0.5; 0; 0.5; 0]
-    panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), [x y])
-    mesh = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+    panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), [x y])
+    mesh = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
 
     xr = [1.0; 0; 0; 1; 1]
     yr = [0.0; 0; 1; 1; 0]
-    panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), [xr yr])
-    meshr = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+    panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), [xr yr])
+    meshr = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
 
     xd = x
     yd = [-0.01; -0.25; 0; 0.25; 0.01]
-    panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), [xd yd])
-    meshd = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+    panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), [xd yd])
+    meshd = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
 
     xdr = [0.0; 0; 2]
     ydr = [-1.0; 2; 1]
-    panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), [xdr ydr])
-    meshdr = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+    panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), [xdr ydr])
+    meshdr = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
 
     # Nodes:
     @testset "Nodes" begin
@@ -36,8 +36,8 @@ end
 @testset "Distance Calculations" begin
     x = [1; 0.5; 0; 0.5; 1]
     y = [0; -0.5; 0; 0.5; 0]
-    panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), [x y])
-    mesh = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+    panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), [x y])
+    mesh = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
     nodes = mesh.nodes
 
     @testset "Node on Panel" begin
@@ -107,8 +107,8 @@ end
 # @testset "Influence Coefficients" begin
 #     x = [1; 0.5; 0; 0.5; 1]
 #     y = [0; -0.5; 0; 0.5; 0]
-#     panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), [x y])
-#     mesh = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+#     panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), [x y])
+#     mesh = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
 #     nodes = mesh.nodes
 #
 #     @testset "Vortex Coefficients on Panel" begin
@@ -143,8 +143,8 @@ end
 #     @testset "Vortex Coefficients Matrix" begin
 #         x = [1; 0.5; 0; 0.5; 1]
 #         y = [0; -0.5; 0; 0.5; 0]
-#         panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), [x y])
-#         mesh = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+#         panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), [x y])
+#         mesh = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
 #         nodes = mesh.nodes
 #
 #         # test psitilde13 as second part of a13
@@ -180,8 +180,8 @@ end
     x = [1.0; 0.0; 1.0]
     y = [0.0; 0.0; eps()]
     coordinates = [x y]
-    panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
-    mesh = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+    panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), coordinates)
+    mesh = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
 
     @test mesh.panel_indices == [1:2]
     @test mesh.node_indices == [1:3]
@@ -212,8 +212,8 @@ end
     z2 = zeros(3)
 
     coordinates = ([x1 z1], [x2 z2])
-    panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
-    mesh = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
+    panel_geometry = FLOWFoil.generate_panel_geometry(Xfoil(), coordinates)
+    mesh = FLOWFoil.generate_system_geometry(Xfoil(), panel_geometry)
 
     @test mesh.panel_indices == [[1:2]; [3:4]]
     @test mesh.node_indices == [[1:3]; [4:6]]

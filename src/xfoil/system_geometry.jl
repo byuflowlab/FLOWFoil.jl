@@ -1,16 +1,16 @@
 # - If single airfoil, need to put Panel object in a vector - #
-function generate_system_geometry(method::Mfoil, panel_geometry::NamedTuple)
+function generate_system_geometry(method::Xfoil, panel_geometry::NamedTuple)
     return generate_system_geometry(method, [panel_geometry])
 end
 
 """
-    generate_system_geometry(method::Mfoil, panel_geometry::AbstractVector; gap_tolerance=1e-10)
+    generate_system_geometry(method::Xfoil, panel_geometry::AbstractVector; gap_tolerance=1e-10)
 
 Constructs the system geometry for a multi-airfoil panel method simulation.
 This includes indexing arrays, combined node and panel data, chord lengths, and precomputed influence geometry for each panel and trailing edge panel.
 
 # Arguments
-- `method::Mfoil`: The aerodynamic method object (currently unused, but kept for API consistency).
+- `method::Xfoil`: The aerodynamic method object (currently unused, but kept for API consistency).
 - `panel_geometry::AbstractVector`: Vector of panel geometry named tuples, one per airfoil/body, containing nodes, panel edges, vectors, lengths, etc.
 
 # Keyword Arguments
@@ -33,7 +33,7 @@ This includes indexing arrays, combined node and panel data, chord lengths, and 
     - `r1`, `lnr1`, `r1normal`, `r1tangent`, `theta1`, `r2`, `lnr2`, `theta2`: Influence geometry matrices for trailing edge panels.
 """
 function generate_system_geometry(
-    method::Mfoil, panel_geometry::AbstractVector; gap_tolerance=1e-10
+    method::Xfoil, panel_geometry::AbstractVector; gap_tolerance=1e-10
 )
 
     ### --- Convenience Variables --- ###

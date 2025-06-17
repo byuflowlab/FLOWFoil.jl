@@ -24,15 +24,15 @@ export AirfoilTools
 
 abstract type Method end
 
-# Mfoil (Xfoil)
-include("mfoil/method.jl")
-include("mfoil/geometry_utils.jl")
-include("mfoil/panel_geometry.jl")
-include("mfoil/system_geometry.jl")
-include("mfoil/singularities.jl")
-include("mfoil/system_matrices.jl")
-include("mfoil/solve.jl")
-include("mfoil/post_process.jl")
+# Xfoil
+include("xfoil/method.jl")
+include("xfoil/geometry_utils.jl")
+include("xfoil/panel_geometry.jl")
+include("xfoil/system_geometry.jl")
+include("xfoil/singularities.jl")
+include("xfoil/system_matrices.jl")
+include("xfoil/solve.jl")
+include("xfoil/post_process.jl")
 
 # Lewis (Axisymmetric)
 include("lewis/method.jl")
@@ -77,7 +77,7 @@ include("universal_geometry_utilities.jl")
 
 ##### ----- TYPES ----- #####
 
-export Mfoil, Xfoil, Lewis, Martensen, LegacyXfoil, NeuralFoil
+export Xfoil, Xfoil, Lewis, Martensen, LegacyXfoil, NeuralFoil
 export InviscidOutputs, LegacyXFOutputs#, NeuralOutputs
 
 ##### ----- FUNCTIONS ----- #####

@@ -1,4 +1,4 @@
-function solve(method::Mfoil, system_matrices)
+function solve(method::Xfoil, system_matrices)
     if method.viscous
         error("Viscous method not yet implemented.")
     else
@@ -20,7 +20,7 @@ Outputs the InviscidSolution object which contains the system_matrices.
 # Returns
  - `x::inviscid solution, consisting of node vortex strengths`
 """
-function solve_inviscid(method::Mfoil, system_matrices)
+function solve_inviscid(method::Xfoil, system_matrices)
 
     # solve System
     if ndims(system_matrices.b) > 1

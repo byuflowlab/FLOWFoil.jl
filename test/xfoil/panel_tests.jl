@@ -8,7 +8,7 @@
     x = [1.0; 2.0; 3.0; 4.0]
     y = [0.0; 0.0; 0.0; 0.0]
     coordinates = [x y]
-    panel_array = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
+    panel_array = FLOWFoil.generate_panel_geometry(Xfoil(), coordinates)
     panels = panel_array
     @test panels.npanels == 3
     @test panels.panel_edges[1, :, :] == [1.0 0.0; 2.0 0.0]
@@ -25,7 +25,7 @@
     z2 = [0.0; -0.5; 0.0; 0.5; 0.0]
 
     coordinates = ([x1 z1], [x2 z2])
-    panel_array = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
+    panel_array = FLOWFoil.generate_panel_geometry(Xfoil(), coordinates)
 
     @test panel_array[1].npanels == 4
     @test panel_array[1].panel_edges[1, :, :] == [1.0 0.0; 0.5 -0.5]

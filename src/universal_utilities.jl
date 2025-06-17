@@ -43,7 +43,7 @@ Generates smooth surface distribution values.
 - `distribution::Vector{Float}` : Smoothed surface distribution
 - `xsmooth::Vector{Float}` : Smoothed x-coordinates
 """
-function smooth_distributions(method::Mfoil, panel_geometry, distribution, npoints)
+function smooth_distributions(method::Xfoil, panel_geometry, distribution, npoints)
 
     #= NOTE:
         Akima splines in FLOWMath require the 'x' values to be monotonically ascending.

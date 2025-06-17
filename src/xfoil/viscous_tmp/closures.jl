@@ -245,7 +245,7 @@ function uq(cf, Hkc, GA, etad, Hk, Gbeta, deltastar)
     return (0.5 * cf - (Hkc / (GA * etad * Hk))^2) / (Gbeta^deltastar)
 end
 
-#TODO: check mfoil code for typos...
+#TODO: check Xfoil code for typos...
 """
 """
 function ctaueq(H, Hstar, Hk, Hkc, GA, Gbeta, Us)

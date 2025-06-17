@@ -12,8 +12,8 @@ using ImplicitAD
 import NeuralFoil as nf
 import Xfoil as xf
 
-@info("Inviscid Mfoil Tests")
-dir = joinpath(@__DIR__, "mfoil")
+@info("Inviscid Xfoil Tests")
+dir = joinpath(@__DIR__, "xfoil")
 for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
     include(joinpath(dir, file))
 end
