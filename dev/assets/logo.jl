@@ -16,11 +16,11 @@ m3 = FLOWFoil.generate_mesh(x .- 0.9, y .- 0.75)
 inviscid_problem = FLOWFoil.Problem([m1; m3; m2], 4.0, 0.0; viscous=false)
 inviscid_solution = FLOWFoil.solve(inviscid_problem)
 polar = FLOWFoil.get_planar_polar(inviscid_solution, 0.0)
-x, z, stream = FLOWFoil.calculate_stream_grid(
+x, y, stream = FLOWFoil.calculate_stream_grid(
     inviscid_problem, inviscid_solution, [-1.0; 1.9], [-1.15; 0.65]
 )
 
-contour(x, z, stream, 35; linewidths=1.5, linestyles="-", colors=[(0.251, 0.388, 0.847)])
+contour(x, y, stream, 35; linewidths=1.5, linestyles="-", colors=[(0.251, 0.388, 0.847)])
 
 xu, xl, yu, yl = naca4(12.0, 5.0, 44.0; split=true)
 fill_between(xu, yu, reverse(yl); color=(0.22, 0.596, 0.149), zorder=2)
