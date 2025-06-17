@@ -1,0 +1,71 @@
+## Xfoil: Multiple inviscid airfoil comparison to analytic solution
+
+For a multi-element airfoil system, the procedure is identical to a single body system, except we input a vector of matrices for the coordinates of the various bodies.
+For this case, we'll use data that comes from ["An Exact Test Case for the Plane Potential Flow About Two Adjacent Lifting Aerofoils" by B. R. Williams.](https://reports.aerade.cranfield.ac.uk/handle/1826.2/2993)
+
+```@example Xfoil
+using FLOWFoil
+
+af_geom_path = normpath(joinpath(splitdir(pathof(FLOWFoil))[1], "..", "docs", "src", "assets", "two_inviscid_airfoils.jl"))
+include(af_geom_path)
+
+outputs = analyze(([ximain etamain], [xiflap etaflap]), 0.0; method=Xfoil())
+
+# plot and save comparisons, hiding code #hide
+# First panel: Airfoil geometry #hide
+include("../assets/plots_default.jl") #hide
+plt1 = plot( # hide
+    ximain, etamain; # hide
+    linecolor = 1, # hide
+    linewidth = 2, # hide
+    label = "Main Airfoil", # hide
+    aspect_ratio = 1, # hide
+    legend = :top, # hide
+    framestyle = :none, # hide
+    ticks = false, # hide
+) # hide
+
+plot!( # hide
+    plt1, # hide
+    xiflap, etaflap; # hide
+    linecolor = 2, # hide
+    linewidth = 2, # hide
+    label = "Flap Airfoil" # hide
+) # hide
+
+# Second panel: Cp comparison #hide
+scatter( # hide
+    ximain, cpmain; # hide
+    label = "Main Airfoil Analytic", # hide
+    xlabel = L"x", # hide
+    ylabel = L"c_p", # hide
+    yflip = true, # hide
+    legend = :topright, # hide
+    color=1, # hide
+    markerstrokewidth=0, # hide
+    markersize=4, #hide
+) # hide
+scatter!( # hide
+    xiflap, cpflap; # hide
+    label = "Flap Analytic", # hide
+    color = 2, # hide
+    markerstrokewidth=0, # hide
+    markersize=4, #hide
+    ) # hide
+
+plot!( # hide
+    ximain[1:end-1], outputs.cp[1][:]; # hide
+    label = "Main FLOWFoil", # hide
+    color=2, #hide
+    ylim=(-10,10), #hide
+) # hide
+plot!( # hide
+    xiflap[1:end-1], outputs.cp[2][:]; # hide
+    label = "Flap FLOWFoil", # hide
+    color = 1, # hide
+) # hide
+```
+
+We see excellent agreement with the analytical solution.
+
+
