@@ -4,8 +4,8 @@
     #---------------------------------#
     # Very Basic Test
     x = [1.0; 2.0; 3.0; 4.0]
-    z = [0.0; 0.0; 0.0; 0.0]
-    coordinates = [x z]
+    y = [0.0; 0.0; 0.0; 0.0]
+    coordinates = [x y]
     panels = FLOWFoil.generate_panel_geometry(
         Lewis(; body_of_revolution=[true]), coordinates
     )

@@ -2,7 +2,7 @@
     Joukowsky
 
 # Fields
-- `center::AbstractArray{Float}` : [x z] location of center of circle relative to origin
+- `center::AbstractArray{Float}` : [x y] location of center of circle relative to origin
 - `radius::Float` : radius of circle
 """
 @kwdef struct Joukowsky{Tc,Tr} <: AirfoilGeometry
@@ -27,13 +27,13 @@ Joukowsky airfoil parameterization.
 # Returns
 IF split == false
 - `x::AbstractArray{Float}` : Array of x coordinates
-- `z::AbstractArray{Float}` : Array of z coordinates
+- `y::AbstractArray{Float}` : Array of y coordinates
 
 IF split == true
 - `xu::AbstractArray{Float}` : Array of upper half of x coordinates
 - `xl::AbstractArray{Float}` : Array of lower half of x coordinates
-- `zu::AbstractArray{Float}` : Array of upper half of z coordinates
-- `zl::AbstractArray{Float}` : Array of lower half of z coordinates
+- `yu::AbstractArray{Float}` : Array of upper half of y coordinates
+- `yl::AbstractArray{Float}` : Array of lower half of y coordinates
 """
 function joukowsky(p::Joukowsky; N=361, fortest=false, normalize=true, split=false)
     return joukowsky(
@@ -47,7 +47,7 @@ end
 Joukowsky airfoil parameterization.
 
 # Arguments
-- `center::AbstractArray{Float}` : [x z] location of center of circle relative to origin
+- `center::AbstractArray{Float}` : [x y] location of center of circle relative to origin
 - `radius::Float` : radius of circle
 
 # Keyword Arguments
@@ -59,13 +59,13 @@ Joukowsky airfoil parameterization.
 # Returns
 IF split == false
 - `x::AbstractArray{Float}` : Array of x coordinates
-- `z::AbstractArray{Float}` : Array of z coordinates
+- `y::AbstractArray{Float}` : Array of y coordinates
 
 IF split == true
 - `xu::AbstractArray{Float}` : Array of upper half of x coordinates
 - `xl::AbstractArray{Float}` : Array of lower half of x coordinates
-- `zu::AbstractArray{Float}` : Array of upper half of z coordinates
-- `zl::AbstractArray{Float}` : Array of lower half of z coordinates
+- `yu::AbstractArray{Float}` : Array of upper half of y coordinates
+- `yl::AbstractArray{Float}` : Array of lower half of y coordinates
 """
 function joukowsky(center, radius; N=361, fortest=false, normalize=true, split=false)
     beta = asin(center[2] / radius) # solve for beta
@@ -80,19 +80,19 @@ function joukowsky(center, radius; N=361, fortest=false, normalize=true, split=f
     xi *= a
 
     x = real(xi)
-    z = imag(xi)
+    y = imag(xi)
 
     if normalize
-        normalize_coordinates!(x, z)
+        normalize_coordinates!(x, y)
     end
 
     if fortest
         return theta, beta, a, maximum(x) - minimum(x)
     else
         if split
-            return split_upper_lower(x, z)
+            return split_upper_lower(x, y)
         else
-            return x, z
+            return x, y
         end
     end
 end
@@ -103,7 +103,7 @@ end
 Calculate the analytic surface velocities and pressures as well as lift coefficient for a joukowsky airfoil.
 
 # Arguments
-- `center::AbstractArray{Float}` : [x z] location of circle center relative to origin
+- `center::AbstractArray{Float}` : [x y] location of circle center relative to origin
 - `radius::Float` : Radius of circle
 - `alpha::Float` : Angle of attack in degrees
 
@@ -120,11 +120,11 @@ function joukowsky_flow(center, radius, alpha; N=161)
 
     theta, beta, a, chord = joukowsky(center, radius; N=N, fortest=true)
 
-    z = a * (1.0 .+ radius / a * (exp.(im * theta) .- exp(-im * beta)))
+    y = a * (1.0 .+ radius / a * (exp.(im * theta) .- exp(-im * beta)))
 
     vsurf =
-        2.0 * (sin.(theta .- alpha_rad) .+ sin(alpha_rad .+ beta)) .* abs.(z) ./
-        (abs.(z .- a^2 ./ z))
+        2.0 * (sin.(theta .- alpha_rad) .+ sin(alpha_rad .+ beta)) .* abs.(y) ./
+        (abs.(y .- a^2 ./ y))
 
     cpsurf = 1.0 .- vsurf .^ 2.0
 

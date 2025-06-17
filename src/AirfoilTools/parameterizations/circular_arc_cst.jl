@@ -7,15 +7,15 @@
 - `maximum_thickness::Float` : Value of maximum thickness in % chord
 - `A::Float=0.01` : Shape function parameter
 - `k::Float=0.0` : Shape function parameter
-- `z_te::Float=0.0` : Trailing edge thickness
+- `y_te::Float=0.0` : Trailing edge thickness
 """
-@kwdef struct CircularArcCST{TA,Tc,Tk,Tp,Tt,Tz} <: AirfoilGeometry
+@kwdef struct CircularArcCST{TA,Tc,Tk,Tp,Tt,Ty} <: AirfoilGeometry
     maximum_camber::Tc
     maximum_thickness_postition::Tp
     maximum_thickness::Tt
     A::TA = 0.01
     k::Tk = 0.0
-    z_te::Tz = 0.0
+    y_te::Ty = 0.0
 end
 
 function circle_from_3pts(p1, p2, p3)
@@ -71,16 +71,16 @@ function shape_fun(u, B, C; A=0.01, k=1.0)
     return A * cos(2.0 * pi * k * u) + B * u + C
 end
 
-function T(u, B, C; A=0.01, k=1.0, z_te=0.0)
-    return shape_fun(u, B, C; A=A, k=k) * class_fun(u) + z_te * u
+function T(u, B, C; A=0.01, k=1.0, y_te=0.0)
+    return shape_fun(u, B, C; A=A, k=k) * class_fun(u) + y_te * u
 end
 
 function residual!(r, y, x, p)
     maximum_thickness, maximum_thickness_postition = x
-    (; A, k, z_te) = p
+    (; A, k, y_te) = p
     B, C = y
     r[1] =
-        T(maximum_thickness_postition, B, C; A=A, k=k, z_te=z_te) - maximum_thickness / 2.0
+        T(maximum_thickness_postition, B, C; A=A, k=k, y_te=y_te) - maximum_thickness / 2.0
     r[2] =
         (
             0.5 * C + 1.5 * B * maximum_thickness_postition -
@@ -94,7 +94,7 @@ function residual!(r, y, x, p)
             maximum_thickness_postition *
             (-2.0 * pi + 2.0 * pi * maximum_thickness_postition) *
             sin(2.0 * pi * k * maximum_thickness_postition)
-        ) / sqrt(maximum_thickness_postition) + z_te
+        ) / sqrt(maximum_thickness_postition) + y_te
     return r
 end
 
@@ -158,7 +158,7 @@ function circular_arc_cst(parameters::CircularArcCST; N=80, split=false)
         parameters.maximum_thickness,
         parameters.A,
         parameters.k,
-        parameters.z_te;
+        parameters.y_te;
         N=N,
         split=split,
     )
@@ -171,7 +171,7 @@ end
         maximum_thickness,
         A=0.01,
         k=0.0,
-        z_te=0.0;
+        y_te=0.0;
         N=80,
         split=false,
         return_thickness_dist=false,
@@ -183,7 +183,7 @@ end
 - `maximum_thickness::Float` : Value of maximum thickness in % chord
 - `A::Float=0.01` : Shape function parameter
 - `k::Float=0.0` : Shape function parameter
-- `z_te::Float=0.0` : Trailing edge thickness
+- `y_te::Float=0.0` : Trailing edge thickness
 
 # Keyword Arguments
 - `N::Int=161` : Total number of coordinates to use.  This values should be odd, but if not, the number of points returned will be N-1.
@@ -205,7 +205,7 @@ function circular_arc_cst(
     maximum_thickness,
     A=0.01,
     k=0.0,
-    z_te=0.0;
+    y_te=0.0;
     N=80,
     split=false,
 )
@@ -218,11 +218,11 @@ function circular_arc_cst(
         solve_BC,
         residual!,
         [maximum_thickness, maximum_thickness_postition],
-        (; A=A, k=k, z_te=z_te),
+        (; A=A, k=k, y_te=y_te),
     )
 
     # get thickness distribution
-    tc = T.(xc, B, C; A=A, k=k, z_te=z_te)
+    tc = T.(xc, B, C; A=A, k=k, y_te=y_te)
 
     # place thickness along maximum_camber line
     upper_coordinates, lower_coordinates = thicken_camber(xc, yc, tc, c)

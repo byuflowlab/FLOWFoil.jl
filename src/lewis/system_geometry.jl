@@ -30,7 +30,7 @@ Generate the system geometry for multiple bodies (airfoils) for the Lewis method
   - `nbodies::Int`: Number of bodies.
   - `panel_indices::Vector{UnitRange}`: Index ranges for panels of each body.
   - `mesh2panel::Vector{Int}`: Mapping from mesh indices to panel indices.
-  - `z::Matrix{TF}`: Normalized axial (z) distances between panel centers.
+  - `y::Matrix{TF}`: Normalized axial (y) distances between panel centers.
   - `r::Matrix{TF}`: Normalized radial (r) distances between panel centers.
   - `k2::Matrix{TF}`: k² values used in elliptic integral calculations.
 """
@@ -59,8 +59,8 @@ function generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
     # Panel Length (contained in panel_geometry objects)
     panel_length = zeros(TF, (total_panels))
 
-    # z-component of normalized distance from influencing panel center to field point
-    z = zeros(TF, (total_panels, total_panels))
+    # y-component of normalized distance from influencing panel center to field point
+    y = zeros(TF, (total_panels, total_panels))
 
     # r-component of normalized distance from influencing panel center to field point
     r = zeros(TF, (total_panels, total_panels))
@@ -68,7 +68,7 @@ function generate_system_geometry(method::Lewis, panel_geometry::AbstractVector)
     # variable used in elliptic function calculations
     k2 = zeros(TF, (total_panels, total_panels))
 
-    system_geometry = (; nbodies, panel_indices, mesh2panel, z, r, k2)
+    system_geometry = (; nbodies, panel_indices, mesh2panel, y, r, k2)
 
     return generate_system_geometry!(method, system_geometry, panel_geometry)
 end
@@ -91,7 +91,7 @@ distances and elliptic integral parameters between panels of all bodies.
 function generate_system_geometry!(method::Lewis, system_geometry, panel_geometry)
 
     # extract fields
-    (; nbodies, panel_indices, mesh2panel, z, r, k2) = system_geometry
+    (; nbodies, panel_indices, mesh2panel, y, r, k2) = system_geometry
 
     ### --- Loop through bodies --- ###
     for m in 1:nbodies
@@ -100,7 +100,7 @@ function generate_system_geometry!(method::Lewis, system_geometry, panel_geometr
             for i in panel_indices[m]
                 for j in panel_indices[n]
 
-                    # Get z-locations of influencing and influenced panel_geometry
+                    # Get y-locations of influencing and influenced panel_geometry
                     zi = panel_geometry[m].panel_center[mesh2panel[i], 1]
                     zj = panel_geometry[n].panel_center[mesh2panel[j], 1]
 
@@ -109,11 +109,11 @@ function generate_system_geometry!(method::Lewis, system_geometry, panel_geometr
                     rj = panel_geometry[n].panel_center[mesh2panel[j], 2]
 
                     # Calculate normalized distance components for current set of panel_geometry
-                    z[i, j] = (zi - zj) / rj
+                    y[i, j] = (zi - zj) / rj
                     r[i, j] = ri / rj
 
                     # Calculate the k^2 value for the elliptic integrals
-                    k2[i, j] = 4.0 * r[i, j] / (z[i, j]^2 + (r[i, j] + 1.0)^2)
+                    k2[i, j] = 4.0 * r[i, j] / (y[i, j]^2 + (r[i, j] + 1.0)^2)
                 end #for jth influencing panel
             end #for ith influenced panel
         end #for nth influencing body

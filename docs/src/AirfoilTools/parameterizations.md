@@ -355,10 +355,10 @@ In order to create a more intuitive parameterization, the trailing edge paramete
 
 | Original Parameter | Modified Parameter | New Definition |
 |------|------|:------|
-| $\\alpha_{TE}$ | $\\theta_{TE_u}$ | Upper surface trailing edge tangent angle |
-| $\\beta_{TE}$ | $\\theta_{TE_l}$ | Upper surface trailing edge tangent angle |
+| $\alpha_{TE}$ | $\theta_{TE_u}$ | Upper surface trailing edge tangent angle |
+| $\beta_{TE}$ | $\theta_{TE_l}$ | Upper surface trailing edge tangent angle |
 | $y_{TE}$ | $y_{TE_u}$ | y-coordinate of upper surface trailing edge |
-| $\\Delta y_{TE}$ | $y_{TE_l}$ | y-coordinate of lower surface trailing edge |
+| $\Delta y_{TE}$ | $y_{TE_l}$ | y-coordinate of lower surface trailing edge |
 
 ```@example modparsec
 using FLOWFoil.AirfoilTools

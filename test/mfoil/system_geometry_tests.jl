@@ -178,8 +178,8 @@ end
     # - Very Basic Test - #
 
     x = [1.0; 0.0; 1.0]
-    z = [0.0; 0.0; eps()]
-    coordinates = [x z]
+    y = [0.0; 0.0; eps()]
+    coordinates = [x y]
     panel_geometry = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
     mesh = FLOWFoil.generate_system_geometry(Mfoil(), panel_geometry)
 

@@ -188,7 +188,7 @@ function assemble_boundary_conditions(method::Mfoil, system_geometry)
         # if closed trailing edge, set second to last element of the boundary conditions to zero (for change in last node equation for sharp trailing edges)
         #=
           NOTE: mfoil does not do the following,
-          but rather keeps the rhs as [-z,x] in all cases:
+          but rather keeps the rhs as [-y,x] in all cases:
         =#
         bmat[nidx[m][1]:nidx[m][end - 1], 1] = [
             -system_geometry.nodes[i, 2] for i in nidx[m][1]:nidx[m][end - 1]

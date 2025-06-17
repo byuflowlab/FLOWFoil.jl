@@ -3,16 +3,16 @@ using Xfoil
 include("../../plots_default.jl")
 pyplot()
 
-x, z = FLOWFoil.naca4(; blunt_TE=true)
-# x, z = FLOWFoil.naca4()
+x, y = FLOWFoil.naca4(; blunt_TE=true)
+# x, y = FLOWFoil.naca4()
 
 N = length(x)
 
-coordinates = ([x z], [x .+ 1000.0 z])
+coordinates = ([x y], [x .+ 1000.0 y])
 
 alpha = 0.0
 
-Xfoil.set_coordinates(reverse(x), reverse(z))
+Xfoil.set_coordinates(reverse(x), reverse(y))
 cl, cm = Xfoil.solve_alpha(alpha)
 g = Xfoil.get_globals()
 

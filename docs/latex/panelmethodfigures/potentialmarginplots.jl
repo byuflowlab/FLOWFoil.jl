@@ -87,7 +87,7 @@ default(
 #     xerror,
 #     y,
 #     yerror,
-#     z,
+#     y,
 #     zerror
 
 

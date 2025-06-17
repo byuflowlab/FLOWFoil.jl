@@ -38,13 +38,13 @@ TODOS:
 ## Returns:
 #default:
 #- `x::Array{Float}` : x-coordinates from lower TE clockwise to upper TE
-#- `z::Array{Float}` : z-coordinates from lower TE clockwise to upper TE
+#- `y::Array{Float}` : y-coordinates from lower TE clockwise to upper TE
 
 #if split=true
 #- `xu::Array{Float}` : array of x-coordinates for the upper half of the airfoil (LE to TE)
-#- `zu::Array{Float}` : array of z-coordinates for the upper half of the airfoil (LE to TE)
+#- `yu::Array{Float}` : array of y-coordinates for the upper half of the airfoil (LE to TE)
 #- `xl::Array{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
-#- `zl::Array{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
+#- `yl::Array{Float}` : array of y-coordinates for the lower half of the airfoil (LE to TE)
 
 #if debug keyword argument, also output
 #- `uknots::Array{Float}` : Array of upper side spline knots
@@ -90,13 +90,13 @@ TODOS:
 ## Returns:
 #default:
 #- `x::Array{Float}` : x-coordinates from lower TE clockwise to upper TE
-#- `z::Array{Float}` : z-coordinates from lower TE clockwise to upper TE
+#- `y::Array{Float}` : y-coordinates from lower TE clockwise to upper TE
 
 #if split=true
 #- `xu::Array{Float}` : array of x-coordinates for the upper half of the airfoil (LE to TE)
-#- `zu::Array{Float}` : array of z-coordinates for the upper half of the airfoil (LE to TE)
+#- `yu::Array{Float}` : array of y-coordinates for the upper half of the airfoil (LE to TE)
 #- `xl::Array{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
-#- `zl::Array{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
+#- `yl::Array{Float}` : array of y-coordinates for the lower half of the airfoil (LE to TE)
 
 #if debug keyword argument, also output
 #- `uknots::Array{Float}` : Array of upper side spline knots
@@ -160,19 +160,19 @@ TODOS:
 #    # end
 
 #    #get coordinates from spline definition
-#    xu, zu = get_spline_coordinates(unurbs; N=N)
-#    xl, zl = get_spline_coordinates(lnurbs; N=N)
+#    xu, yu = get_spline_coordinates(unurbs; N=N)
+#    xl, yl = get_spline_coordinates(lnurbs; N=N)
 
 #    #return what is asked for
 #    if debug && split
-#        return xu, zu, xl, zl, unurbs, lnurbs
+#        return xu, yu, xl, yl, unurbs, lnurbs
 #    elseif debug && !split
-#        [reverse(xl); xu[2:end]], [reverse(zl); zu[2:end]], unurbs, lnurbs
+#        [reverse(xl); xu[2:end]], [reverse(yl); yu[2:end]], unurbs, lnurbs
 #        lcontrolpoints
 #    elseif !debug && split
-#        return xu, zu, xl, zl
+#        return xu, yu, xl, yl
 #    else
-#        return [reverse(xl); xu[2:end]], [reverse(zl); zu[2:end]]
+#        return [reverse(xl); xu[2:end]], [reverse(yl); yu[2:end]]
 #    end
 #end
 
@@ -357,7 +357,7 @@ TODOS:
 #    #find indices in new knot vector associated with new knots
 #    newidx = findfirst.(isequal.(knotstoadd), (refined_knots,))
 
-#    #Perturb the inserted knots in the Z direction.
+#    #Perturb the inserted knots in the y direction.
 #    for i in 1:length(deltaz)
 #        refined_controlpoints[newidx[i], 2] += deltaz[i]
 #    end
@@ -379,7 +379,7 @@ TODOS:
 
 ## Returns:
 #- `x::Array{Float}` : x Airfoil coordinates
-#- `z::Array{Float}` : z Airfoil coordinates
+#- `y::Array{Float}` : y Airfoil coordinates
 #"""
 #function get_spline_coordinates(nurbs; N=160)
 
@@ -401,22 +401,22 @@ TODOS:
 #end
 
 #"""
-#    determine_gbs(x,z)
+#    determine_gbs(x,y)
 
 #Uses LsqFit to go from xy to modified parsec without calculating each parameter.
 #Depending on the initial guess and subsequent iterations, it may throw an error
 #involving complex numbers. If so, alter the initial guess.
 #"""
-#function determine_bbs(x, z)
+#function determine_bbs(x, y)
 #    function model(x, p)
-#        _, z = gbs(p[1], p[2], p[3]; N=ceil(Int, length(x) / 2))
-#        return z
+#        _, y = gbs(p[1], p[2], p[3]; N=ceil(Int, length(x) / 2))
+#        return y
 #    end
 
 #    #initial guess
 #    guess = [0.015, 0.0, 14.0]
 
-#    fit = LsqFit.curve_fit(model, x, z, guess)
+#    fit = LsqFit.curve_fit(model, x, y, guess)
 
 #    return GBS(;
 #        leading_edge_radius=fit.param[1],

@@ -2,11 +2,11 @@
 
     # - Very Basic Test - #
 
-    x, z = AirfoilTools.naca4()
-    coordinates = [x z]
+    x, y = AirfoilTools.naca4()
+    coordinates = [x y]
     outputs = analyze(coordinates, [0.0; 5.0]; method=Mfoil())
 
-    xf.set_coordinates(reverse(x), reverse(z))
+    xf.set_coordinates(reverse(x), reverse(y))
     cl0, cm0 = xf.solve_alpha(0.0)
     cl5, cm5 = xf.solve_alpha(5.0)
 

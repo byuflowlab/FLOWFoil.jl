@@ -32,13 +32,13 @@ Obtain airfoil coordinates from a B-Spline parameterization method.
 # Returns
 if split=false
 - `x::AbstractArray{Float}` : x-coordinates from lower TE clockwise to upper TE
-- `z::AbstractArray{Float}` : z-coordinates from lower TE clockwise to upper TE
+- `y::AbstractArray{Float}` : y-coordinates from lower TE clockwise to upper TE
 
 if split=true
 - `xu::AbstractArray{Float}` : array of x-coordinates for the upper half of the airfoil (LE to TE)
-- `zu::AbstractArray{Float}` : array of z-coordinates for the upper half of the airfoil (LE to TE)
+- `yu::AbstractArray{Float}` : array of y-coordinates for the upper half of the airfoil (LE to TE)
 - `xl::AbstractArray{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
-- `zl::AbstractArray{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
+- `yl::AbstractArray{Float}` : array of y-coordinates for the lower half of the airfoil (LE to TE)
 
 if return_nurbs=true, also return:
 - `NURBSu::NURBS.NURBScurve` : upper spline object
@@ -76,13 +76,13 @@ Obtain airfoil coordinates from a B-Spline parameterization method.
 # Returns
 if split=false
 - `x::AbstractArray{Float}` : x-coordinates from lower TE clockwise to upper TE
-- `z::AbstractArray{Float}` : z-coordinates from lower TE clockwise to upper TE
+- `y::AbstractArray{Float}` : y-coordinates from lower TE clockwise to upper TE
 
 if split=true
 - `xu::AbstractArray{Float}` : array of x-coordinates for the upper half of the airfoil (LE to TE)
-- `zu::AbstractArray{Float}` : array of z-coordinates for the upper half of the airfoil (LE to TE)
+- `yu::AbstractArray{Float}` : array of y-coordinates for the upper half of the airfoil (LE to TE)
 - `xl::AbstractArray{Float}` : array of x-coordinates for the lower half of the airfoil (LE to TE)
-- `zl::AbstractArray{Float}` : array of z-coordinates for the lower half of the airfoil (LE to TE)
+- `yl::AbstractArray{Float}` : array of y-coordinates for the lower half of the airfoil (LE to TE)
 
 if return_nurbs=true, also return
 - `NURBSu::NURBS.NURBScurve` : upper spline object
@@ -109,18 +109,18 @@ function basic_bspline(
     )
 
     #get coordinates from spline definition
-    xu, zu = get_spline_coordinates(unurbs; N=floor(Int, N / 2))
-    xl, zl = get_spline_coordinates(lnurbs; N=floor(Int, N / 2))
+    xu, yu = get_spline_coordinates(unurbs; N=floor(Int, N / 2))
+    xl, yl = get_spline_coordinates(lnurbs; N=floor(Int, N / 2))
 
     #return what is asked for
     if return_nurbs && split
-        return xu, zu, xl, zl, unurbs, lnurbs
+        return xu, yu, xl, yl, unurbs, lnurbs
     elseif return_nurbs && !split
-        [reverse(xl); xu[2:end]], [reverse(zl); zu[2:end]], unurbs, lnurbs
+        [reverse(xl); xu[2:end]], [reverse(yl); yu[2:end]], unurbs, lnurbs
     elseif !return_nurbs && split
-        return xu, zu, xl, zl
+        return xu, yu, xl, yl
     else
-        return [reverse(xl); xu[2:end]], [reverse(zl); zu[2:end]]
+        return [reverse(xl); xu[2:end]], [reverse(yl); yu[2:end]]
     end
 end
 
@@ -212,7 +212,7 @@ Compute and return plottable coordinates from a NURBS (Non-Uniform Rational B-Sp
 
 # Returns
 - `x::Vector{Float64}`: x-coordinates of the sampled curve
-- `z::Vector{Float64}`: z-coordinates of the sampled curve
+- `y::Vector{Float64}`: y-coordinates of the sampled curve
 """
 function get_spline_coordinates(nurbs; N=80)
 
@@ -229,21 +229,21 @@ function get_spline_coordinates(nurbs; N=80)
 end
 
 #"""
-#    determine_basic_bspline(x,z)
+#    determine_basic_bspline(x,y)
 
 #TODO: the output NURBS x-coordinates are not going to line up with the input x-coordinates.
 #Need to figure out how to best fit the NURBS curve.
 #"""
-#function determine_basic_bspline(x, z)
+#function determine_basic_bspline(x, y)
 #    function model(x, p)
-#        _, z = basic_bspline(p[1], p[2], p[3]; N=length(x), trailing_edge_gap=p[4])
-#        return z
+#        _, y = basic_bspline(p[1], p[2], p[3]; N=length(x), trailing_edge_gap=p[4])
+#        return y
 #    end
 
 #    #initial guess
 #    guess = [0.001, 2.0, 14.0, 0.0]
 
-#    fit = LsqFit.curve_fit(model, x, z, guess)
+#    fit = LsqFit.curve_fit(model, x, y, guess)
 
 #    return BasicBSpline(;
 #        leading_edge_radius=fit.param[1],

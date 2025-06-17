@@ -6,8 +6,8 @@
 
     # - Very Basic Test - #
     x = [1.0; 2.0; 3.0; 4.0]
-    z = [0.0; 0.0; 0.0; 0.0]
-    coordinates = [x z]
+    y = [0.0; 0.0; 0.0; 0.0]
+    coordinates = [x y]
     panel_array = FLOWFoil.generate_panel_geometry(Mfoil(), coordinates)
     panels = panel_array
     @test panels.npanels == 3

@@ -3,10 +3,10 @@
 
 Flips one dimension of airfoil coordinates.
 
-Moves airfoil left (x) or down (z) by maximum x or z coordinate then flips about the z or x axis, respectively.
+Moves airfoil left (x) or down (y) by maximum x or y coordinate then flips about the y or x axis, respectively.
 
 # Arguments
-- `x::AbstractArray{Float}` : vector of x or z coordinates
+- `x::AbstractArray{Float}` : vector of x or y coordinates
 """
 function flip!(x)
     maxx = maximum(x)
@@ -21,7 +21,7 @@ end
 Places trailing edge on the x-axis.
 
 # Arguments
-- `coordinates::Array{Float}` : Array of [x z] coordinates to be updated in place.
+- `coordinates::Array{Float}` : Array of [x y] coordinates to be updated in place.
 """
 function zero_z_te!(coordinates)
     idxmaxx = indmax(coordinates[:, 1])
@@ -35,11 +35,11 @@ end
 Rotate coordiantes clockwise about `rotation_point` by `angle` in degrees.
 
 # Arguments
-- `coordinates::Array{Float}` : Array of [x z] coordinates to be updated in place.
+- `coordinates::Array{Float}` : Array of [x y] coordinates to be updated in place.
 - `angle::Float=0.0` : Angles, in degrees, by which to rotate the coordinates clockwise (positive angle will pitch airfoil up).
 
 # Keyword Arguments
-- `rotation_point::AbstractArray{Float}=[0.0; 0.0]` : Array of [x z] position of point about which to perform rotation.
+- `rotation_point::AbstractArray{Float}=[0.0; 0.0]` : Array of [x y] position of point about which to perform rotation.
 """
 function rotate_coordinates!(coordinates, angle; rotation_point=[0.0; 0.0])
     # get rotation matrix
@@ -61,11 +61,11 @@ end
 Normalize airfoil to unit chord and shift leading edge to zero. Adjusts coordinates in place.
 
 # Arguments
-- `coordinates::AbstractArray{Float}` : Array of [x z] coordinates
+- `coordinates::AbstractArray{Float}` : Array of [x y] coordinates
 """
 function normalize_coordinates!(coordinates)
     x = @view(coordinates[:, 1])
-    z = @view(coordinates[:, 2])
+    y = @view(coordinates[:, 2])
 
     # get current chord length
     chord = maximum(x) - minimum(x)
@@ -76,22 +76,22 @@ function normalize_coordinates!(coordinates)
     # normalize chord
     x[:] ./= chord
 
-    # scale z coordinates to match
-    z[:] ./= chord
+    # scale y coordinates to match
+    y[:] ./= chord
 
     return coordinates
 end
 
 """
-    normalize_coordinates!(x, z)
+    normalize_coordinates!(x, y)
 
 Normalize airfoil to unit chord and shift leading edge to zero. Adjusts coordinates in place.
 
 # Arguments
 - `x::Array{Float}` : Array of x coordinates
-- `z::Array{Float}` : Array of z coordinates
+- `y::Array{Float}` : Array of y coordinates
 """
-function normalize_coordinates!(x, z)
+function normalize_coordinates!(x, y)
 
     # get current chord length
     chord = maximum(x) - minimum(x)
@@ -102,10 +102,10 @@ function normalize_coordinates!(x, z)
     # normalize chord
     x[:] ./= chord
 
-    # scale z coordinates to match
-    z[:] ./= chord
+    # scale y coordinates to match
+    y[:] ./= chord
 
-    return x, z
+    return x, y
 end
 
 """
@@ -114,18 +114,18 @@ end
 Scale, Rotate, and Transform (in that order) airfoil coordinates.
 
 # Arguments
-- `coordinates::Array{Float}` : Array of [x z] coordinates to be updated in place.
+- `coordinates::Array{Float}` : Array of [x y] coordinates to be updated in place.
 
 # Keyword Arguments
 - `scale::Float=1.0` : Value by which to scale coordinates.
 - `angle::Float=0.0` : Angles, in degrees, by which to rotate the coordinates clockwise (positive angle will pitch airfoil up).
-- `location::AbstractArray{Float}=[0.0; 0.0]` : Array of [x z] position of leading edge location.
-- `rotation_point::AbstractArray{Float}=[0.0; 0.0]` : Array of [x z] position of point about which to perform rotation.
+- `location::AbstractArray{Float}=[0.0; 0.0]` : Array of [x y] position of leading edge location.
+- `rotation_point::AbstractArray{Float}=[0.0; 0.0]` : Array of [x y] position of point about which to perform rotation.
 - `flipped::Bool` : flag whether to flip airfoil upside down.
 
 # Returns
 - `x::Array{Float}` : array of x-coordinates
-- `z::Array{Float}` : array of z-coordinates
+- `y::Array{Float}` : array of y-coordinates
 """
 function position_coordinates!(
     coordinates;

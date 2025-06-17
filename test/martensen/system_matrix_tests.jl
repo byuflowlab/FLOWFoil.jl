@@ -6,8 +6,8 @@
 
     # 4 panel diamond test
     x = [1.0; 0.5; 0.0; 0.5; 1.0]
-    z = [0.0; -1.0; 0.0; 1.0; 0.0]
-    coordinates = [x z]
+    y = [0.0; -1.0; 0.0; 1.0; 0.0]
+    coordinates = [x y]
 
     #test planar (method 1) and cascade(method 2)
     system_geometry_method_1 = FLOWFoil.Martensen(false, 0.0, 0.0, 30.0, false)

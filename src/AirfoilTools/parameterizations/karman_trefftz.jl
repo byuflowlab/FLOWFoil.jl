@@ -22,7 +22,7 @@ end
     KarmanTrefftz(center, wedge_angle)
 
 # Arguments
-- `center::AbstractArray{Float}` : [x z] location of circle center relative to origin
+- `center::AbstractArray{Float}` : [x y] location of circle center relative to origin
 - `wedge_angle::Float` : angle, in radians, of airfoil wedge angle
 
 # Returns
@@ -52,13 +52,13 @@ Karman-Trefftz airfoil parameterization based on angle beta, raidus, and wedge a
 # Returns
 If `split` == false
 - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
-- `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+- `y::AbstractArray{Float}` : Vector of y coordinates, clockwise from trailing edge.
 
 If `split` == true
 - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
 - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
-- `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
-- `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
+- `yl::AbstractArray{Float}` : Vector of lower half of y coordinates from trailing edge to leading edge.
+- `yu::AbstractArray{Float}` : Vector of upper half of y coordinates from leading edge to trailing edge.
 """
 function karman_trefftz(p::KarmanTrefftz; N=361, normalize=true, split=false)
     return karman_trefftz(
@@ -84,13 +84,13 @@ Karman-Trefftz airfoil parameterization based on angle beta, raidus, and wedge a
 # Returns
 If `split` == false
 - `x::AbstractArray{Float}` : Vector of x coordinates, clockwise from trailing edge.
-- `z::AbstractArray{Float}` : Vector of z coordinates, clockwise from trailing edge.
+- `y::AbstractArray{Float}` : Vector of y coordinates, clockwise from trailing edge.
 
 If `split` == true
 - `xl::AbstractArray{Float}` : Vector of lower half of x coordinates from trailing edge to leading edge.
 - `xu::AbstractArray{Float}` : Vector of upper half of x coordinates from leading edge to trailing edge.
-- `zl::AbstractArray{Float}` : Vector of lower half of z coordinates from trailing edge to leading edge.
-- `zu::AbstractArray{Float}` : Vector of upper half of z coordinates from leading edge to trailing edge.
+- `yl::AbstractArray{Float}` : Vector of lower half of y coordinates from trailing edge to leading edge.
+- `yu::AbstractArray{Float}` : Vector of upper half of y coordinates from leading edge to trailing edge.
 """
 function karman_trefftz(beta, radius, wedge_angle; N=361, normalize=true, split=false)
 
@@ -115,18 +115,18 @@ function karman_trefftz(beta, radius, wedge_angle; N=361, normalize=true, split=
         i in 1:N
     ]
 
-    # separate x and z coordinates
+    # separate x and y coordinates
     x = real(w)
-    z = imag(w)
+    y = imag(w)
 
     if normalize
-        normalize_coordinates!(x, z)
+        normalize_coordinates!(x, y)
     end
 
     if split
-        return split_upper_lower(x, z)
+        return split_upper_lower(x, y)
     else
-        return x, z
+        return x, y
     end
 end
 
@@ -136,7 +136,7 @@ end
 Identical to `karman_trefftz(beta, radius, wedge_angle)` but using center-based version.
 
 # Arguments
-- `center::AbstractArray{Float}` : [x z] location of circle center relative to origin
+- `center::AbstractArray{Float}` : [x y] location of circle center relative to origin
 - `wedge_angle::Float` : angle, in radians, of airfoil wedge angle
 
 # Keyword Arguments
@@ -147,13 +147,13 @@ Identical to `karman_trefftz(beta, radius, wedge_angle)` but using center-based 
 # Returns
 IF split == False
 - `x::AbstractArray{Float}` : Array of x coordinates
-- `z::AbstractArray{Float}` : Array of z coordinates
+- `y::AbstractArray{Float}` : Array of y coordinates
 
 IF split == True
 - `xu::AbstractArray{Float}` : Array of upper half of x coordinates
 - `xl::AbstractArray{Float}` : Array of lower half of x coordinates
-- `zu::AbstractArray{Float}` : Array of upper half of z coordinates
-- `zl::AbstractArray{Float}` : Array of lower half of z coordinates
+- `yu::AbstractArray{Float}` : Array of upper half of y coordinates
+- `yl::AbstractArray{Float}` : Array of lower half of y coordinates
 """
 function karman_trefftz(center, wedge_angle; N=361, normalize=true, split=false)
     radius = sqrt((1 - center[1])^2 + center[2]^2) # radius
