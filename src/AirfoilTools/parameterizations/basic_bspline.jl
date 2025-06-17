@@ -100,7 +100,7 @@ function basic_bspline(
 )
 
     # get spline knots and control points
-    unurbs, lnurbs = definespline(
+    unurbs, lnurbs = define_spline(
         leading_edge_radius,
         trailing_edge_camber_angle,
         wedge_angle,
@@ -125,7 +125,7 @@ function basic_bspline(
 end
 
 """
-    definespline(leading_edge_radius, trailing_edge_camber_angle, wedge_angle, trailing_edge_gap, third_ctrlpt_position)
+    define_spline(leading_edge_radius, trailing_edge_camber_angle, wedge_angle, trailing_edge_gap, third_ctrlpt_position)
 
 Calculate the x and y location of the control points, and weight them according to
 the weighting vector. Also, provide generic knot vectors.
@@ -141,7 +141,7 @@ the weighting vector. Also, provide generic knot vectors.
 - `knots::AbstractArray{Float}`: The knot vector of the curve.
 - `controlpoints::AbstractArray{Tuple{Float,3}}`: The control point vector, where each point is a tuple of (x, y, w).
 """
-function definespline(
+function define_spline(
     leading_edge_radius,
     trailing_edge_camber_angle,
     wedge_angle,

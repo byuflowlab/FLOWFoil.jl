@@ -4,6 +4,8 @@
 #                                                                    #
 ######################################################################
 """
+    scaled_thickness(x; method="scaled")
+
 From NACA Research Memorandum L51G31: "Systematic Two-dimensional Cascade Tests of NACA 65-Series Compressor Blades at Low Speeds" Table 1
 """
 function scaled_thickness(x; method="scaled")
@@ -106,6 +108,8 @@ function scaled_thickness(x; method="scaled")
 end
 
 """
+    scaled_camber(clo, x)
+
 From NACA Research Memorandum L51G31: "Systematic Two-dimensional Cascade Tests of NACA 65-Series Compressor Blades at Low Speeds" Table 2
 """
 function scaled_camber(clo, x)
@@ -174,6 +178,8 @@ function scaled_camber(clo, x)
 end
 
 """
+    scaled_slope(clo, x)
+
 From NACA Research Memorandum L51G31: "Systematic Two-dimensional Cascade Tests of NACA 65-Series Compressor Blades at Low Speeds" Table 2
 """
 function scaled_slope(clo, x)
@@ -245,7 +251,7 @@ end
     x
 )
 
-This computes the corresponding camber for a given x value for the NACA 65 series. 
+This computes the corresponding camber for a given x value for the NACA 65 series.
 
 # Arguments
 - `a::TF` : Mean-line designation, fraction of chord from leading edge over which design load is uniform. Should be listed in the airfoil descirption
@@ -347,7 +353,7 @@ function thickness65(
     leading_edge_radius = 0.0
     if series_number == "3-018"
         x = [0.0, 0.5, 0.75, 1.25, 2.5, 5.0, 7.5, 10, 15, 20, 25,30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100].*10^(-2)
-        y = [0.0, 1.324, 1.599, 2.004, 2.728, 3.831, 4.701, 5.424, 6.568, 7.434, 8.093, 8.568, 8.868, 8.990, 8.916, 8.593, 8.045, 7.317, 6.450, 5.486, 4.456, 3.390, 2.325, 1.324, 0.492, 0.0].*10^(-2) 
+        y = [0.0, 1.324, 1.599, 2.004, 2.728, 3.831, 4.701, 5.424, 6.568, 7.434, 8.093, 8.568, 8.868, 8.990, 8.916, 8.593, 8.045, 7.317, 6.450, 5.486, 4.456, 3.390, 2.325, 1.324, 0.492, 0.0].*10^(-2)
         leading_edge_radius = 1.92*(10^(-2))
         y_t = FLOWMath.akima(x,y, xpt)
     end
@@ -368,11 +374,11 @@ The NACA 65-010 basic thickness has also been derived.
 These thickness forms differ slightly but are considered to be interchangeable.
 
 The basic mean line used is the a=1.0 mean line.
-The amount of camber is for the design lift coefficient for the isolated airfoil with cl_o of 1.0.
+The amount of camber is for the design lift coefficient for the isolated airfoil with `cl_o` of 1.0.
 Both ordinates and slopes are scaled directly to obtain other cambers.
 Cambered blade sections are obtained by applying the thickness perpendicular to the mean line at stations laid out along the chord line.
-In the designation the camber is given by the first number after the dash in tenths of cl_o.
-For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for cl_o = 0.8 and cl_o = 1.2, respectively.
+In the designation the camber is given by the first number after the dash in tenths of `cl_o`.
+For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for `cl_o` = 0.8 and `cl_o` = 1.2, respectively.
 
 # Arguments
 - `clo::TF` : Design lift coefficient in tenths of chord. Usually first number after the 2nd dash (ie NACA 65-3-818 would input 0.8 for clo)
@@ -384,7 +390,7 @@ For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for 
 - `split::Boolean = false` : if true, then the output will be split between top and bottom coordinates
 - `extra_blending::Boolean = false` : If desired number of points is large (> 300ish) then set to true and it will add some extra blending if desired. Note: This is generally not needed!
 
-# ouptuts
+# Returns
 - `x::Vector{TF}` : x coordinates
 - `y::Vector{TF}` : y coordinates
 """
@@ -465,7 +471,7 @@ function naca65(clo, a, series_number; N=161, x=nothing, split=false, extra_blen
         i1 = transition_index - round(Int, smoothing_interval_top / 2)
         i2 = transition_index + (smoothing_interval_top - round(Int, smoothing_interval_top / 2))
         slope_upper = (y_upper[i2] - y_upper[i1]) / (x_upper[i2] - x_upper[i1])
-        for i = i1:i2 
+        for i = i1:i2
             y_upper[i] = slope_upper*(x_upper[i] - x_upper[i2]) + y_upper[i2]
         end
         smoothing_interval_bottom = 10 #feel free to adjust this value to get a better blend - each airfoil you kinda have to play around with when you add lots of points
@@ -484,26 +490,10 @@ function naca65(clo, a, series_number; N=161, x=nothing, split=false, extra_blen
 end
 
 """
-Assumes x in non-dimensional range [0.0,1.0]
+    naca65_scaled(clo; N=161, x=nothing, split=false, extra_blending = false)
 
 
-Description from NACA Research Memorandum L51G31: "Systematic Two-dimensional Cascade Tests of NACA 65-Series Compressor Blades at Low Speeds:"
-
-The 65-series compressor blade family is formed by combining a basic thickness form with cambered mean lines.
-The basic thickness form used is the NACA 65(216)-010 thickness form with the ordinates increased by 0.0015 times the chordwise stations to provide slightly, increased thickness toward the trailing edge.
-In the scaled case, it was not derived for 10-percent thickness but was scaled down from the NACA 65,2-016 airfoil.
-The scaling procedure gives the best results whep it is restricted to maximum thickness changes of a few percent.
-The NACA 65-010 basic thickness has also been derived.
-These thickness forms differ slightly but are considered to be interchangeable.
-
-The basic mean line used is the a=1.0 mean line.
-The amount of camber is for the design lift coefficient for the isolated airfoil with cl_o of 1.0.
-Both ordinates and slopes are scaled directly to obtain other cambers.
-Cambered blade sections are obtained by applying the thickness perpendicular to the mean line at stations laid out along the chord line.
-In the designation the camber is given by the first number after the dash in tenths of cl_o.
-For example, the NACA 65-810 and NACA 65-(12)10 blade sections are cambered for cl_o = 0.8 and cl_o = 1.2, respectively.
-
-This specific function plots the NACA 65-010 series which uses special mean line and thickness form coordinates. It scales those coordinates based on the cl_o value.
+Specific version of naca65 for the NACA 65-010 series which uses special mean line and thickness form coordinates. It scales those coordinates based on the `cl_o` value.
 
 # Arguments
 - `clo::TF` : Design lift coefficient in tenths of chord. Usually first number after the 2nd dash (ie NACA 65-3-818 would input 0.8 for clo)
@@ -596,7 +586,7 @@ function naca65_scaled(clo; N=161, x=nothing, split=false, extra_blending = fals
         i1 = transition_index - round(Int, smoothing_interval_top / 2)
         i2 = transition_index + (smoothing_interval_top - round(Int, smoothing_interval_top / 2))
         slope_upper = (y_upper[i2] - y_upper[i1]) / (x_upper[i2] - x_upper[i1])
-        for i = i1:i2 
+        for i = i1:i2
             y_upper[i] = slope_upper*(x_upper[i] - x_upper[i2]) + y_upper[i2]
         end
         smoothing_interval_bottom = 7
@@ -614,4 +604,3 @@ function naca65_scaled(clo; N=161, x=nothing, split=false, extra_blending = fals
         return [reverse(x_lower); x_upper[2:end]], [reverse(y_lower); y_upper[2:end]]
     end
 end
-

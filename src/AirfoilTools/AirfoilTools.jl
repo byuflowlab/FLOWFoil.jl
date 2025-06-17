@@ -30,7 +30,7 @@ export NACA4, naca4, determine_naca4
 export naca65, naca65_scaled
 export BasicBSpline, basic_bspline#, determine_basic_bspline
 export KarmanTrefftz, karman_trefftz#, determine_karman_trefftz
-export Joukowsky, joukowsky#, determine_joukowsky
+export Joukowsky, joukowsky, joukowsky_flow#, determine_joukowsky
 export CST, cst, determine_cst
 export PARSEC, parsec, determine_parsec
 export ModifiedPARSEC, modified_parsec, determine_modified_parsec
@@ -62,8 +62,11 @@ include("parameterizations/basic_bspline.jl")
 # Parametric Section
 include("parameterizations/parsec.jl")
 
-# Conformal Mapping
-include("parameterizations/conformal_mapping.jl")
+# Joukowsky
+include("parameterizations/joukowsky.jl")
+
+# Karman_Trefftz
+include("parameterizations/karman_trefftz.jl")
 
 ##### ----- GEOMTERY MANIPULATIONS ----- #####
 

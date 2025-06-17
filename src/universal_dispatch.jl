@@ -3,45 +3,51 @@
 #---------------------------------#
 
 """
-    reformat_inputs(x, y, flow_angle)
-    reformat_inputs(coordinates, flow_angle)
+    reformat_inputs(x, y, flow_angles)
+    reformat_inputs(coordinates, flow_angles)
 
 Reformats inputs to be the expected format.
 
+Specifically, reverses coordinates that appear to be backwards, and puts coordinates in the vector of matrix format used throughout the various methods.
+
 # Arguments
-- `coordinates::Tuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a vecotr of matrices as well)
-- `flow_angle::Vector{Float}` : Vector of angles of attack (may be a single float as well)
+- `coordinates::NTuple{Matrix{Float}}` : Tuple of [x y] matrices of airfoil coordinates (may be a single matrix as well)
+- `flow_angles::Vector{Float}` : Vector of angles of attack in degrees (may be a single float as well)
+OR
+- `x::Vector{Float}` : Vector of x-coordinates of airfoil geometry
+- `y::Vector{Float}` : Vector of y-coordinates of airfoil geometry
+- `flow_angles::Vector{Float}` : Vector of angles of attack in degrees (may be a single float as well)
 
 # Returns
 - `coordinates::Vector{Float}` : reformatted coordinates
 - `nbody::Int` : number of bodies
 - `aoa::Vector{Float}` : reformatted angles of attack
 """
-function reformat_inputs(x, y, flow_angle)
+function reformat_inputs(x, y, flow_angles)
     # combine coordinates
-    return reformat_inputs([x y], flow_angle)
+    return reformat_inputs([x y], flow_angles)
 end
 
-function reformat_inputs(coordinates, flow_angle)
+function reformat_inputs(coordinates, flow_angles)
     # if coordinates is a tuple of coordinates, then splat it into a vector
-    return reformat_inputs([coordinates...], flow_angle)
+    return reformat_inputs([coordinates...], flow_angles)
 end
 
-function reformat_inputs(coordinates::AbstractMatrix, flow_angle)
+function reformat_inputs(coordinates::AbstractMatrix, flow_angles)
     sc = size(coordinates)
     @assert length(sc) == 2 "Coordinates must include both x and y coordinates"
     @assert 2 ∈ sc "Coordinates must only include x and y values"
 
     if sc[1] == 2
         # shape into expected dimensions
-        return reformat_inputs([coordinates[1, :] coordinates[2, :]], flow_angle)
+        return reformat_inputs([coordinates[1, :] coordinates[2, :]], flow_angles)
     else
         # pass through if already in expected dimensions
-        return reformat_inputs([coordinates], flow_angle)
+        return reformat_inputs([coordinates], flow_angles)
     end
 end
 
-function reformat_inputs(coordinates::AbstractArray, flow_angle)
+function reformat_inputs(coordinates::AbstractArray, flow_angles)
 
     # - Get Number of Bodies - #
     if length(size(coordinates)) == 1
@@ -55,10 +61,26 @@ function reformat_inputs(coordinates::AbstractArray, flow_angle)
     end
 
     # - Make Angles of Attack a Vector (if not one already) - #
-    if length(flow_angle) == 1
-        aoa = [flow_angle[1]]
+    if length(flow_angles) == 1
+        aoa = [flow_angles[1]]
     else
-        aoa = flow_angle
+        aoa = flow_angles
+    end
+
+    # - Check that ordering is correct - #
+    for ni in 1:nbody
+        if abs(coordinates[ni][1, 1] - coordinates[ni][end, 1]) > 1e-1
+            if coordinates[ni][1, 1] > coordinates[ni][end, 1]
+                @info "It appears body $(ni) is a body of revolution and the coordinates are given in reverse order.  Reversing coordinates to be from front to back. If this is not a body of revolution, then your trailing edge gap is likely too large."
+                reverse!(coordinates[ni]; dims=1)
+            end
+        else
+            nc = ceil(Int, length(coordinates[ni][:, 1]) / 2)
+            if sum(coordinates[ni][1:nc, 2]) / nc > sum(coordinates[ni][nc:end, 2]) / nc
+                @info "It appears that body $(ni) is an airfoil with coordinates given in reverse order. Reversing the coordinates to be clockwise. If the coordinates are in the correct order, then your airfoil is likely upside down."
+                reverse!(coordinates[ni]; dims=1)
+            end
+        end
     end
 
     return coordinates, nbody, aoa#, reynolds_numbers, mach_numbers

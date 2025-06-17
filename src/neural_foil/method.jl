@@ -32,7 +32,15 @@ end
 - `mach::Float=0.0` : Mach number
 
 # Keyword Arguments
-- `model_size::String="xlarge"` : model size from NeuralFoil
+- `model_size::String="xlarge"` : model size from NeuralFoil choose from:
+  - "xxsmall"
+  - "xsmall"
+  - "small"
+  - "medium"
+  - "large"
+  - "xlarge"
+  - "xxlarge"
+  - "xxxlarge"
 - `n_crit::Float=9.0` : n_crit for Xfoil
 - `xtr_upperFloat=1.0` : Xtr_Upper for Xfoil
 - `xtr_lowerFloat=1.0` : Xtr_Lower for Xfoil
