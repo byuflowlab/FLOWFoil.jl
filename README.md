@@ -1,4 +1,4 @@
-# FLOWFoil.jl ([Fl]()ight, [O]()ptimization, and [W]()ind Air[Foil]() Analysis)
+# FLOWFoil.jl ([F]()light, [L]()earning, [O]()ptimization, and [W]()ind Air[Foil]() Analysis)
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://byuflowlab.github.io/FLOWFoil.jl/stable)
 [![Build Status](https://github.com/byuflowlab/FLOWFoil.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/byuflowlab/FLOWFoil.jl/actions/workflows/CI.yml?query=branch%3Amain)
@@ -12,7 +12,7 @@ The following table includes the list of currently available methods (usage can 
 |Method|Inviscid Mfoil/Xfoil|Lewis|Martensen|LegacyXfoil|NeuralFoil|
 |---|---|---|---|---|---|
 Description|A re-derivation of the Mfoil/Xfoil method and implementation in Julia. Currently only the inviscid portions are derived/implemented. | An axisymmetric method, useful for ducts and bodies of revolution. | A periodic method (with optional planar functionality) for axial cascades. |  Wrapper of Xfoil.jl | Wrapper of NeuralFoil.jl |
-Panel Type | Linear Vortex (+ Constant Source) | Constant Vortex | Constant Vortex | Constant Source + Single Vortex | Linear Vortex + Constant Source | Multi-Layer Perceptron |
+Panel Type | Linear Vortex (+ Constant Source) | Constant Vortex | Constant Vortex | Linear Vortex + Constant Source | Multi-Layer Perceptron |
 Boundary Condition|Dirichlet|Dirichlet|Dirichlet|Dirichlet|N/A|
 Viscous|🚧|⭕️|⭕️|✅|✅|
 Single-body Functional|✅|✅|✅|✅|✅|
