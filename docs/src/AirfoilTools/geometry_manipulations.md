@@ -183,6 +183,7 @@ scatter!(x_rp, y_rp; label="Cosine Spaced", markersize=1.5)
 
 ```@docs
 AirfoilTools.repanel_airfoil
+AirfoilTools.repanel_revolution
 ```
 
 ## Contributing

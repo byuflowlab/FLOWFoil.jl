@@ -42,7 +42,7 @@ Repanels airfoil coordinates using Akima splines with `N` coordinate points.
 
 # Returns
 - `repaneled_x::AbstractArray{Float}` : Repaneled, cosine spaced x corrdinates of the airfoil
-- `repaneled_z::AbstractArray{Float}` : y coordinates of the repaneled airfoil obtained using an akima spline
+- `repaneled_y::AbstractArray{Float}` : y coordinates of the repaneled airfoil obtained using an akima spline
 """
 function repanel_airfoil(x, y; N=160)
     @assert length(x) == length(y) "x and y vectors must be the same length"
@@ -76,15 +76,15 @@ function repanel_airfoil(x, y; N=160)
 
     #figure out which spline is on top
     if maximum(akimaz1) > maximum(akimaz2) #then akimaz1 is on top so I need to reverse akimaz2
-        repaneled_z = [reverse(akimaz2); akimaz1[2:end]]
+        repaneled_y = [reverse(akimaz2); akimaz1[2:end]]
 
     else #otherwise akimaz2 is on top so I need to reverse akimaz1
-        repaneled_z = [reverse(akimaz1); akimaz2[2:end]]
+        repaneled_y = [reverse(akimaz1); akimaz2[2:end]]
     end
 
     repaneled_x = [reverse(akimax); akimax[2:end]]
 
-    return repaneled_x, repaneled_z
+    return repaneled_x, repaneled_y
 end
 
 """
@@ -108,6 +108,77 @@ function repanel_airfoil(coordinates; N=160)
     xpane, zpane = repanel_airfoil(x, y; N=N)
 
     return [xpane zpane]
+end
+
+"""
+    repanel_revolution(coordinates; N=160)
+
+Repanels body of revolution coordinates using Akima splines with `N` coordinate points.
+
+# Arguments
+- `coordinates::Array{Float}` : Array of [x y] coordinates
+
+# Keyword Arguements
+- `N::Int=160` : Number of data points to be returned after repaneling. Will only return odd numbers, if N is even, N+1 points will be returned.
+
+# Returns
+- `repaneled_coordinates::Array{Float}` : new coordinate array.
+"""
+function repanel_revolution(coordinates; N=160, normalize=true)
+    x = coordinates[:, 1]
+    y = coordinates[:, 2]
+
+    xpane, ypane = repanel_revolution(x, y; N=N, normalize=normalize)
+
+    return [xpane ypane]
+end
+
+"""
+    repanel_revolution(x, y; N=160)
+
+Repanels body of revolution coordinates using Akima splines with `N` coordinate points.
+
+# Arguments
+- `x::AbstractArray{Float}` : vector containing the x coordinates of the airfoil
+- `y::AbstractArray{Float}` : vector containing the y coordinates of the airfoil
+
+# Keyword Arguements
+- `N::Int` : Number of data points to be returned after repaneling. Will only return odd numbers, if N is even, N+1 points will be returned.
+
+# Returns
+- `repaneled_x::AbstractArray{Float}` : Repaneled, cosine spaced x corrdinates of the airfoil
+- `repaneled_y::AbstractArray{Float}` : y coordinates of the repaneled airfoil obtained using an akima spline
+"""
+
+function repanel_revolution(x, y; N=160, normalize=true)
+    @assert length(x) == length(y) "X and Y vectors must be the same length"
+
+    if normalize
+        scale = 1.0
+        le = 0.0
+    else
+        scale = maximum(x) - minimum(x)
+        le = minimum(x)
+    end
+    #First normalize the airfoil to between 0 and 1
+    normalize_airfoil!(x, y)
+
+    #let's figure out the cosine spacing.
+    npoints = ceil(Int, N)
+    akimax = cosine_spacing(npoints)
+
+    #Now check and see which x and y need to be reversed
+    #x has to be ascending (0-->1)
+
+    if x[1] > x[end]
+        x = reverse(x)
+        y = reverse(y)
+    end
+
+    #do the akima spline
+    akimay = FLOWMath.akima(x, y, akimax)
+
+    return akimax * scale .+ le, akimay * scale
 end
 
 """
