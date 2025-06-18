@@ -9,7 +9,7 @@ alpha = 4.0
 x, y = FLOWFoil.AirfoilTools.joukowsky(center, radius, N=161)
 
 # Plot Geometry
-plot(x, y; aspectratio=1, xlabel=L&quot;x&quot;, ylabel=L&quot;y&quot;, label=&quot;&quot;)</code></pre><img src="9f2dc5e0.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - Analytic Solution - #
+plot(x, y; aspectratio=1, xlabel=L&quot;x&quot;, ylabel=L&quot;y&quot;, label=&quot;&quot;)</code></pre><img src="ac827742.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - Analytic Solution - #
 surface_velocity, surface_pressure_coefficient, cl = FLOWFoil.AirfoilTools.joukowsky_flow(
     center, radius, alpha; N=161
 )
@@ -27,7 +27,7 @@ plot(
     linestyle=:dash,
     label=&quot;Analytic Solution&quot;,
 )
-plot!(x[2:(end - 1)], outputs.cp[2:(end - 1)]; label=&quot;FLOWFoil&quot;)</code></pre><img src="b509eeb3.svg" alt="Example block output"/><hr/><h2 id="Axisymmetric-Body-of-Revolution"><a class="docs-heading-anchor" href="#Axisymmetric-Body-of-Revolution">Axisymmetric Body of Revolution</a><a id="Axisymmetric-Body-of-Revolution-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Body-of-Revolution" title="Permalink"></a></h2><p>For this example, we use experimental data of a body of revolution from chapter 4 of <a href="https://doi.org/10.1017/CBO9780511529542">&quot;Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems&quot; by  R. I. Lewis</a>. Note that for the axisymmetric examples, we will use (z,r) rather than (x,y) to name our coordinates in the common cylindrical frame that ducts and bodies of revolution are defined.</p><pre><code class="language-julia hljs">using FLOWFoil
+plot!(x[2:(end - 1)], outputs.cp[2:(end - 1)]; label=&quot;FLOWFoil&quot;)</code></pre><img src="90eddc57.svg" alt="Example block output"/><hr/><h2 id="Axisymmetric-Body-of-Revolution"><a class="docs-heading-anchor" href="#Axisymmetric-Body-of-Revolution">Axisymmetric Body of Revolution</a><a id="Axisymmetric-Body-of-Revolution-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Body-of-Revolution" title="Permalink"></a></h2><p>For this example, we use experimental data of a body of revolution from chapter 4 of <a href="https://doi.org/10.1017/CBO9780511529542">&quot;Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems&quot; by  R. I. Lewis</a>. Note that for the axisymmetric examples, we will use (z,r) rather than (x,y) to name our coordinates in the common cylindrical frame that ducts and bodies of revolution are defined.</p><pre><code class="language-julia hljs">using FLOWFoil
 
 data_path = normpath(
     joinpath(
@@ -46,7 +46,7 @@ plot(
     xlabel=L&quot;z&quot;,
     ylabel=L&quot;r&quot;,
     label=&quot;&quot;
-)</code></pre><img src="8ae0c634.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - FLOWFoil Solution - #
+)</code></pre><img src="ff1f442b.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - FLOWFoil Solution - #
 outputs = analyze(center_body_coordinates, [0.0]; method=Lewis(; body_of_revolution=[true]))
 
 # - Plot Outputs - #
@@ -61,7 +61,7 @@ plot!(
     0.5 * (center_body_coordinates[1:(end - 1), 1] .+ center_body_coordinates[2:end, 1]),
     outputs.vs;
     label=&quot;FLOWFoil&quot;,
-)</code></pre><img src="f593ff16.svg" alt="Example block output"/><hr/><h2 id="Axisymmetric-Annular-Airfoil-(Duct)"><a class="docs-heading-anchor" href="#Axisymmetric-Annular-Airfoil-(Duct)">Axisymmetric Annular Airfoil (Duct)</a><a id="Axisymmetric-Annular-Airfoil-(Duct)-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Annular-Airfoil-(Duct)" title="Permalink"></a></h2><p>If we define an airfoil shape in an axisymmetric scheme, we model an annular airfoil, or in other words, a duct.  To do so, we follow a similar procedure to bodies of revolution with the exception that we set <code>body_of_revolution=false</code>. The following case comes from the same book as the body of revolution above, but this time for a duct with a NACA 662-015 cross section.</p><pre><code class="language-julia hljs">using FLOWFoil
+)</code></pre><img src="82aa1d06.svg" alt="Example block output"/><hr/><h2 id="Axisymmetric-Annular-Airfoil-(Duct)"><a class="docs-heading-anchor" href="#Axisymmetric-Annular-Airfoil-(Duct)">Axisymmetric Annular Airfoil (Duct)</a><a id="Axisymmetric-Annular-Airfoil-(Duct)-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Annular-Airfoil-(Duct)" title="Permalink"></a></h2><p>If we define an airfoil shape in an axisymmetric scheme, we model an annular airfoil, or in other words, a duct.  To do so, we follow a similar procedure to bodies of revolution with the exception that we set <code>body_of_revolution=false</code>. The following case comes from the same book as the body of revolution above, but this time for a duct with a NACA 662-015 cross section.</p><pre><code class="language-julia hljs">using FLOWFoil
 
 duct_path = normpath(
     joinpath(splitdir(pathof(FLOWFoil))[1], &quot;..&quot;, &quot;test&quot;, &quot;data&quot;, &quot;naca_662-015.jl&quot;)
@@ -76,7 +76,7 @@ plot(
     xlabel=L&quot;z&quot;,
     ylabel=L&quot;r&quot;,
     label=&quot;&quot;,
-)</code></pre><img src="40087055.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - FLOWFoil Solution - #
+)</code></pre><img src="b2dd84ea.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - FLOWFoil Solution - #
 outputs = analyze(duct_coordinates, [0.0]; method=Lewis(; body_of_revolution=[false]))
 
 # - Plot Outputs - #
@@ -99,7 +99,7 @@ plot!(
     0.5 * (duct_coordinates[1:(end - 1), 1] .+ duct_coordinates[2:end, 1]),
     outputs.cp;
     label=&quot;FLOWFoil&quot;,
-)</code></pre><img src="effd6409.svg" alt="Example block output"/><p>As above, we plot experimental results along with our calculated values.</p><hr/><h2 id="Axisymmetric-Mutli-element-Systems"><a class="docs-heading-anchor" href="#Axisymmetric-Mutli-element-Systems">Axisymmetric Mutli-element Systems</a><a id="Axisymmetric-Mutli-element-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Mutli-element-Systems" title="Permalink"></a></h2><p>As an example of an multi-element axisymmetric system (such as that used for a ducted rotor), we will simply combine the two previous cases. Note that we include the coordinates for the various bodies as a tuple of matrices, and in this case, we need to indicate in the <code>Lewis</code> method fields which of the bodies is a body of revolution (currently, the method only works if the annular airfoil comes first). We simply put the previous two cases together to show that a multi-body cases works, and the results are reasonable.</p><pre><code class="language-julia hljs">using FLOWFoil
+)</code></pre><img src="875f2c6c.svg" alt="Example block output"/><p>As above, we plot experimental results along with our calculated values.</p><hr/><h2 id="Axisymmetric-Mutli-element-Systems"><a class="docs-heading-anchor" href="#Axisymmetric-Mutli-element-Systems">Axisymmetric Mutli-element Systems</a><a id="Axisymmetric-Mutli-element-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Axisymmetric-Mutli-element-Systems" title="Permalink"></a></h2><p>As an example of an multi-element axisymmetric system (such as that used for a ducted rotor), we will simply combine the two previous cases. Note that we include the coordinates for the various bodies as a tuple of matrices, and in this case, we need to indicate in the <code>Lewis</code> method fields which of the bodies is a body of revolution (currently, the method only works if the annular airfoil comes first). We simply put the previous two cases together to show that a multi-body cases works, and the results are reasonable.</p><pre><code class="language-julia hljs">using FLOWFoil
 
 # - Plot Geometry - #
 plot(
@@ -114,7 +114,7 @@ plot!(
     duct_coordinates[:, 1],
     duct_coordinates[:, 2];
     label=&quot;Duct&quot;,
-)</code></pre><img src="6324b040.svg" alt="Example block output"/><pre><code class="language-julia hljs">outputs = analyze(
+)</code></pre><img src="69d8f0fd.svg" alt="Example block output"/><pre><code class="language-julia hljs">outputs = analyze(
     (duct_coordinates, center_body_coordinates), [0.0];
     method=Lewis(; body_of_revolution=[false, true]),
 )
@@ -130,7 +130,7 @@ plot!(
     0.5 * (center_body_coordinates[1:(end - 1), 1] .+ center_body_coordinates[2:end, 1]),
     outputs.vs[2];
     label=&quot;FLOWFoil Center Body with Duct Effects&quot;,
-)</code></pre><img src="a27bf179.svg" alt="Example block output"/><pre><code class="language-julia hljs">scatter(
+)</code></pre><img src="5c54510e.svg" alt="Example block output"/><pre><code class="language-julia hljs">scatter(
     pressurexupper,
     pressureupper;
     markershape=:utriangle,
@@ -149,7 +149,7 @@ plot!(
     0.5 * (duct_coordinates[1:(end - 1), 1] .+ duct_coordinates[2:end, 1]),
     outputs.cp[1];
     label=&quot;FLOWFoil Duct with Center Body Effects&quot;,
-)</code></pre><img src="f9619daa.svg" alt="Example block output"/><p>Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.</p><hr/><h2 id="Linear-Cascade"><a class="docs-heading-anchor" href="#Linear-Cascade">Linear Cascade</a><a id="Linear-Cascade-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-Cascade" title="Permalink"></a></h2><p>For this example, we uses data from chapter 2 of <a href="https://doi.org/10.1017/CBO9780511529542">&quot;Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems&quot; by  R. I. Lewis</a> for a linear cascade section with inflow angle of +/- 35 degrees with zero twist.</p><pre><code class="language-julia hljs">using FLOWFoil
+)</code></pre><img src="41d60eeb.svg" alt="Example block output"/><p>Plotting the geometry and the output velocities and pressures show expected behavior when combining these two cases.</p><hr/><h2 id="Linear-Cascade"><a class="docs-heading-anchor" href="#Linear-Cascade">Linear Cascade</a><a id="Linear-Cascade-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-Cascade" title="Permalink"></a></h2><p>For this example, we uses data from chapter 2 of <a href="https://doi.org/10.1017/CBO9780511529542">&quot;Vortex Element Methods for fluid Dynamic Analysis of Engineering Systems&quot; by  R. I. Lewis</a> for a linear cascade section with inflow angle of +/- 35 degrees with zero twist.</p><pre><code class="language-julia hljs">using FLOWFoil
 
 #this file contains the coordinates of the C4/70C50 airfoil as defined by lewis as well as the values of the pressure coefficient
 data_path = normpath(
@@ -163,7 +163,7 @@ include(data_path)
 coordinates = [x y]
 
 # - Plot Geometry - #
-plot(x, y; apsectratio=1, xlabel=L&quot;x&quot;, ylabel=L&quot;y&quot;, label=&quot;&quot;)</code></pre><img src="5dd59f94.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - Set up remaining inputs - #
+plot(x, y; apsectratio=1, xlabel=L&quot;x&quot;, ylabel=L&quot;y&quot;, label=&quot;&quot;)</code></pre><img src="884742c6.svg" alt="Example block output"/><pre><code class="language-julia hljs"># - Set up remaining inputs - #
 # Define method inputs
 method = Martensen(; solidity=1.0 / 0.900364, stagger=0.0)
 
@@ -188,7 +188,7 @@ scatter(
     label=&quot;Lewis: -35°&quot;,
     yflip=true,
 )
-plot!(xmid, outputs.cp[:, 1]; label=&quot;FLOWFoil&quot;)</code></pre><img src="02bd71d9.svg" alt="Example block output"/><pre><code class="language-julia hljs"># Plot cp for alpha = +35 degrees
+plot!(xmid, outputs.cp[:, 1]; label=&quot;FLOWFoil&quot;)</code></pre><img src="96f1a88a.svg" alt="Example block output"/><pre><code class="language-julia hljs"># Plot cp for alpha = +35 degrees
 
 scatter(
     x_from_web_plot_digitizer_positive_35_degrees,
@@ -198,4 +198,4 @@ scatter(
     label=&quot;Lewis: +35°&quot;,
     yflip=true,
 )
-plot!(xmid, outputs.cp[:, 2]; label=&quot;FLOWFoil&quot;)</code></pre><img src="d4e555e1.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../additional_tutorials/">« Tutorials</a><a class="docs-footer-nextpage" href="../api/">API Index »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.0 on <span class="colophon-date" title="Tuesday 17 June 2025 23:14">Tuesday 17 June 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+plot!(xmid, outputs.cp[:, 2]; label=&quot;FLOWFoil&quot;)</code></pre><img src="1289d86f.svg" alt="Example block output"/></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../additional_tutorials/">« Tutorials</a><a class="docs-footer-nextpage" href="../api/">API Index »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.0 on <span class="colophon-date" title="Wednesday 18 June 2025 21:12">Wednesday 18 June 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
