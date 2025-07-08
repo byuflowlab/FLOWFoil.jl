@@ -66,7 +66,22 @@ function analyze(coordinates, flow_angles; method::Method=Xfoil())
         # Solve System
         strengths = solve(method, system_matrices)
 
-        # Post Process Solution
-        return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+        if typeof(method) <: Xfoil && method.visualize
+            x, y, stream_grid = calculate_stream_grid(
+                method, nbodies, panel_geometry, system_geometry, strengths
+            )
+
+            return post_process(
+                method, panel_geometry, system_geometry, strengths, flow_angles
+            ),
+            x, y,
+            stream_grid
+
+        else
+            # Post Process Solution
+            return post_process(
+                method, panel_geometry, system_geometry, strengths, flow_angles
+            )
+        end
     end
 end

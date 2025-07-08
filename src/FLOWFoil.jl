@@ -33,6 +33,7 @@ include("xfoil/singularities.jl")
 include("xfoil/system_matrices.jl")
 include("xfoil/solve.jl")
 include("xfoil/post_process.jl")
+include("xfoil/visualize.jl")
 
 # Lewis (Axisymmetric)
 include("lewis/method.jl")
