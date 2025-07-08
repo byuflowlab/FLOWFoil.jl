@@ -100,21 +100,22 @@ function get_stream_grid_value(
 end
 
 """
-    function calculate_stream_grid(problem, solution, xrange, zrange; Nx=100, Nz=100)
+    calculate_stream_grid(
+        method::Xfoil, nbodies, panel_geometry, system_geometry, strengths
+    )
 
 Calculate stream function values across x- and y-ranges.
 
 # Arguments
- - `xrange::Array{Float}` : minimum and maximum values of grid in x-direction, [xmin xmax]
- - `zrange::Array{Float}` : minimum and maximum values of grid in y-direction, [zmin zmax]
-
-# Keyword Arguments
- - `Nx::Int` : Number of gridpoints in x-direction
- - `Nz::Int` : Number of gridpoints in y-direction
+- `method::Xfoil` : method
+- `nbodies::Int` : number of bodies
+- `panel_geometry::NamedTuple` : panel geometry named tuple
+- `system_geometry::NamedTuple` : system geometry named tuple
+- `strengths::Matrix` : matrix of strengths (output of linear system solve)
 
 # Returns
- - `xgrid::Array{Float}` : Array of x-locations of gridpoints
- - `zgrid::Array{Float}` : Array of y-locations of gridpoints
+ - `x_grid::Array{Float}` : Array of x-locations of gridpoints
+ - `y_grid::Array{Float}` : Array of y-locations of gridpoints
  - `stream_grid::Array{Float,2}` : Matrix of stream function values at gridpoints
 
 """
@@ -126,14 +127,14 @@ function calculate_stream_grid(
     nodes = panel_geometry.nodes
 
     # get grid points
-    xgrid = range(method.xrange[1]; stop=method.xrange[2], length=method.Nx)
-    zgrid = range(method.zrange[1]; stop=method.zrange[2], length=method.Nz)
+    x_grid = range(method.x_range[1]; stop=method.x_range[2], length=method.Nx)
+    y_grid = range(method.y_range[1]; stop=method.y_range[2], length=method.Ny)
 
     # Calculate gamma on each panel
     strengths = get_gamma_magnitudes(strengths, method.angle_of_attack)
 
     # initialize grid
-    stream_grid = [0.0 for y in zgrid, x in xgrid]
+    stream_grid = [0.0 for y in y_grid, x in x_grid]
 
     # add in contributions for each airfoil
     nidx = system_geometry.node_indices
@@ -149,9 +150,9 @@ function calculate_stream_grid(
                 blunt_te=system_geometry.TE_geometry.blunt_te[m],
                 txp=system_geometry.TE_geometry.txp[m],
                 tdp=system_geometry.TE_geometry.tdp[m],
-            ) for y in zgrid, x in xgrid
+            ) for y in y_grid, x in x_grid
         ]
     end
 
-    return xgrid, zgrid, stream_grid
+    return x_grid, y_grid, stream_grid
 end
