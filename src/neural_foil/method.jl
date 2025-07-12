@@ -110,10 +110,20 @@ function analyze_nf(coordinates, flow_angles; method=NeuralFoil())
     )
 
     # - Apply Mach Corrections - #
-    if !iszero(method.Ma)
-        # Laitone Compressibility correction
-        outputs.cl .= laitone_compressibility_correction.(outputs.cl, method.Ma)
-        outputs.cm .= laitone_compressibility_correction.(outputs.cm, method.Ma)
+    if length(method.Ma) == length(method.Re)
+        for (i, (m, r)) in enumerate(zip(method.Ma, method.Re))
+            if !iszero(m)
+                # Laitone Compressibility correction
+                outputs.cl[:, i] .= laitone_compressibility_correction.(outputs.cl[:, i], m)
+                outputs.cm[:, i] .= laitone_compressibility_correction.(outputs.cm[:, i], m)
+            end
+        end
+    else
+        if !iszero(method.Ma)
+            # Laitone Compressibility correction
+            outputs.cl .= laitone_compressibility_correction.(outputs.cl, method.Ma)
+            outputs.cm .= laitone_compressibility_correction.(outputs.cm, method.Ma)
+        end
     end
 
     # - Return Outputs - #
