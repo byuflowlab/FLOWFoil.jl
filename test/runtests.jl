@@ -6,7 +6,7 @@ using Test
 using LinearAlgebra
 
 using ForwardDiff
-using FiniteDiff
+using FiniteDifferences
 using ImplicitAD
 
 import NeuralFoil as nf
