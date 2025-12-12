@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Calling DuctAPE from Python · FLOWFoil.jl</title><meta name="title" content="Calling DuctAPE from Python · FLOWFoil.jl"/><meta property="og:title" content="Calling DuctAPE from Python · FLOWFoil.jl"/><meta property="twitter:title" content="Calling DuctAPE from Python · FLOWFoil.jl"/><meta name="description" content="Documentation for FLOWFoil.jl."/><meta property="og:description" content="Documentation for FLOWFoil.jl."/><meta property="twitter:description" content="Documentation for FLOWFoil.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="FLOWFoil.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">FLOWFoil.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">FLOWFoil</span><ul><li><a class="tocitem" href="../tutorial/">Quick Start</a></li><li><a class="tocitem" href="../additional_tutorials/">Tutorials</a></li><li><a class="tocitem" href="../examples/">Additional Examples</a></li><li><a class="tocitem" href="../api/">API Index</a></li></ul></li><li><span class="tocitem">AirfoilTools</span><ul><li><a class="tocitem" href="../../AirfoilTools/intro/">Intro</a></li><li><a class="tocitem" href="../../AirfoilTools/parameterizations/">Airfoil Generation</a></li><li><a class="tocitem" href="../../AirfoilTools/geometry_manipulations/">Airfoil Manipulation</a></li><li><a class="tocitem" href="../../AirfoilTools/api/">API Index</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Calling DuctAPE from Python</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Calling DuctAPE from Python</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/byuflowlab/FLOWFoil.jl/blob/{commit}{path}#L{line}" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/byuflowlab/FLOWFoil.jl/blob/main/docs/src/FLOWFoil/python_tutorial.md#" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Calling-DuctAPE-from-Python"><a class="docs-heading-anchor" href="#Calling-DuctAPE-from-Python">Calling DuctAPE from Python</a><a id="Calling-DuctAPE-from-Python-1"></a><a class="docs-heading-anchor-permalink" href="#Calling-DuctAPE-from-Python" title="Permalink"></a></h1><p>In this example we repeat the <a href="../tutorial/">quick start</a>, but with Python.  We won&#39;t repeat all the usage details described in the quick start.  We are using the <a href="https://juliapy.github.io/PythonCall.jl/stable/">JuliaCall</a> packages to enable this.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-python hljs"># optional: point python to a specific julia installation
+# import os
+# os.environ[&quot;JULIA_BINDIR&quot;] = path_to_julia
+
+from juliacall import Main as jl
+
+# If needed, install DuctAPE into the python julia environment
+jl.seval(&quot;using Pkg&quot;)
+jl.Pkg.add(&quot;FLOWFoil&quot;)
+
+# Load DuctAPE
+jl.seval(&quot;using FLOWFoil&quot;)
+
+import numpy as np</code></pre><h2 id="Example"><a class="docs-heading-anchor" href="#Example">Example</a><a id="Example-1"></a><a class="docs-heading-anchor-permalink" href="#Example" title="Permalink"></a></h2><pre><code class="language-python hljs"># - Same Quick Start as Before, but with some minor changes for Python syntax - #
+
+# AirfoilTools is exported from FLOWFoil
+x, y = jl.AirfoilTools.naca4()
+
+# choose angles of attack
+angles_of_attack = np.arange(-5.0, 15.0 + 1e-6, 1.0)  # include 15.0
+
+# Run solve
+outputs = jl.analyze(x, y, angles_of_attack)
+
+# Print some outputs.
+println(&quot;cl: &quot;, outputs.cl)</code></pre><h2 id="Automatic-Derivatives"><a class="docs-heading-anchor" href="#Automatic-Derivatives">Automatic Derivatives</a><a id="Automatic-Derivatives-1"></a><a class="docs-heading-anchor-permalink" href="#Automatic-Derivatives" title="Permalink"></a></h2><p>We now continue the example demonstrating how to get derivatives for use in Python (but where the derivative computation occurs in Julia via algorithmic differentiation).  For this functionality we need to load the <a href="https://juliapy.github.io/PythonCall.jl/stable/">PythonCall</a> package (which enables us to call back into Python from Julia), and we need the <a href="https://github.com/byuflowlab/ImplicitAD.jl">ImplicitAD</a> packages which provides a convenience function for the derivative computation.  Alternatively, for more advanced users you can just use the Julia differentiation packages directly (ForwardDiff, ReverseDiff, etc.).  Note that for Julia AD to work, all the function calls will need to be Julia function calls.  Even though all the setup is happening here in Python, we are only setting up inputs.  All functions are calls to Julia (jl.somefunction())</p><p>The below example demonstrates a forward mode Jacobian and a forward mode Jacobian-vector product.  Other options (reverse Jacobian, reverse vector-Jacobian product) are discussed in <a href="https://github.com/byuflowlab/ImplicitAD.jl">ImplicitAD</a> docs.</p><pre><code class="language-python hljs"># load PythonCall BEFORE ImplicitAD
+jl.seval(&quot;using PythonCall&quot;)
+
+# Install ImplicitAD as needed
+jl.seval(&quot;using Pkg&quot;)
+jl.Pkg.add(&quot;ImplicitAD&quot;)
+
+# Load ImplicitAD.derivativesetup
+jl.seval(&quot;using ImplicitAD: derivativesetup&quot;)
+
+nc = len(x)
+
+# ImplicitAD expects a funciton we want to differentiate in the form f = func(x, p)
+# where f is output vector, x is input vector, and p are parameters we do not differentiate w.r.t.
+def ffwrap(x, p):
+
+    outputs = jl.analyze(x, y, angles_of_attack)
+
+    return [outputs.cl]
+
+
+p = ()
+jacobian = jl.derivativesetup(
+    ffwrap, x, p, &quot;fjacobian&quot;
+)  # a forward-mode Jacobian is one option
+
+# preallocate Jacobian then evaluate
+J = np.zeros((2, len(x)))
+jacobian(J, x)
+print(J)
+# can now change x, and evaluate jacobian(J, x) repeatedly at other points
+
+# demonstrate a Jacobian-vector product
+jvp = jl.derivativesetup(ffwrap, x, p, &quot;jvp&quot;)
+xdot = np.ones(len(x))
+fdot = np.zeros(2)
+jvp(fdot, x, xdot)
+print(fdot)
+# can continue to call jvp for different x, xdot pairs</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.11.0 on <span class="colophon-date" title="Friday 12 December 2025 21:19">Friday 12 December 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
