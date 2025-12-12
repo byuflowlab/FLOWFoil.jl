@@ -66,12 +66,12 @@ function post_process(
     # - Initialize Outputs - #
     TF = eltype(system_geometry.r_x)
 
-    vs = [zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies]
-    cp = [zeros(idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies]
+    vs = [zeros(TF, idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies]
+    cp = [zeros(TF, idx[m][end] - idx[m][1] + 1, naoa) for m in 1:nbodies]
 
-    cl = zeros(naoa, nbodies)
-    cd = zeros(naoa, nbodies)
-    cm = zeros(naoa, nbodies)
+    cl = zeros(TF, naoa, nbodies)
+    cd = zeros(TF, naoa, nbodies)
+    cm = zeros(TF, naoa, nbodies)
 
     for m in 1:nbodies
         # vortex strengths per unit length

@@ -98,10 +98,10 @@ function post_process(
     cm = zeros(TF, naoa, nbodies)
 
     # Surface Velocities
-    vs = [zeros(nidx[m][end] - nidx[m][1] + 1, naoa) for m in 1:nbodies]
+    vs = [zeros(TF, nidx[m][end] - nidx[m][1] + 1, naoa) for m in 1:nbodies]
 
     # Surface Pressures
-    cp = [zeros(nidx[m][end] - nidx[m][1] + 1, naoa) for m in 1:nbodies]
+    cp = [zeros(TF, nidx[m][end] - nidx[m][1] + 1, naoa) for m in 1:nbodies]
 
     ##### ----- Loop Through Bodies ----- #####
     for m in 1:nbodies

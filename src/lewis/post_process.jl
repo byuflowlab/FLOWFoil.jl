@@ -64,16 +64,16 @@ function post_process(
 
     # - Rename for Convenience - #
     idx = system_geometry.panel_indices
-    @show nbodies = system_geometry.nbodies
+    nbodies = system_geometry.nbodies
 
     # - Initialize Outputs - #
     TF = eltype(system_geometry.k2)
 
-    vs = [zeros(idx[m][end] - idx[m][1] + 1, 1) for m in 1:nbodies]
-    cp = [zeros(idx[m][end] - idx[m][1] + 1, 1) for m in 1:nbodies]
-    cl = zeros(1, nbodies)
-    cd = zeros(1, nbodies)
-    cm = zeros(1, nbodies)
+    vs = [zeros(TF, idx[m][end] - idx[m][1] + 1, 1) for m in 1:nbodies]
+    cp = [zeros(TF, idx[m][end] - idx[m][1] + 1, 1) for m in 1:nbodies]
+    cl = zeros(TF, 1, nbodies)
+    cd = zeros(TF, 1, nbodies)
+    cm = zeros(TF, 1, nbodies)
 
     for m in 1:nbodies
         # - Extract surface velocity - #
