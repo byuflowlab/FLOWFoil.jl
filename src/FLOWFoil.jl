@@ -10,6 +10,14 @@ using SpecialFunctions
 import NeuralFoil as nf
 import Xfoil as xf
 
+using PyPlot
+using Infiltrator
+using DelimitedFiles
+import NonlinearSolve
+using SparseArrays
+import ForwardDiff
+import Roots
+
 #---------------------------------#
 #             INCLUDES            #
 #---------------------------------#
@@ -33,6 +41,13 @@ include("xfoil/singularities.jl")
 include("xfoil/system_matrices.jl")
 include("xfoil/solve.jl")
 include("xfoil/post_process.jl")
+include("xfoil/XfoilTyler_tmp/operating_parameters.jl")
+include("xfoil/XfoilTyler_tmp/geometry_tmp.jl")
+include("xfoil/XfoilTyler_tmp/inviscid_tmp.jl")
+include("xfoil/XfoilTyler_tmp/viscous.jl")
+include("xfoil/XfoilTyler_tmp/local_solvers.jl")
+include("xfoil/XfoilTyler_tmp/plotting.jl")
+include("xfoil/XfoilTyler_tmp/couple.jl")
 
 # Lewis (Axisymmetric)
 include("lewis/method.jl")

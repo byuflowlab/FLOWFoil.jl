@@ -53,6 +53,11 @@ function analyze(coordinates, flow_angles; method::Method=Xfoil())
         return analyze_nf(coordinates[1], flow_angles; method=method)
     elseif typeof(method) <: LegacyXfoil
         return analyze_lxf(coordinates[1], flow_angles; method=method)
+    elseif method.viscous
+        if sum(length, flow_angles) > 1
+            error("only one angle with viscous for now")
+        end
+        return run_coupled_system_global(coordinates[1][:, 1], coordinates[1][:, 2]; alpha=flow_angles[1], method=Xfoil())
     else
         # Generate Panel Geometry
         panel_geometry = generate_panel_geometry(method, coordinates)
