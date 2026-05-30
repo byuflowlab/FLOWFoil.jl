@@ -1,9 +1,8 @@
 function solve(method::Xfoil, system_matrices)
-    if method.viscous
-        error("Viscous method not yet implemented.")
-    else
-        return solve_inviscid(method, system_matrices)
-    end
+    # The viscous coupled solve is built on top of the inviscid linear solve, so
+    # we always run the inviscid solve first. The viscous post-step is dispatched
+    # by `analyze` itself.
+    return solve_inviscid(method, system_matrices)
 end
 
 """

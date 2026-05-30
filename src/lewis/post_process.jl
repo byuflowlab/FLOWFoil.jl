@@ -30,6 +30,21 @@ function post_process(
     )
 end
 
+# Convenience overloads to absorb the `system_matrices` arg threaded through by `analyze`.
+function post_process(
+    method::Lewis,
+    panel_geometry,
+    system_geometry,
+    system_matrices,
+    strengths,
+    flow_angles;
+    npanels=80,
+)
+    return post_process(
+        method, panel_geometry, system_geometry, strengths, flow_angles; npanels=npanels
+    )
+end
+
 """
     post_process(method::Lewis, panel_geometry::AbstractVector, system_geometry, strengths, flow_angles; npanels=80)
 

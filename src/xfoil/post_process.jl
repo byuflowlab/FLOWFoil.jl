@@ -20,11 +20,14 @@ function post_process(
     method::Xfoil,
     panel_geometry::NamedTuple,
     system_geometry,
+    system_matrices,
     strengths,
     flow_angles;
     npanels=80,
 )
-    return post_process(method, [panel_geometry], system_geometry, strengths, flow_angles)
+    return post_process(
+        method, [panel_geometry], system_geometry, system_matrices, strengths, flow_angles
+    )
 end
 
 """
@@ -52,6 +55,7 @@ function post_process(
     ::Xfoil,
     panel_geometry::AbstractVector,
     system_geometry,
+    system_matrices,
     strengths,
     flow_angles; #debug=false
 )
@@ -200,8 +204,8 @@ function post_process(
         end
     end
     if nbodies == 1
-        return InviscidOutputs(vs[1], cp[1], cl, cd, cm)
+        return InviscidOutputs(vs[1], cp[1], cl, cd, cm, strengths, system_matrices.A)
     else
-        return InviscidOutputs(vs, cp, cl, cd, cm)
+        return InviscidOutputs(vs, cp, cl, cd, cm, strengths, system_matrices.A)
     end
 end

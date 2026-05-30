@@ -126,19 +126,10 @@ function assemble_influence_matrix(method::Xfoil, system_geometry)
                     # otherwise keep everything at -1.0
                     amat[idx_j1:idx_j2, idx_i] .= -1.0
 
-                    ### --- Add influence of trailing edge gap panel --- ###
-                    for i in nidx[m]
-
-                        # Get panel influence coefficients
-                        sigmate = calculate_constant_source_influence(TE_geometry, i, m)
-                        gammate = sum(calculate_constant_vortex_influence(TE_geometry, i, m))
-
-                        # Add/subtract from relevant matrix entries
-                        amat[i, nidx[m][1]] +=
-                            0.5 * (gammate * TE_geometry.tdp[m] - sigmate * TE_geometry.txp[m])
-                        amat[i, nidx[m][end]] +=
-                            0.5 * (sigmate * TE_geometry.txp[m] - gammate * TE_geometry.tdp[m])
-                    end
+                    # Add the mfoil-style blunt-TE source-vortex closure-panel
+                    # contribution. Replaces a prior treatment that gave gammas
+                    # disagreeing with mfoil/legacy Xfoil on blunt-TE airfoils.
+                    apply_blunt_te_treatment_mfoil!(amat, nidx[m], system_geometry.nodes)
                 end
             end
         end
