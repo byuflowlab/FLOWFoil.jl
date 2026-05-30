@@ -7,12 +7,14 @@ The analyze function is the way to run analyses with any method available in FLO
 FLOWFoil.analyze
 ```
 
-## Xfoil (inviscid) Method
+## Xfoil Method
 
-An Xfoil-like method, actually based on [Xfoil](https://websites.umich.edu/~kfid/codes.html) can be accessed using the `Xfoil` method type:
+An Xfoil-like method, based on [Xfoil](https://websites.umich.edu/~kfid/codes.html), can be accessed using the `Xfoil` method type. It is also exported as `Mfoil` (an alias) since the implementation follows Drela's `mfoil` derivation. The method has two modes:
 
-Note that we have also set `Xfoil=Xfoil` so you can also use the `Xfoil` method type with identical results.
-Currently, this method only includes the inviscid methods of Xfoil/Xfoil.
+- **Inviscid** (default): a linear-vortex panel solve over the airfoil. Returns an `InviscidOutputs` object.
+- **Viscous**: a coupled boundary-layer + inviscid solve. Set `viscous=true` and provide `Re`, `Mach`, and the other viscous knobs. Returns a NamedTuple (see [Viscous Mode](@ref) below).
+
+### Inviscid Mode
 
 ```@example Xfoil
 using FLOWFoil
@@ -21,13 +23,42 @@ x, y = AirfoilTools.naca4()
 
 angles_of_attack = range(-5.0, 15.0; step=1)
 
-# viscous solver not yet implemented
-method = Xfoil(viscous=false)
+method = Xfoil()
 
 outputs = analyze(x, y, angles_of_attack; method=method)
 ```
 
-Currently, the Xfoil method outputs are of type InviscidOutputs.  This is also the default method used in the [Quick Start](@ref).
+The inviscid Xfoil outputs are of type `InviscidOutputs`. This is also the default method used in the [Quick Start](@ref).
+
+### Viscous Mode
+
+When `viscous=true` is set, `analyze` runs the coupled mfoil-style boundary-layer + inviscid panel solve described by [Drela](https://doi.org/10.1007/978-3-642-84010-4_1) and [Fidkowski](https://doi.org/10.2514/1.J061341). Each angle of attack is solved independently via an internal loop. A worked example with plots lives on the [Additional Examples](@ref) page.
+
+```@example xfoil_viscous
+using FLOWFoil
+
+x, y = AirfoilTools.naca4(2.0, 4.0, 12.0; N=201, blunt_trailing_edge=true)
+
+method = Xfoil(viscous=true, Re=1e6, Mach=0.0, ncrit=9.0, etol=1e-10, maxiters=50)
+
+outputs = analyze([x y], [5.0]; method=method)
+nothing # hide
+```
+
+```@example xfoil_viscous
+(cl=outputs.cl[1],
+ cd=outputs.cd[1],
+ cm=outputs.cm[1],
+ transition_upper=outputs.transition_upper[1],
+ transition_lower=outputs.transition_lower[1],
+ converged=outputs.converged[1])
+```
+
+The viscous return is a flat NamedTuple. The top-level scalar fields per angle of attack are `cl`, `cd`, `cm`, `transition_upper`, `transition_lower`, and `converged`. The inviscid intermediates `gamma_ref` (node vortex strengths) and `A` (the linear-system influence matrix) are also exposed alongside. Per-station boundary-layer state for each α is in `outputs.per_alpha[i]` and includes `thetas_u/l/w`, `deltas_u/l/w`, `state3s_u/l/w` (laminar amplification factor `n` or turbulent shear-stress coefficient `cτ`), and the edge velocities `Veu`, `Vel`, `Vwake`.
+
+!!! note "Viscous-mode constraints"
+    - **Single body only.** A viscous run on a multi-body system raises an error.
+    - **Blunt trailing edge required.** Use `AirfoilTools.naca4(...; blunt_trailing_edge=true)` or supply your own blunt-TE coordinates.
 
 ```@docs
 FLOWFoil.Xfoil
