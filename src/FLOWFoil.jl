@@ -4,9 +4,12 @@ module FLOWFoil
 #           DEPENDENCIES          #
 #---------------------------------#
 using LinearAlgebra
+using SparseArrays
 using FLOWMath
 using ImplicitAD
 using SpecialFunctions
+import ForwardDiff
+import Roots
 import NeuralFoil as nf
 import Xfoil as xf
 
@@ -31,8 +34,20 @@ include("xfoil/panel_geometry.jl")
 include("xfoil/system_geometry.jl")
 include("xfoil/singularities.jl")
 include("xfoil/system_matrices.jl")
+include("xfoil/te_treatment_mfoil.jl")
 include("xfoil/solve.jl")
 include("xfoil/post_process.jl")
+
+# Xfoil viscous coupling (used when `Xfoil(viscous=true)`)
+include("xfoil/viscous/viscous_influence.jl")
+include("xfoil/viscous/viscous_geometry.jl")
+include("xfoil/viscous/viscous_wake.jl")
+include("xfoil/viscous/viscous_system.jl")
+include("xfoil/viscous/viscous_closures.jl")
+include("xfoil/viscous/viscous_residuals.jl")
+include("xfoil/viscous/viscous_initialization.jl")
+include("xfoil/viscous/viscous_solvers.jl")
+include("xfoil/viscous/viscous_coupling.jl")
 
 # Lewis (Axisymmetric)
 include("lewis/method.jl")

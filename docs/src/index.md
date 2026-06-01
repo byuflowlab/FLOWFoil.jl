@@ -10,13 +10,13 @@ The following table includes the list of currently available methods (usage can 
 
 |Method|[Xfoil](@ref) in Julia|[Lewis](@ref)|[Martensen](@ref)|[LegacyXfoil](@ref)|[NeuralFoil](@ref)|
 |---|---|---|---|---|---|
-Description|A re-derivation of the Xfoil method and implementation in Julia. Currently only the inviscid portions are derived/implemented. | An axisymmetric method, useful for ducts and bodies of revolution. | A periodic method (with optional planar functionality) for axial cascades. |  Wrapper of Xfoil.jl | Wrapper of NeuralFoil.jl |
+Description|A re-derivation of the Xfoil method, implemented in Julia, with both inviscid and viscous (boundary-layer-coupled) modes available. | An axisymmetric method, useful for ducts and bodies of revolution. | A periodic method (with optional planar functionality) for axial cascades. |  Wrapper of Xfoil.jl | Wrapper of NeuralFoil.jl |
 Panel Type | Linear Vortex (+ Constant Source) | Constant Vortex | Constant Vortex | Linear Vortex + Constant Source | N/A |
 Boundary Condition|Dirichlet|Dirichlet|Dirichlet|Dirichlet|N/A|
-Viscous|🚧|⭕️|⭕️|✅|✅|
+Viscous|✅|⭕️|⭕️|✅|✅|
 Single-body Functional|✅|✅|✅|✅|✅|
 Multi-body Functional|🚧|✅|🚧|❌|❌|
-Able to model blunt trailing edges|🚧|⭕️|⭕️|✅|✅|
+Able to model blunt trailing edges|✅|⭕️|⭕️|✅|✅|
 AD Compatible (ForwardDiff.jl)|✅|✅|✅|❌|✅|
 References or Wrapped Packages|[1](https://websites.umich.edu/~kfid/codes.html), [2](https://web.mit.edu/drela/Public/papers/xfoil_sv.pdf)|[3](https://doi.org/10.1017/CBO9780511529542) |[3](https://doi.org/10.1017/CBO9780511529542) | [Xfoil.jl](https://github.com/byuflowlab/Xfoil.jl)| [NeuralFoil.jl](https://github.com/byuflowlab/NeuralFoil.jl)  |
 

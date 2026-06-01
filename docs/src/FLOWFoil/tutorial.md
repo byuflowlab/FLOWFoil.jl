@@ -54,4 +54,6 @@ In this case, we are using the default [Xfoil](@ref) method and the outputs are 
 FLOWFoil.InviscidOutputs
 ```
 
+For viscous Xfoil runs (`Xfoil(viscous=true, …)`), `analyze` returns a flat NamedTuple instead of `InviscidOutputs` — see the [Viscous Mode](@ref) subsection in the tutorials and the worked example in [Additional Examples](@ref).
+
 See [Tutorials](@ref) for the various methods and additional output structure types.

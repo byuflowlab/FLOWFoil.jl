@@ -21,6 +21,18 @@ function post_process(
     )
 end
 
+# Convenience overload to absorb the `system_matrices` arg threaded through by `analyze`.
+function post_process(
+    method::Martensen,
+    panel_geometry,
+    system_geometry,
+    system_matrices,
+    strengths,
+    flow_angles,
+)
+    return post_process(method, panel_geometry, system_geometry, strengths, flow_angles)
+end
+
 """
     post_process(
         method::Martensen,

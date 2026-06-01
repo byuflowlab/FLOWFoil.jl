@@ -14,7 +14,12 @@ import Xfoil as xf
 
 @info("Inviscid Xfoil Tests")
 dir = joinpath(@__DIR__, "xfoil")
-for file in filter(f -> endswith(f, "tests.jl"), readdir(dir))
+for file in filter(f -> endswith(f, "tests.jl") && !startswith(f, "viscous"), readdir(dir))
+    include(joinpath(dir, file))
+end
+
+@info("Viscous Xfoil Tests")
+for file in filter(f -> startswith(f, "viscous") && endswith(f, "tests.jl"), readdir(dir))
     include(joinpath(dir, file))
 end
 

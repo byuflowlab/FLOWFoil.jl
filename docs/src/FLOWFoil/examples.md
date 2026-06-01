@@ -328,3 +328,63 @@ scatter(
 )
 plot!(xmid, outputs.cp[:, 2]; label="FLOWFoil")
 ```
+
+---
+
+## Viscous Xfoil: NACA 2412 boundary-layer state
+
+A worked example of the coupled viscous + inviscid Xfoil mode. Compare the inviscid and viscous pressure distributions on a NACA 2412 at α=5° and Re=1e6, and visualize the boundary-layer momentum thickness θ along the upper, lower, and wake surfaces.
+
+```@example xfoil_viscous_ex
+using FLOWFoil
+import FLOWFoil.AirfoilTools as at
+
+# Viscous Xfoil requires a blunt trailing edge airfoil
+x, y = at.naca4(2.0, 4.0, 12.0; N=201, blunt_trailing_edge=true)
+
+# Inviscid baseline
+out_inv = analyze([x y], [5.0]; method=Xfoil())
+
+# Viscous coupled solve
+out_vis = analyze([x y], [5.0]; method=Xfoil(viscous=true, Re=1e6, Mach=0.0,
+                                              ncrit=9.0, etol=1e-10, maxiters=50))
+nothing # hide
+```
+
+### Pressure distribution
+
+```@example xfoil_viscous_ex
+include("../assets/plots_default.jl") #hide
+plot(
+    x, -out_inv.cp[:, 1];
+    xlabel=L"x/c",
+    ylabel=L"-c_p",
+    label="Inviscid",
+    title="NACA 2412, α=5°, Re=1e6",
+    legend=:topright, # hide
+)
+plot!(x, -out_vis.per_alpha[1].cp; label="Viscous")
+```
+
+### Boundary-layer momentum thickness
+
+```@example xfoil_viscous_ex
+pa = out_vis.per_alpha[1]
+include("../assets/plots_default.jl") #hide
+plot(
+    pa.sl, pa.thetas_l;
+    xlabel=L"s\ \mathrm{(arclength\ from\ stagnation)}",
+    ylabel=L"\theta",
+    label="Lower",
+    title="Boundary-layer momentum thickness",
+    legend=:topleft, # hide
+)
+plot!(pa.su, pa.thetas_u; label="Upper")
+plot!(pa.sw .- pa.sw[1] .+ maximum(pa.su), pa.thetas_w; label="Wake")
+vline!([out_vis.transition_upper[1]];
+       label="Upper transition",
+       linestyle=:dash,
+       color=:gray)
+```
+
+The viscous Cp pulls below the inviscid line on the upper surface aft of the transition point — the displacement thickness from the turbulent boundary layer effectively de-cambers the airfoil there, reducing the suction peak strength further downstream. The θ plot shows the classic story: thin laminar boundary layer up to transition (~30% chord on the upper side), then a jump and faster growth in the turbulent region, and continued growth in the wake.
